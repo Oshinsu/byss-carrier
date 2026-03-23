@@ -122,10 +122,14 @@ export default function PricingPage() {
   const [prospectNames, setProspectNames] = useState<string[]>([]);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.from("prospects").select("name").order("name").then(({ data }) => {
-      setProspectNames(data?.map((p: { name: string }) => p.name) || []);
-    }).then(() => setLoading(false)).catch(() => setLoading(false));
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data } = await supabase.from("prospects").select("name").order("name");
+        setProspectNames(data?.map((p: { name: string }) => p.name) || []);
+      } catch { /* silent */ }
+      setLoading(false);
+    })();
   }, []);
 
   const prices = useMemo(() => {
