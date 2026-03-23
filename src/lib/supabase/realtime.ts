@@ -320,10 +320,10 @@ export function usePhiRealtime(maxItems = 20) {
   const [snapshots, setSnapshots] = useState<RealtimePhiSnapshot[]>([]);
 
   const handleChange = useCallback(
-    (type: "INSERT" | "UPDATE" | "DELETE", payload: RealtimePhiSnapshot) => {
-      if (type === "INSERT") {
+    (payload: RealtimePayload<RealtimePhiSnapshot>) => {
+      if (payload.eventType === "INSERT") {
         setSnapshots((prev) => {
-          const updated = [payload, ...prev].slice(0, maxItems);
+          const updated = [payload.new, ...prev].slice(0, maxItems);
           return updated;
         });
       }
@@ -360,10 +360,10 @@ export function useAgentMessagesRealtime(maxItems = 30) {
   const [messages, setMessages] = useState<RealtimeAgentMessage[]>([]);
 
   const handleChange = useCallback(
-    (type: "INSERT" | "UPDATE" | "DELETE", payload: RealtimeAgentMessage) => {
-      if (type === "INSERT") {
+    (payload: RealtimePayload<RealtimeAgentMessage>) => {
+      if (payload.eventType === "INSERT") {
         setMessages((prev) => {
-          const updated = [payload, ...prev].slice(0, maxItems);
+          const updated = [payload.new, ...prev].slice(0, maxItems);
           return updated;
         });
       }
@@ -401,15 +401,15 @@ export function useGulfStreamRealtime(maxItems = 20) {
   const [positions, setPositions] = useState<RealtimeGulfPosition[]>([]);
 
   const handleChange = useCallback(
-    (type: "INSERT" | "UPDATE" | "DELETE", payload: RealtimeGulfPosition) => {
-      if (type === "INSERT" || type === "UPDATE") {
+    (payload: RealtimePayload<RealtimeGulfPosition>) => {
+      if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
         setPositions((prev) => {
-          const filtered = prev.filter((p) => p.id !== payload.id);
-          return [payload, ...filtered].slice(0, maxItems);
+          const filtered = prev.filter((p) => p.id !== payload.new.id);
+          return [payload.new, ...filtered].slice(0, maxItems);
         });
       }
-      if (type === "DELETE") {
-        setPositions((prev) => prev.filter((p) => p.id !== payload.id));
+      if (payload.eventType === "DELETE") {
+        setPositions((prev) => prev.filter((p) => p.id !== (payload.old as RealtimeGulfPosition).id));
       }
     },
     [maxItems],
@@ -441,15 +441,15 @@ export function useContactsRealtime(maxItems = 50) {
   const [contacts, setContacts] = useState<RealtimeContact[]>([]);
 
   const handleChange = useCallback(
-    (type: "INSERT" | "UPDATE" | "DELETE", payload: RealtimeContact) => {
-      if (type === "INSERT") {
-        setContacts((prev) => [payload, ...prev].slice(0, maxItems));
+    (payload: RealtimePayload<RealtimeContact>) => {
+      if (payload.eventType === "INSERT") {
+        setContacts((prev) => [payload.new, ...prev].slice(0, maxItems));
       }
-      if (type === "UPDATE") {
-        setContacts((prev) => prev.map((c) => (c.id === payload.id ? payload : c)));
+      if (payload.eventType === "UPDATE") {
+        setContacts((prev) => prev.map((c) => (c.id === payload.new.id ? payload.new : c)));
       }
-      if (type === "DELETE") {
-        setContacts((prev) => prev.filter((c) => c.id !== payload.id));
+      if (payload.eventType === "DELETE") {
+        setContacts((prev) => prev.filter((c) => c.id !== (payload.old as RealtimeContact).id));
       }
     },
     [maxItems],

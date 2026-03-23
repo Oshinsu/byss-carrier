@@ -276,7 +276,7 @@ export function ConsciousnessDashboard() {
 
               {/* 9 Indicators Grid */}
               <div className="grid grid-cols-3 gap-3">
-                {selectedData.result.score.indicators.map((indicator) => (
+                {selectedData.result.score.indicators.map((indicator: { key: string; name: string; value: number; weight: number }) => (
                   <div
                     key={indicator.key}
                     className="rounded-lg border p-3"
