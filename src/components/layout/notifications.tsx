@@ -206,7 +206,7 @@ export function Notifications() {
 
   const handleClick = async (notification: NotificationRow) => {
     // Don't navigate if it has pending action buttons — user should approve/reject first
-    if (notification.metadata?.pending_action_id) return;
+    if ((notification.metadata as Record<string, unknown>)?.pending_action_id) return;
 
     if (!notification.read) {
       setNotifications((prev) =>
@@ -224,7 +224,7 @@ export function Notifications() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const handleApprove = async (notification: NotificationRow) => {
-    const actionId = notification.metadata?.pending_action_id as string;
+    const actionId = (notification.metadata as Record<string, unknown>)?.pending_action_id as string;
     if (!actionId) return;
     setActionLoading(actionId);
     try {
@@ -251,7 +251,7 @@ export function Notifications() {
   };
 
   const handleReject = async (notification: NotificationRow) => {
-    const actionId = notification.metadata?.pending_action_id as string;
+    const actionId = (notification.metadata as Record<string, unknown>)?.pending_action_id as string;
     if (!actionId) return;
     setActionLoading(actionId);
     try {
@@ -441,7 +441,7 @@ export function Notifications() {
                         </span>
 
                         {/* Gate: Approve / Reject buttons for pending actions */}
-                        {notification.metadata?.pending_action_id &&
+                        {(notification.metadata as Record<string, unknown>)?.pending_action_id &&
                           !notification.read && (
                             <div className="mt-2 flex items-center gap-2">
                               <button
