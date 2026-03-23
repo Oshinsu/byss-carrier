@@ -109,7 +109,7 @@ export async function callOpenRouter(params: {
           duration_ms: Date.now() - startTime,
           success: true,
           metadata: { task, provider: "openrouter" },
-        });
+        } as any);
       } catch {} // Fire and forget
 
       return result;
@@ -171,7 +171,7 @@ export async function callOpenRouter(params: {
       duration_ms: Date.now() - startTime,
       success: true,
       metadata: { task, provider: "anthropic_fallback" },
-    });
+    } as any);
   } catch {} // Fire and forget
 
   return result;

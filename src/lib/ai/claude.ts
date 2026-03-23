@@ -290,7 +290,7 @@ async function callClaude(
       duration_ms: Date.now() - startTime,
       success: true,
       metadata: { taskHint },
-    });
+    } as any);
   } catch {} // Fire and forget
 
   const textBlock = response.content.find((block) => block.type === "text");
