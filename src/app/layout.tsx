@@ -9,7 +9,12 @@ export const metadata: Metadata = {
   title: "BYSS GROUP — Premier Studio IA de la Martinique",
   description:
     "BYSS GROUP est le premier studio IA de la Martinique. Nous concevons des solutions d'intelligence artificielle sur mesure pour transformer votre activite et accelerer votre croissance.",
-  metadataBase: new URL("https://byssgroup.fr"),
+  metadataBase: new URL("https://byss-carrier.netlify.app"),
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "BYSS CARRIER",
+  },
   icons: {
     icon: "/favicon.svg",
   },

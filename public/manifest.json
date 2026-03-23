@@ -1,16 +1,54 @@
 {
-  "name": "BYSS GROUP — Porte-Avions",
+  "name": "BYSS CARRIER — The Executor",
   "short_name": "BYSS",
-  "description": "Premier studio IA de la Martinique. 15 temples. 1 système.",
+  "description": "Vaisseau amiral du BYSS EMPIRE. CRM + Production + Intelligence + Finance + Village IA + JARVIS.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0A0A0F",
-  "theme_color": "#D4AF37",
+  "orientation": "any",
+  "background_color": "#06080F",
+  "theme_color": "#00B4D8",
+  "categories": ["business", "productivity", "finance"],
+  "lang": "fr",
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "JARVIS",
+      "short_name": "Voice",
+      "description": "Assistant vocal IA",
+      "url": "/jarvis",
+      "icons": [{ "src": "/favicon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Pipeline",
+      "short_name": "CRM",
+      "description": "Pipeline commercial",
+      "url": "/pipeline"
+    },
+    {
+      "name": "Gulf Stream",
+      "short_name": "Trading",
+      "description": "Trading & positions",
+      "url": "/gulf-stream"
     }
   ]
 }
