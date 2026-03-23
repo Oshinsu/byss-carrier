@@ -55,7 +55,8 @@ function useSpeechRecognition() {
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recognition.onresult = (event: any) => {
         let interim = "";
         let final = "";
         for (let i = event.resultIndex; i < event.results.length; i++) {
@@ -118,14 +119,16 @@ function useSpeechRecognition() {
 function useSpeechSynthesis() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(true);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const utteranceRef = useRef<any>(null);
 
   const speak = useCallback((text: string) => {
     if (!ttsEnabled || typeof window === "undefined") return;
 
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const utterance = new (window as any).SpeechSynthesisUtterance(text);
     utterance.lang = "fr-FR";
     utterance.rate = 1.05;
     utterance.pitch = 0.95;
