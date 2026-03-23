@@ -90,9 +90,10 @@ export default function MartiniquePage() {
       setLoadingProspects(true);
       try {
         const supabase = createClient();
-        const { data } = await supabase.from("prospects").select("id, name, sector, status, city").order("name");
+        const { data, error } = await supabase.from("prospects").select("id, name, sector, status, city").order("name").limit(500);
+        if (error) console.error("Martinique prospects:", error.message);
         if (data) setProspects(data);
-      } catch { /* silent */ } finally { setLoadingProspects(false); }
+      } catch (e) { console.error("Martinique load:", e); } finally { setLoadingProspects(false); }
     };
     load();
   }, [activeTab]);

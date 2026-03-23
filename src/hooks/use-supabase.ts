@@ -225,7 +225,8 @@ export function usePipelineStats() {
 
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("pipeline_stats").select("*");
+      const { data, error } = await supabase.from("pipeline_stats").select("*").limit(100);
+      if (error) { console.error("Pipeline stats:", error.message); return; }
       if (data) {
         const map: typeof stats = {};
         for (const row of data) {

@@ -40,19 +40,21 @@ export async function getProspectInteractions(prospectId: string) {
 
 export async function addInteraction(interaction: Omit<Interaction, "id" | "created_at">) {
   const supabase = await createServerClient();
-  const { data, error } = await supabase.from("interactions").insert(interaction).select().single();
-  if (error) throw error;
-  // Update prospect's last_contact
-  await supabase
-    .from("prospects")
-    .update({ last_contact: new Date().toISOString().split("T")[0], updated_at: new Date().toISOString() })
-    .eq("id", interaction.prospect_id);
-  return data as Interaction;
+  const now = new Date().toISOString();
+  // Parallel: insert interaction + update prospect timestamp
+  const [insertRes, _updateRes] = await Promise.all([
+    supabase.from("interactions").insert(interaction).select().single(),
+    supabase.from("prospects")
+      .update({ last_contact: now.split("T")[0], updated_at: now })
+      .eq("id", interaction.prospect_id),
+  ]);
+  if (insertRes.error) throw insertRes.error;
+  return insertRes.data as Interaction;
 }
 
 export async function getPipelineStats() {
   const supabase = await createServerClient();
-  const { data, error } = await supabase.from("pipeline_stats").select("*");
+  const { data, error } = await supabase.from("pipeline_stats").select("*").limit(100);
   if (error) throw error;
   return data;
 }
