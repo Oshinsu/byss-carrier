@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/client";
 import { createNotification } from "@/lib/notifications";
+import { useToast } from "@/hooks/use-toast";
 
 /* ═══════════════════════════════════════════════════════
    BYSS GROUP — Feedback Loop Page
@@ -256,6 +257,7 @@ function KpiCard({
    MAIN PAGE
    ═══════════════════════════════════════════════════════ */
 export default function FeedbackPage() {
+  const { toast } = useToast();
   const [clients, setClients] = useState<SignedClient[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedClient, setExpandedClient] = useState<string | null>(null);
@@ -359,17 +361,18 @@ export default function FeedbackPage() {
       .maybeSingle();
 
     if (existing) {
-      await supabase
+      const { error } = await supabase
         .from("feedback_timeline")
         .update({
           completed: newCompleted,
           completed_date: newCompleted ? now.split("T")[0] : null,
         })
         .eq("id", existing.id);
+      if (error) { toast("Erreur: " + error.message, "error"); setTogglingStep(null); return; }
     } else {
       // Insert a new row for this step
       const template = DEFAULT_TIMELINE.find((t) => t.key === stepKey);
-      await supabase.from("feedback_timeline").insert({
+      const { error } = await supabase.from("feedback_timeline").insert({
         prospect_id: clientId,
         step_key: stepKey,
         label: template?.label || step.label,
@@ -378,7 +381,10 @@ export default function FeedbackPage() {
         completed_date: newCompleted ? now.split("T")[0] : null,
         delivery_date: client.deliveryDate,
       });
+      if (error) { toast("Erreur: " + error.message, "error"); setTogglingStep(null); return; }
     }
+
+    toast("Etape validee", "success");
 
     // Update local state
     setClients((prev) =>

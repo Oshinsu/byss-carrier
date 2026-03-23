@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { createNotification } from "@/lib/notifications";
+import { useToast } from "@/hooks/use-toast";
 import { onVideoCompleted } from "@/lib/synergies";
 import { VIDEO_STATUS_CONFIG } from "@/lib/constants";
 import type { VideoStatus, VideoTier } from "@/types";
@@ -169,6 +170,7 @@ const PROVIDER_SPECS: ProviderSpec[] = [
 ];
 
 export default function VideoPage() {
+  const { toast } = useToast();
   const [videos, setVideos] = useState<VideoItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<VideoStatus | null>(null);
@@ -209,7 +211,7 @@ export default function VideoPage() {
     if (!form.title.trim()) return;
     setSubmitting(true);
     const supabase = createClient();
-    await supabase.from("videos").insert({
+    const { error } = await supabase.from("videos").insert({
       title: form.title,
       prospect_id: form.prospect_id || null,
       brief: form.brief || null,
@@ -219,6 +221,8 @@ export default function VideoPage() {
       api_cost: 0,
       billed_price: Number(TIER_CONFIG[form.tier]?.price?.replace(/[^0-9]/g, "") || 0),
     });
+    if (error) { toast("Erreur: " + error.message, "error"); setSubmitting(false); return; }
+    toast("Video creee", "success");
     await createNotification(
       "system",
       "Nouvelle video creee",
@@ -234,7 +238,8 @@ export default function VideoPage() {
   const handleStatusChange = async (video: VideoItem, newStatus: VideoStatus) => {
     const supabase = createClient();
     const { error } = await supabase.from("videos").update({ status: newStatus }).eq("id", video.id);
-    if (error) return;
+    if (error) { toast("Erreur: " + error.message, "error"); return; }
+    toast("Statut mis a jour", "success");
 
     // Synergy: video delivered/published → notification
     if (newStatus === "delivered" || newStatus === "published") {

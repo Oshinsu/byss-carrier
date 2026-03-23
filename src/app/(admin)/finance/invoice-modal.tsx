@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 /* ═══════════════════════════════════════════════════════
    BYSS GROUP — Invoice Creation Modal
@@ -63,6 +64,7 @@ export default function InvoiceModal({
   onCreated,
   nextInvoiceNumber,
 }: InvoiceModalProps) {
+  const { toast } = useToast();
   // Form state
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [selectedProspect, setSelectedProspect] = useState("");
@@ -187,10 +189,12 @@ export default function InvoiceModal({
 
       if (insertError) throw insertError;
 
+      toast("Facture creee — " + nextInvoiceNumber, "success");
       onCreated();
       onClose();
     } catch (err) {
       console.error("Invoice creation error:", err);
+      toast("Erreur creation facture", "error");
       setError(
         err instanceof Error
           ? err.message
