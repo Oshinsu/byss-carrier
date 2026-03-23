@@ -38,7 +38,7 @@ const CATEGORIES = [
   { key: "db", label: "Database & Auth", icon: Database, count: 3, color: "text-emerald-400" },
   { key: "comm", label: "Communication", icon: MessageSquare, count: 2, color: "text-blue-400" },
   { key: "finance", label: "Finance", icon: CreditCard, count: 3, color: "text-amber-400" },
-  { key: "data", label: "Data & Intelligence", icon: BarChart3, count: 5, color: "text-cyan-400" },
+  { key: "data", label: "Data & Intelligence", icon: BarChart3, count: 8, color: "text-cyan-400" },
   { key: "docs", label: "Documents", icon: FileSignature, count: 2, color: "text-pink-400" },
   { key: "orch", label: "Orchestration", icon: Settings2, count: 2, color: "text-[var(--color-gold)]" },
 ] as const;
@@ -156,6 +156,26 @@ const ALL_SERVICES: ServiceEntry[] = [
     monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 0, 0, 0, 0, 0], category: "data",
   },
 
+  // ── APIs Gouvernementales (3) ──
+  {
+    id: "sirene-gouv", service: "API Sirene (Recherche Entreprises)", envVar: "—",
+    configured: true, purpose: "SIRET, NAF, effectifs — enrichissement CRM auto",
+    getKeyUrl: "https://recherche-entreprises.api.gouv.fr", icon: "SE", iconColor: "text-blue-400",
+    monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 0, 0, 0, 0, 0], category: "data",
+  },
+  {
+    id: "adresse-ban", service: "API Adresse BAN", envVar: "—",
+    configured: true, purpose: "Geocodage, reverse geocode, autocompletion adresses",
+    getKeyUrl: "https://api-adresse.data.gouv.fr", icon: "AD", iconColor: "text-green-400",
+    monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 0, 0, 0, 0, 0], category: "data",
+  },
+  {
+    id: "geo-api", service: "API Geo (communes)", envVar: "—",
+    configured: true, purpose: "Communes, departements, populations — Martinique 972",
+    getKeyUrl: "https://geo.api.gouv.fr", icon: "GE", iconColor: "text-teal-400",
+    monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 0, 0, 0, 0, 0], category: "data",
+  },
+
   // ── Documents (2) ──
   {
     id: "documenso", service: "Documenso", envVar: "DOCUMENSO_API_KEY",
@@ -236,6 +256,15 @@ function EnvValue({ envVar, configured }: { envVar: string; configured: boolean 
 
   if (!configured) {
     return <span className="text-[10px] italic text-red-400/70">Non configure</span>;
+  }
+
+  // APIs gouvernementales gratuites — pas de cle
+  if (envVar === "—") {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+        <CheckCircle2 className="h-3 w-3" /> Gratuit
+      </span>
+    );
   }
 
   return (
@@ -346,7 +375,7 @@ export default function ApiKeysPage() {
       <PageHeader
         title="API"
         titleAccent="Keys"
-        subtitle="21 services, 7 categories — toutes les cles de l'Empire"
+        subtitle="24 services, 7 categories — toutes les cles de l'Empire"
       />
 
       {/* ── KPIs ── */}
@@ -357,7 +386,7 @@ export default function ApiKeysPage() {
             <span className="text-xs text-[var(--color-text-muted)]">Configures</span>
           </div>
           <div className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-emerald-400">
-            {configuredCount}<span className="text-base text-[var(--color-text-muted)]">/21</span>
+            {configuredCount}<span className="text-base text-[var(--color-text-muted)]">/24</span>
           </div>
         </div>
         <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4">
@@ -366,7 +395,7 @@ export default function ApiKeysPage() {
             <span className="text-xs text-[var(--color-text-muted)]">Manquants</span>
           </div>
           <div className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-red-400">
-            {missingCount}<span className="text-base text-[var(--color-text-muted)]">/21</span>
+            {missingCount}<span className="text-base text-[var(--color-text-muted)]">/24</span>
           </div>
         </div>
         <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4">

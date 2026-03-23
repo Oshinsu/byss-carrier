@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import {
   Search, Users, Building, Mail, Phone, MapPin,
   Filter, SortAsc, Download, Plus, Star, X, Trash2,
+  Zap, Loader2, CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -45,6 +46,10 @@ const EMPTY_FORM = {
   fonction: "",
   vertical: "",
   influence_score: 5,
+  siret: "",
+  codeNAF: "",
+  adresseEnrichie: "",
+  effectif: "",
 };
 
 export default function ContactsPage() {
@@ -56,6 +61,8 @@ export default function ContactsPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
+  const [enriching, setEnriching] = useState(false);
+  const [enriched, setEnriched] = useState(false);
   const { toast } = useToast();
 
   const fetchContacts = async () => {
@@ -97,6 +104,7 @@ export default function ContactsPage() {
     setFormData(EMPTY_FORM);
     setShowAddForm(false);
     setSubmitting(false);
+    setEnriched(false);
     await fetchContacts();
   };
 
@@ -109,6 +117,41 @@ export default function ContactsPage() {
     }
     setContacts((prev) => prev.filter((c) => c.id !== id));
     toast("Contact supprimé", "success");
+  };
+
+  const handleEnrichSirene = async () => {
+    const entreprise = formData.entreprise.trim();
+    if (!entreprise) {
+      toast("Saisis un nom d'entreprise d'abord", "error");
+      return;
+    }
+    setEnriching(true);
+    setEnriched(false);
+    try {
+      const res = await fetch(`/api/sirene?q=${encodeURIComponent(entreprise)}`);
+      if (!res.ok) throw new Error("Erreur API");
+      const { results } = await res.json();
+      if (!results || results.length === 0) {
+        toast("Aucune entreprise trouvee dans SIRENE", "error");
+        setEnriching(false);
+        return;
+      }
+      const best = results[0];
+      setFormData((prev) => ({
+        ...prev,
+        siret: best.siret || "",
+        codeNAF: best.codeNAF || "",
+        adresseEnrichie: [best.adresse, best.codePostal, best.commune].filter(Boolean).join(", "),
+        effectif: best.trancheEffectif || best.effectif || "",
+        entreprise: best.denomination || prev.entreprise,
+      }));
+      setEnriched(true);
+      toast(`Enrichi via SIRENE — ${best.denomination}`, "success");
+    } catch {
+      toast("Echec enrichissement SIRENE", "error");
+    } finally {
+      setEnriching(false);
+    }
   };
 
   const filtered = useMemo(() => {
@@ -334,7 +377,7 @@ export default function ContactsPage() {
           >
             {/* Close */}
             <button
-              onClick={() => { setShowAddForm(false); setFormData(EMPTY_FORM); }}
+              onClick={() => { setShowAddForm(false); setFormData(EMPTY_FORM); setEnriched(false); }}
               className="absolute right-4 top-4 rounded-lg p-1 text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
             >
               <X className="h-5 w-5" />
@@ -353,8 +396,6 @@ export default function ContactsPage() {
                 { key: "prenom", label: "Prenom", placeholder: "Jean" },
                 { key: "email", label: "Email", placeholder: "jean@exemple.com" },
                 { key: "telephone", label: "Telephone", placeholder: "+596 ..." },
-                { key: "entreprise", label: "Entreprise", placeholder: "Nom de l'entreprise" },
-                { key: "fonction", label: "Fonction", placeholder: "Directeur, Manager..." },
               ].map((field) => (
                 <div key={field.key}>
                   <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
@@ -369,6 +410,102 @@ export default function ContactsPage() {
                   />
                 </div>
               ))}
+
+              {/* Entreprise + Enrichir SIRENE */}
+              <div>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+                  Entreprise
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={formData.entreprise}
+                    onChange={(e) => { setFormData((prev) => ({ ...prev, entreprise: e.target.value })); setEnriched(false); }}
+                    placeholder="Nom de l'entreprise"
+                    className="w-full rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-gold)] focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleEnrichSirene}
+                    disabled={enriching || !formData.entreprise.trim()}
+                    className={cn(
+                      "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-[10px] font-bold uppercase tracking-wider transition-all disabled:opacity-40",
+                      enriched
+                        ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                        : "border border-[var(--color-gold-muted)] bg-[var(--color-gold-glow)] text-[var(--color-gold)] hover:bg-[var(--color-gold)]/20"
+                    )}
+                  >
+                    {enriching ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : enriched ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Zap className="h-3.5 w-3.5" />}
+                    {enriching ? "..." : enriched ? "Enrichi" : "Enrichir"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Fonction */}
+              <div>
+                <label className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">
+                  Fonction
+                </label>
+                <input
+                  type="text"
+                  value={formData.fonction}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, fonction: e.target.value }))}
+                  placeholder="Directeur, Manager..."
+                  className="w-full rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-gold)] focus:outline-none"
+                />
+              </div>
+
+              {/* SIRENE enriched fields */}
+              {enriched && (
+                <>
+                  <div>
+                    <label className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                      <CheckCircle2 className="h-3 w-3" /> SIRET
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.siret}
+                      readOnly
+                      className="w-full rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-300 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                      <CheckCircle2 className="h-3 w-3" /> Code NAF
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.codeNAF}
+                      readOnly
+                      className="w-full rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-300 font-mono"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <label className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                      <CheckCircle2 className="h-3 w-3" /> Adresse SIRENE
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.adresseEnrichie}
+                      readOnly
+                      className="w-full rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-300"
+                    />
+                  </div>
+                  {formData.effectif && (
+                    <div>
+                      <label className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                        <CheckCircle2 className="h-3 w-3" /> Effectif
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.effectif}
+                        readOnly
+                        className="w-full rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-300 font-mono"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
 
               {/* Vertical / Sector */}
               <div>
@@ -406,7 +543,7 @@ export default function ContactsPage() {
             {/* Actions */}
             <div className="mt-6 flex justify-end gap-3">
               <button
-                onClick={() => { setShowAddForm(false); setFormData(EMPTY_FORM); }}
+                onClick={() => { setShowAddForm(false); setFormData(EMPTY_FORM); setEnriched(false); }}
                 className="rounded-lg border border-[var(--color-border-subtle)] px-4 py-2 text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
               >
                 Annuler

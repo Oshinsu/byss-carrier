@@ -63,8 +63,8 @@
       }
     },
     "datagouv": {
-      "command": "npx",
-      "args": ["-y", "datagouv-mcp"]
+      "type": "http",
+      "url": "https://mcp.data.gouv.fr/mcp"
     },
     "mcp-insee": {
       "command": "npx",

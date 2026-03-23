@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 // ═══════════════════════════════════════════════════════
 // data.gouv.fr API proxy — BYSS GROUP
 // Endpoints: search datasets, get organization data
+// Redirects: sirene → /api/sirene, adresse → /api/adresse, geo → /api/geo
 // ═══════════════════════════════════════════════════════
 
 const BASE_URL = "https://www.data.gouv.fr/api/1";
@@ -12,6 +13,20 @@ export async function GET(request: NextRequest) {
   const action = searchParams.get("action");
   const query = searchParams.get("q");
   const org = searchParams.get("org");
+
+  // ── Redirects vers les routes specialisees ──
+  if (action === "sirene") {
+    const q = searchParams.get("q") || "";
+    return NextResponse.redirect(new URL(`/api/sirene?q=${encodeURIComponent(q)}`, request.url));
+  }
+  if (action === "adresse") {
+    const q = searchParams.get("q") || "";
+    return NextResponse.redirect(new URL(`/api/adresse?q=${encodeURIComponent(q)}`, request.url));
+  }
+  if (action === "geo") {
+    const dep = searchParams.get("dep") || "972";
+    return NextResponse.redirect(new URL(`/api/geo?dep=${encodeURIComponent(dep)}`, request.url));
+  }
 
   try {
     let url: string;
@@ -30,16 +45,12 @@ export async function GET(request: NextRequest) {
         // Martinique specific datasets
         url = `${BASE_URL}/datasets/?q=${encodeURIComponent(query ?? "martinique")}&tag=martinique&page_size=20`;
         break;
-      case "sirene":
-        // Entreprises (SIRENE)
-        url = `${BASE_URL}/datasets/?q=${encodeURIComponent(query ?? "sirene entreprises")}&page_size=5`;
-        break;
       case "emploi":
         // France Travail / Pole Emploi data
         url = `${BASE_URL}/datasets/?q=${encodeURIComponent(query ?? "offres emploi martinique")}&page_size=10`;
         break;
       default:
-        return NextResponse.json({ error: "Action requise: search, organization, territory, sirene, emploi" }, { status: 400 });
+        return NextResponse.json({ error: "Action requise: search, organization, territory, emploi (sirene/adresse/geo → routes dediees)" }, { status: 400 });
     }
 
     const apiKey = process.env.DATAGOUV_API_KEY;
