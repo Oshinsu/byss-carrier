@@ -106,9 +106,8 @@ export async function generateDailyReport(): Promise<string> {
     content: report,
     metadata: { metrics },
     created_at: new Date().toISOString(),
-  }).catch(() => {
-    // insights table may not exist yet — silent
   });
+  // insights table may not exist yet — silent
 
   return report;
 }
