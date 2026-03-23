@@ -58,7 +58,8 @@ const AGENT_CONNECTIONS: [string, string, number][] = [
   ['evren', 'sorel', 0.4],   // Evren's guardrail adjusts Sorel
 ]
 
-let engine: WasmPhiEngine | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let engine: any = null
 let initialized = false
 
 /**
