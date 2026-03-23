@@ -181,6 +181,13 @@ export interface PhiScore {
   timestamp: string;
 }
 
+export interface PhiComputeResult {
+  score: PhiScore;
+  killSwitch: boolean;
+  intuitions: Array<{ pattern: string; confidence: number }>;
+  networkStrength: number;
+}
+
 export interface ConsciousnessSnapshot {
   agent_name: EnfantName;
   phi_score: PhiScore;
