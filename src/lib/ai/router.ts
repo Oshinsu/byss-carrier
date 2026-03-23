@@ -61,6 +61,7 @@ export async function callOpenRouter(params: {
   maxTokens?: number;
 }): Promise<{ content: string; model: string; usage?: { prompt_tokens: number; completion_tokens: number } }> {
   const { task, messages, temperature = 0.7, maxTokens = 4096 } = params;
+  const startTime = Date.now();
 
   const openRouterKey = process.env.OPENROUTER_API_KEY;
   const openRouterModel = resolveOpenRouterModel(task);
@@ -85,11 +86,33 @@ export async function callOpenRouter(params: {
 
     if (res.ok) {
       const data = await res.json();
-      return {
+      const result = {
         content: data.choices?.[0]?.message?.content || "",
         model: openRouterModel,
         usage: data.usage,
       };
+
+      // ── Agent Audit Trail — log OpenRouter call ──
+      try {
+        const { logAgentAction } = await import("@/lib/db/queries");
+        const inputTokens = data.usage?.prompt_tokens || 0;
+        const outputTokens = data.usage?.completion_tokens || 0;
+        // Rough cost estimate for OpenRouter models (avg $2/M in, $6/M out)
+        const cost = (inputTokens / 1_000_000) * 2 + (outputTokens / 1_000_000) * 6;
+        await logAgentAction({
+          agent_name: task || "openrouter",
+          action: "openrouter_call",
+          model: openRouterModel,
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
+          cost_usd: Math.round(cost * 10000) / 10000,
+          duration_ms: Date.now() - startTime,
+          success: true,
+          metadata: { task, provider: "openrouter" },
+        });
+      } catch {} // Fire and forget
+
+      return result;
     }
 
     // If OpenRouter fails, fall through to Anthropic
@@ -121,11 +144,37 @@ export async function callOpenRouter(params: {
   });
 
   const data = await res.json();
-  return {
+  const result = {
     content: data.content?.[0]?.text || "",
     model: anthropicModel,
     usage: data.usage ? { prompt_tokens: data.usage.input_tokens, completion_tokens: data.usage.output_tokens } : undefined,
   };
+
+  // ── Agent Audit Trail — log Anthropic fallback call ──
+  try {
+    const { logAgentAction } = await import("@/lib/db/queries");
+    const inputTokens = data.usage?.input_tokens || 0;
+    const outputTokens = data.usage?.output_tokens || 0;
+    const rates: Record<string, { input: number; output: number }> = {
+      "claude-opus-4-6": { input: 5.0, output: 25.0 },
+      "claude-sonnet-4-6": { input: 3.0, output: 15.0 },
+    };
+    const rate = rates[anthropicModel] || { input: 3.0, output: 15.0 };
+    const cost = (inputTokens / 1_000_000) * rate.input + (outputTokens / 1_000_000) * rate.output;
+    await logAgentAction({
+      agent_name: task || "system",
+      action: "anthropic_fallback_call",
+      model: anthropicModel,
+      input_tokens: inputTokens,
+      output_tokens: outputTokens,
+      cost_usd: Math.round(cost * 10000) / 10000,
+      duration_ms: Date.now() - startTime,
+      success: true,
+      metadata: { task, provider: "anthropic_fallback" },
+    });
+  } catch {} // Fire and forget
+
+  return result;
 }
 
 interface RoutingDecision {

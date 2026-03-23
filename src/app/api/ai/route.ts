@@ -9,6 +9,7 @@ import {
   commandBar,
 } from "@/lib/ai/claude";
 import { logAgentAction } from "@/lib/db/queries";
+import { buildRAGContext } from "@/lib/ai/rag";
 
 // ═══════════════════════════════════════════════════════
 // BYSS GROUP — AI API Route
@@ -119,11 +120,20 @@ ${customPrompt ? `\nInstruction supplementaire de l'utilisateur :\n${customPromp
 
 Redige l'email en MODE_CADIFOR. Voix de Sorel : directe, strategique, Martinique-aware.`;
 
+        // RAG: inject lore context for email generation
+        const ragContext = await buildRAGContext(
+          (prospect?.sector || "") + " " + (prospect?.pain_points || ""),
+          { sourceTable: "lore_entries", limit: 5 }
+        );
+        const emailSystemWithRAG = ragContext
+          ? sorelEmailSystem + "\n\n" + ragContext
+          : sorelEmailSystem;
+
         const response = await anthropic.messages.create({
           model,
           max_tokens: 2048,
           temperature: 0.7,
-          system: sorelEmailSystem,
+          system: emailSystemWithRAG,
           messages: [{ role: "user", content: userMessage }],
         });
 
@@ -212,11 +222,18 @@ Redige l'email en MODE_CADIFOR. Voix de Sorel : directe, strategique, Martinique
         const agentName = data.agent ?? "sorel";
         model = agentName === "kael" || agentName === "evren" ? "claude-opus-4-6" : "claude-sonnet-4-6";
 
+        // RAG: inject semantic context from all sources
+        const chatMessages = data.messages ?? [];
+        const lastUserMessage = [...chatMessages].reverse().find((m: { role: string }) => m.role === "user")?.content || "";
+        const ragContext = await buildRAGContext(lastUserMessage, { limit: 5 });
+        const chatSystemPrompt = (agentPrompts[agentName] ?? agentPrompts.sorel)
+          + (ragContext ? "\n\n" + ragContext : "");
+
         const response = await anthropic.messages.create({
           model,
           max_tokens: 2048,
-          system: agentPrompts[agentName] ?? agentPrompts.sorel,
-          messages: (data.messages ?? []).map((m: { role: string; content: string }) => ({
+          system: chatSystemPrompt,
+          messages: (chatMessages).map((m: { role: string; content: string }) => ({
             role: m.role as "user" | "assistant",
             content: m.content,
           })),

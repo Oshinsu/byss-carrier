@@ -14,6 +14,8 @@ import {
   CheckCheck,
   Trash2,
   X,
+  ShieldCheck,
+  ShieldX,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -203,6 +205,9 @@ export function Notifications() {
   };
 
   const handleClick = async (notification: NotificationRow) => {
+    // Don't navigate if it has pending action buttons — user should approve/reject first
+    if (notification.metadata?.pending_action_id) return;
+
     if (!notification.read) {
       setNotifications((prev) =>
         prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n)),
@@ -212,6 +217,62 @@ export function Notifications() {
     setOpen(false);
     if (notification.action_url) {
       router.push(notification.action_url);
+    }
+  };
+
+  /* ─── Gate: Approve / Reject pending actions ─── */
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleApprove = async (notification: NotificationRow) => {
+    const actionId = notification.metadata?.pending_action_id as string;
+    if (!actionId) return;
+    setActionLoading(actionId);
+    try {
+      const supabase = createClient();
+      await supabase
+        .from("pending_actions")
+        .update({
+          status: "approved",
+          approved_by: "gary",
+          decided_at: new Date().toISOString(),
+        })
+        .eq("id", actionId)
+        .eq("status", "pending");
+      // Mark notification as read
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n)),
+      );
+      await markNotificationRead(notification.id);
+    } catch (err) {
+      console.error("[notifications] approve failed:", err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleReject = async (notification: NotificationRow) => {
+    const actionId = notification.metadata?.pending_action_id as string;
+    if (!actionId) return;
+    setActionLoading(actionId);
+    try {
+      const supabase = createClient();
+      await supabase
+        .from("pending_actions")
+        .update({
+          status: "rejected",
+          decided_at: new Date().toISOString(),
+        })
+        .eq("id", actionId)
+        .eq("status", "pending");
+      // Mark notification as read
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n)),
+      );
+      await markNotificationRead(notification.id);
+    } catch (err) {
+      console.error("[notifications] reject failed:", err);
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -378,6 +439,43 @@ export function Notifications() {
                         <span className="mt-1 block text-[10px] text-[#6A6A7A]">
                           {timeAgo(notification.created_at)}
                         </span>
+
+                        {/* Gate: Approve / Reject buttons for pending actions */}
+                        {notification.metadata?.pending_action_id &&
+                          !notification.read && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleApprove(notification);
+                                }}
+                                disabled={
+                                  actionLoading ===
+                                  (notification.metadata
+                                    ?.pending_action_id as string)
+                                }
+                                className="flex items-center gap-1 rounded-md bg-emerald-500/15 px-2.5 py-1 text-[11px] font-medium text-emerald-400 transition-colors hover:bg-emerald-500/25 disabled:opacity-50"
+                              >
+                                <ShieldCheck className="h-3 w-3" />
+                                Approuver
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleReject(notification);
+                                }}
+                                disabled={
+                                  actionLoading ===
+                                  (notification.metadata
+                                    ?.pending_action_id as string)
+                                }
+                                className="flex items-center gap-1 rounded-md bg-red-500/15 px-2.5 py-1 text-[11px] font-medium text-red-400 transition-colors hover:bg-red-500/25 disabled:opacity-50"
+                              >
+                                <ShieldX className="h-3 w-3" />
+                                Rejeter
+                              </button>
+                            </div>
+                          )}
                       </div>
                     </motion.button>
                   );

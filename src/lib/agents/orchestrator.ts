@@ -6,6 +6,7 @@
 import { messageBus } from "./message-bus";
 import { getPhiEngine } from "@/lib/phi/engine";
 import { SEPT_ENFANTS_CONFIG } from "@/lib/constants";
+import { canAgentUseTool, toolRequiresGate } from "@/lib/tools/registry";
 import type { EnfantName, AgentMessage, MessagePriority } from "@/types";
 
 interface TaskClassification {
@@ -171,7 +172,40 @@ export class Orchestrator {
       };
     }
 
-    // Step 4: Route to target enfant
+    // Step 4: Tool access control — check agent permissions before routing
+    const detectedTool = context?.detectedTool as string | undefined;
+    const targetAgent = classification.enfant;
+
+    if (detectedTool && !canAgentUseTool(targetAgent, detectedTool)) {
+      return {
+        targetEnfant: "omnur" as EnfantName,
+        classification: {
+          ...classification,
+          enfant: "omnur" as EnfantName,
+          reasoning: `Agent ${targetAgent} n'a pas accès à l'outil ${detectedTool}`,
+        },
+        phiScore,
+      };
+    }
+
+    if (detectedTool && toolRequiresGate(detectedTool)) {
+      // Route through gates instead of direct execution
+      const { proposeAction } = await import("@/lib/agents/gates");
+      const description = context?.description as string || `${targetAgent} → ${detectedTool}`;
+      const payload = context?.payload as Record<string, unknown> || {};
+      await proposeAction(detectedTool, targetAgent, description, payload);
+
+      return {
+        targetEnfant: targetAgent,
+        classification: {
+          ...classification,
+          reasoning: `Action soumise pour approbation (gate: ${detectedTool})`,
+        },
+        phiScore,
+      };
+    }
+
+    // Step 5: Route to target enfant
     await messageBus.send("omnur", classification.enfant, "request", priority, {
       userInput,
       context,

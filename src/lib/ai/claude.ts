@@ -213,6 +213,23 @@ REGLES :
 // Helpers
 // ---------------------------------------------------------------------------
 
+// Cost calculation helper (per 1M tokens)
+function calculateCost(
+  model: string,
+  usage?: { input_tokens?: number; output_tokens?: number },
+): number {
+  if (!usage) return 0;
+  const rates: Record<string, { input: number; output: number }> = {
+    "claude-opus-4-6": { input: 5.0, output: 25.0 },
+    "claude-sonnet-4-6": { input: 3.0, output: 15.0 },
+  };
+  const rate = rates[model] || { input: 3.0, output: 15.0 };
+  return (
+    ((usage.input_tokens || 0) / 1_000_000) * rate.input +
+    ((usage.output_tokens || 0) / 1_000_000) * rate.output
+  );
+}
+
 async function callClaude(
   systemPrompt: string,
   userMessage: string,
@@ -223,6 +240,8 @@ async function callClaude(
     taskHint?: string; // Used by SOTAI v3 router for model selection
   } = {},
 ): Promise<string> {
+  const startTime = Date.now();
+
   // SOTAI v3: If no model specified and taskHint provided, use intelligent routing
   let resolvedModel = options.model;
   if (!resolvedModel && options.taskHint) {
@@ -241,6 +260,7 @@ async function callClaude(
   const {
     maxTokens = 4096,
     temperature = 0.7,
+    taskHint,
   } = options;
   const model = resolvedModel || "claude-sonnet-4-6";
 
@@ -256,6 +276,22 @@ async function callClaude(
       },
     ],
   });
+
+  // ── Agent Audit Trail — log every Anthropic call ──
+  try {
+    const { logAgentAction } = await import("@/lib/db/queries");
+    await logAgentAction({
+      agent_name: taskHint || "system",
+      action: "claude_call",
+      model: model,
+      input_tokens: response.usage?.input_tokens || 0,
+      output_tokens: response.usage?.output_tokens || 0,
+      cost_usd: calculateCost(model, response.usage),
+      duration_ms: Date.now() - startTime,
+      success: true,
+      metadata: { taskHint },
+    });
+  } catch {} // Fire and forget
 
   const textBlock = response.content.find((block) => block.type === "text");
   if (!textBlock || textBlock.type !== "text") {
@@ -292,6 +328,25 @@ export async function generateBriefing(
     .map((a) => `- ${a.prospectName}: ${a.action} (${a.date})`)
     .join("\n");
 
+  // Fetch latest 3 insights from medallion layer
+  let insightsBlock = "";
+  try {
+    const supabase = await createClient();
+    const { data: insights } = await supabase
+      .from("insights")
+      .select("type, title, content")
+      .order("created_at", { ascending: false })
+      .limit(3);
+
+    if (insights && insights.length > 0) {
+      insightsBlock = `\nInsights recents (medallion) :\n${insights
+        .map((i) => `- [${i.type}] ${i.title} — ${i.content}`)
+        .join("\n")}`;
+    }
+  } catch {
+    // Insights not available yet — non-blocking
+  }
+
   const userMessage = `Date : ${today}
 
 Donnees du pipeline :
@@ -306,6 +361,7 @@ Donnees du pipeline :
 
 Activites recentes :
 ${recentActivitySummary || "Aucune activite recente."}
+${insightsBlock}
 
 Genere le briefing matinal.`;
 
