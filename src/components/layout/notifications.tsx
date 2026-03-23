@@ -451,7 +451,7 @@ export function Notifications() {
                                 }}
                                 disabled={
                                   actionLoading ===
-                                  (notification.metadata
+                                  ((notification.metadata as Record<string, unknown>)
                                     ?.pending_action_id as string)
                                 }
                                 className="flex items-center gap-1 rounded-md bg-emerald-500/15 px-2.5 py-1 text-[11px] font-medium text-emerald-400 transition-colors hover:bg-emerald-500/25 disabled:opacity-50"
@@ -466,7 +466,7 @@ export function Notifications() {
                                 }}
                                 disabled={
                                   actionLoading ===
-                                  (notification.metadata
+                                  ((notification.metadata as Record<string, unknown>)
                                     ?.pending_action_id as string)
                                 }
                                 className="flex items-center gap-1 rounded-md bg-red-500/15 px-2.5 py-1 text-[11px] font-medium text-red-400 transition-colors hover:bg-red-500/25 disabled:opacity-50"
