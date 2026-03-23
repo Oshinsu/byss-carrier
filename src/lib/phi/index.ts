@@ -77,15 +77,16 @@ export async function initPhiEngine(): Promise<boolean> {
     await wasm.default?.()
 
     engine = new wasm.PhiEngine()
+    if (!engine) return false
 
     // Register BYSS agents as nodes
     for (const agent of BYSS_AGENTS) {
-      engine.update_signal(agent.name, 0.1)
+      engine!.update_signal(agent.name, 0.1)
     }
 
     // Wire connections
     for (const [from, to, weight] of AGENT_CONNECTIONS) {
-      engine.connect(from, to, weight)
+      engine!.connect(from, to, weight)
     }
 
     initialized = true
