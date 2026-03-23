@@ -22,6 +22,8 @@ import {
   Link2,
   Filter,
   BarChart3,
+  Banknote,
+  Terminal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -280,6 +282,144 @@ function EntityCard({
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DATA SECTION (Elections / Fiscalite)
+   ═══════════════════════════════════════════════════════════════ */
+function DataSection({
+  title,
+  icon: Icon,
+  iconColor,
+  type,
+  scriptPath,
+  emptyText,
+}: {
+  title: string;
+  icon: typeof Vote;
+  iconColor: string;
+  type: string;
+  scriptPath: string;
+  emptyText: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!open || loaded) return;
+    setLoading(true);
+    const supabase = createClient();
+    supabase
+      .from("intel_entities")
+      .select("*")
+      .eq("type", type)
+      .order("name", { ascending: true })
+      .limit(200)
+      .then(({ data }) => {
+        setRows(data || []);
+        setLoading(false);
+        setLoaded(true);
+      });
+  }, [open, loaded, type]);
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--color-surface-raised)]/30"
+      >
+        <div
+          className="flex h-8 w-8 items-center justify-center rounded-lg"
+          style={{ backgroundColor: `${iconColor}15` }}
+        >
+          <Icon className="h-4 w-4" style={{ color: iconColor }} />
+        </div>
+        <div className="flex-1">
+          <h3 className="text-sm font-semibold text-[var(--color-text)]">{title}</h3>
+          <p className="text-[10px] text-[var(--color-text-muted)]">{emptyText}</p>
+        </div>
+        {loaded && (
+          <span
+            className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+            style={{ backgroundColor: `${iconColor}15`, color: iconColor }}
+          >
+            {rows.length}
+          </span>
+        )}
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-[var(--color-text-muted)] transition-transform",
+            open && "rotate-180"
+          )}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden border-t border-[var(--color-border-subtle)]"
+          >
+            <div className="max-h-80 overflow-y-auto p-4">
+              {loading ? (
+                <div className="space-y-2">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-10 rounded-lg bg-[#1A1A2E] animate-pulse" />
+                  ))}
+                </div>
+              ) : rows.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Terminal className="mb-2 h-6 w-6 text-[var(--color-text-muted)]" />
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    Donnees en cours de chargement
+                  </p>
+                  <code className="mt-2 rounded-md bg-[var(--color-surface-raised)] px-3 py-1.5 text-[10px] text-[var(--color-gold)]">
+                    node {scriptPath}
+                  </code>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {rows.map((row) => {
+                    const name = String(row.name || "");
+                    const desc = String(row.description || "");
+                    const tags = (row.tags as string[]) || [];
+                    return (
+                      <div
+                        key={String(row.id)}
+                        className="rounded-lg border border-[var(--color-border-subtle)] p-3 transition-colors hover:border-[var(--color-gold-muted)]"
+                      >
+                        <h4 className="text-xs font-semibold text-[var(--color-text)]">{name}</h4>
+                        <p className="mt-1 text-[10px] leading-relaxed text-[var(--color-text-muted)]">
+                          {desc.length > 200 ? desc.slice(0, 200) + "..." : desc}
+                        </p>
+                        {tags.length > 0 && (
+                          <div className="mt-1.5 flex flex-wrap gap-1">
+                            {tags.slice(0, 5).map((t) => (
+                              <span
+                                key={t}
+                                className="rounded-full bg-[var(--color-surface-raised)] px-1.5 py-0.5 text-[9px] text-[var(--color-text-muted)]"
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -725,6 +865,29 @@ export default function IntelligencePage() {
             </div>
           </div>
         )}
+
+        {/* ── Elections + Fiscalite data sections ── */}
+        <div className="space-y-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">
+            Donnees open data 972
+          </h3>
+          <DataSection
+            title="Elections"
+            icon={Vote}
+            iconColor="#EF4444"
+            type="election"
+            scriptPath="scripts/batch-elections-972.mjs"
+            emptyText="Presidentielle 2022 — resultats par commune Martinique"
+          />
+          <DataSection
+            title="Fiscalite"
+            icon={Banknote}
+            iconColor="#10B981"
+            type="fiscalite"
+            scriptPath="scripts/batch-fiscalite-972.mjs"
+            emptyText="Impots locaux — TF, CFE, taux par commune 972"
+          />
+        </div>
       </div>
 
       {/* ── Modal ── */}

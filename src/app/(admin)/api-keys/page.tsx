@@ -38,7 +38,7 @@ const CATEGORIES = [
   { key: "db", label: "Database & Auth", icon: Database, count: 3, color: "text-emerald-400" },
   { key: "comm", label: "Communication", icon: MessageSquare, count: 2, color: "text-blue-400" },
   { key: "finance", label: "Finance", icon: CreditCard, count: 3, color: "text-amber-400" },
-  { key: "data", label: "Data & Intelligence", icon: BarChart3, count: 8, color: "text-cyan-400" },
+  { key: "data", label: "Data & Intelligence", icon: BarChart3, count: 11, color: "text-cyan-400" },
   { key: "docs", label: "Documents", icon: FileSignature, count: 2, color: "text-pink-400" },
   { key: "orch", label: "Orchestration", icon: Settings2, count: 2, color: "text-[var(--color-gold)]" },
 ] as const;
@@ -173,6 +173,24 @@ const ALL_SERVICES: ServiceEntry[] = [
     id: "geo-api", service: "API Geo (communes)", envVar: "—",
     configured: true, purpose: "Communes, departements, populations — Martinique 972",
     getKeyUrl: "https://geo.api.gouv.fr", icon: "GE", iconColor: "text-teal-400",
+    monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 0, 0, 0, 0, 0], category: "data",
+  },
+  {
+    id: "transport-gouv", service: "transport.data.gouv.fr", envVar: "—",
+    configured: true, purpose: "GTFS Martinique — 4 reseaux, 153+ lignes bus/ferry",
+    getKeyUrl: "https://transport.data.gouv.fr", icon: "TR", iconColor: "text-cyan-300",
+    monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 0, 0, 0, 0, 0], category: "data",
+  },
+  {
+    id: "culture-gouv", service: "data.culture.gouv.fr", envVar: "—",
+    configured: true, purpose: "Monuments historiques, bibliotheques, festivals — 972",
+    getKeyUrl: "https://data.culture.gouv.fr", icon: "CU", iconColor: "text-pink-300",
+    monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 0, 0, 0, 0, 0], category: "data",
+  },
+  {
+    id: "cnc-opendata", service: "CNC OpenData", envVar: "—",
+    configured: true, purpose: "Aides cinema/audiovisuel, frequentation, geographie cinemas",
+    getKeyUrl: "https://www.cnc.fr/professionnels/etudes-et-rapports/open-data", icon: "CN", iconColor: "text-violet-300",
     monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 0, 0, 0, 0, 0], category: "data",
   },
 
@@ -375,7 +393,7 @@ export default function ApiKeysPage() {
       <PageHeader
         title="API"
         titleAccent="Keys"
-        subtitle="24 services, 7 categories — toutes les cles de l'Empire"
+        subtitle="27 services, 7 categories — toutes les cles de l'Empire"
       />
 
       {/* ── KPIs ── */}
@@ -386,7 +404,7 @@ export default function ApiKeysPage() {
             <span className="text-xs text-[var(--color-text-muted)]">Configures</span>
           </div>
           <div className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-emerald-400">
-            {configuredCount}<span className="text-base text-[var(--color-text-muted)]">/24</span>
+            {configuredCount}<span className="text-base text-[var(--color-text-muted)]">/27</span>
           </div>
         </div>
         <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4">
@@ -395,7 +413,7 @@ export default function ApiKeysPage() {
             <span className="text-xs text-[var(--color-text-muted)]">Manquants</span>
           </div>
           <div className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-red-400">
-            {missingCount}<span className="text-base text-[var(--color-text-muted)]">/24</span>
+            {missingCount}<span className="text-base text-[var(--color-text-muted)]">/27</span>
           </div>
         </div>
         <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4">

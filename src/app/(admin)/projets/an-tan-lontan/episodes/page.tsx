@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Video, Calendar, CheckCircle2, Circle, Loader2, ChevronDown, Copy, Check, Camera, Film } from "lucide-react";
+import { Video, Calendar, CheckCircle2, Circle, Loader2, ChevronDown, Copy, Check, Camera, Film, Landmark, Search, ExternalLink, MapPin, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 const LS_KEY = "atl-episodes-status";
 
@@ -480,6 +481,242 @@ const STATUS_CONFIG: Record<Status, { icon: typeof CheckCircle2; color: string; 
   pending: { icon: Circle, color: "text-[var(--color-text-muted)]", label: "A faire" },
 };
 
+/* ═══════════════════════════════════════════════════════
+   PATRIMOINE TYPES
+   ═══════════════════════════════════════════════════════ */
+interface PatrimoineEntry {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+}
+
+const PATRIMOINE_TYPE_COLORS: Record<string, string> = {
+  eglise: "#8B5CF6",
+  distillerie: "#F59E0B",
+  habitation: "#10B981",
+  fort: "#EF4444",
+  ruine: "#6B7280",
+  monument: "#3B82F6",
+  musee: "#EC4899",
+  site: "#06B6D4",
+  phare: "#F97316",
+  jardin: "#22C55E",
+  pont: "#78716C",
+  artisanat: "#D97706",
+};
+
+/* ═══════════════════════════════════════════════════════
+   PATRIMOINE SECTION COMPONENT
+   ═══════════════════════════════════════════════════════ */
+function PatrimoineSection() {
+  const [open, setOpen] = useState(false);
+  const [entries, setEntries] = useState<PatrimoineEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [expandedCard, setExpandedCard] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || entries.length > 0) return;
+    setLoading(true);
+    const supabase = createClient();
+    supabase
+      .from("lore_entries")
+      .select("id, title, content, tags")
+      .eq("universe", "eveil")
+      .eq("category", "patrimoine")
+      .order("sort_order", { ascending: true })
+      .then(({ data }) => {
+        setEntries((data || []) as PatrimoineEntry[]);
+        setLoading(false);
+      });
+  }, [open, entries.length]);
+
+  const filtered = useMemo(() => {
+    if (!search) return entries;
+    const q = search.toLowerCase();
+    return entries.filter(
+      (e) =>
+        e.title.toLowerCase().includes(q) ||
+        e.content.toLowerCase().includes(q) ||
+        e.tags?.some((t) => t.toLowerCase().includes(q))
+    );
+  }, [entries, search]);
+
+  const extractType = (e: PatrimoineEntry) => {
+    const match = e.content.match(/Type:\s*(\w+)/);
+    return match?.[1] || "site";
+  };
+
+  const extractCommune = (e: PatrimoineEntry) => {
+    const match = e.content.match(/Commune:\s*([^|]+)/);
+    return match?.[1]?.trim() || "";
+  };
+
+  const extractDesc = (e: PatrimoineEntry) => {
+    return e.content.split("\n")[0] || "";
+  };
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--color-surface-raised)]/30"
+      >
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-gold-glow)]">
+          <Landmark className="h-4 w-4 text-[var(--color-gold)]" />
+        </div>
+        <div className="flex-1">
+          <h2 className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-text)]">
+            Patrimoine
+          </h2>
+          <p className="text-[10px] text-[var(--color-text-muted)]">
+            Monuments historiques de Martinique
+          </p>
+        </div>
+        <span className="rounded-full bg-[var(--color-gold-glow)] px-2.5 py-0.5 text-[10px] font-bold text-[var(--color-gold)]">
+          {entries.length > 0 ? entries.length : "122"} sites proteges
+        </span>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-[var(--color-text-muted)] transition-transform",
+            open && "rotate-180"
+          )}
+        />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="overflow-hidden border-t border-[var(--color-border-subtle)]"
+          >
+            <div className="space-y-4 p-4">
+              {/* Search + Link */}
+              <div className="flex gap-3">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--color-text-muted)]" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Rechercher un monument, une commune, un type..."
+                    className="w-full rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-bg)] py-2 pl-9 pr-4 text-xs text-[var(--color-text)] placeholder-[var(--color-text-muted)] outline-none transition-colors focus:border-[var(--color-gold-muted)]"
+                  />
+                  {search && (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-[var(--color-gold-glow)] px-2 py-0.5 text-[9px] font-medium text-[var(--color-gold)]">
+                      {filtered.length}
+                    </span>
+                  )}
+                </div>
+                <a
+                  href="https://data.culture.gouv.fr"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 rounded-lg border border-[var(--color-border-subtle)] px-3 py-2 text-[10px] text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-gold-muted)] hover:text-[var(--color-gold)]"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  data.culture.gouv.fr
+                </a>
+              </div>
+
+              {/* Grid */}
+              {loading ? (
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="rounded-xl border border-[var(--color-border-subtle)] p-3">
+                      <div className="h-4 w-32 rounded bg-[#1A1A2E] animate-pulse" />
+                      <div className="mt-2 h-3 w-20 rounded bg-[#1A1A2E] animate-pulse" />
+                      <div className="mt-2 h-3 w-full rounded bg-[#1A1A2E] animate-pulse" />
+                    </div>
+                  ))}
+                </div>
+              ) : filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Landmark className="mb-2 h-6 w-6 text-[var(--color-text-muted)]" />
+                  <p className="text-xs text-[var(--color-text-muted)]">
+                    {entries.length === 0
+                      ? "Executer scripts/seed-patrimoine-martinique.mjs"
+                      : "Aucun monument pour cette recherche"}
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
+                  {filtered.map((entry) => {
+                    const type = extractType(entry);
+                    const commune = extractCommune(entry);
+                    const desc = extractDesc(entry);
+                    const color = PATRIMOINE_TYPE_COLORS[type] || "#6B7280";
+                    const isExpanded = expandedCard === entry.id;
+                    return (
+                      <motion.button
+                        key={entry.id}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        onClick={() => setExpandedCard(isExpanded ? null : entry.id)}
+                        className={cn(
+                          "rounded-xl border p-3 text-left transition-all",
+                          isExpanded
+                            ? "border-[var(--color-gold)] shadow-[var(--shadow-gold)]"
+                            : "border-[var(--color-border-subtle)] hover:border-[var(--color-gold-muted)]"
+                        )}
+                      >
+                        <div className="flex items-start gap-2">
+                          <div
+                            className="mt-0.5 h-2 w-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: color }}
+                          />
+                          <div className="min-w-0 flex-1">
+                            <h4 className="truncate text-xs font-semibold text-[var(--color-text)]">
+                              {entry.title}
+                            </h4>
+                            <div className="mt-1 flex items-center gap-2">
+                              <span
+                                className="rounded-full px-1.5 py-0.5 text-[9px] font-medium"
+                                style={{ backgroundColor: `${color}15`, color }}
+                              >
+                                {type}
+                              </span>
+                              {commune && (
+                                <span className="flex items-center gap-0.5 text-[9px] text-[var(--color-text-muted)]">
+                                  <MapPin className="h-2.5 w-2.5" />
+                                  {commune}
+                                </span>
+                              )}
+                            </div>
+                            {isExpanded && (
+                              <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="mt-2 text-[10px] leading-relaxed text-[var(--color-text-muted)]"
+                              >
+                                {desc}
+                              </motion.p>
+                            )}
+                          </div>
+                          <ChevronRight
+                            className={cn(
+                              "mt-0.5 h-3 w-3 shrink-0 text-[var(--color-text-muted)] transition-transform",
+                              isExpanded && "rotate-90"
+                            )}
+                          />
+                        </div>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function ATLEpisodesPage() {
   const [episodes, setEpisodes] = useState(INITIAL_EPISODES);
   const [hydrated, setHydrated] = useState(false);
@@ -665,6 +902,9 @@ export default function ATLEpisodesPage() {
           );
         })}
       </div>
+
+      {/* ── Patrimoine ── */}
+      <PatrimoineSection />
     </div>
   );
 }

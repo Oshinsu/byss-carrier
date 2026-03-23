@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Radio, TrendingUp, Building2, Users, Landmark, Cpu, Shield, Crosshair, ExternalLink } from "lucide-react";
+import { Radio, TrendingUp, Building2, Users, Landmark, Cpu, Shield, Crosshair, ExternalLink, Bus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,9 +16,10 @@ import { TabEntreprises } from "@/components/martinique/entreprises-tab";
 import { TabDemographie } from "@/components/martinique/demographie-tab";
 import { TabPolitique } from "@/components/martinique/politique-tab";
 import { TabTechnologie } from "@/components/martinique/technologie-tab";
+import { TabTransport } from "@/components/martinique/transport-tab";
 
 /* ── Types ── */
-type TabId = "sitrep" | "economie" | "entreprises" | "demographie" | "politique" | "technologie";
+type TabId = "sitrep" | "economie" | "entreprises" | "demographie" | "politique" | "technologie" | "transport";
 
 interface Prospect { id: string; name: string; sector: string; status: string; city: string | null; }
 interface IntelEntity { id: string; domain: string; name: string; status: string; }
@@ -30,6 +31,7 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: "demographie", label: "DEMOGRAPHIE", icon: Users },
   { id: "politique", label: "POLITIQUE", icon: Landmark },
   { id: "technologie", label: "TECH", icon: Cpu },
+  { id: "transport", label: "TRANSPORT", icon: Bus },
 ];
 
 const SOURCES = [
@@ -39,6 +41,7 @@ const SOURCES = [
   { name: "CTM", url: "https://www.collectivitedemartinique.mq" },
   { name: "CCI MQ", url: "https://www.martinique.cci.fr" },
   { name: "MEDEF MQ", url: "https://medef-martinique.fr" },
+  { name: "transport.data.gouv.fr", url: "https://transport.data.gouv.fr" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -201,6 +204,7 @@ export default function MartiniquePage() {
                 {activeTab === "demographie" && <TabDemographie />}
                 {activeTab === "politique" && <TabPolitique />}
                 {activeTab === "technologie" && <TabTechnologie />}
+                {activeTab === "transport" && <TabTransport />}
               </motion.div>
             </AnimatePresence>
           </div>
