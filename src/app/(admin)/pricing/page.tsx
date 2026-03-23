@@ -125,7 +125,7 @@ export default function PricingPage() {
     const supabase = createClient();
     supabase.from("prospects").select("name").order("name").then(({ data }) => {
       setProspectNames(data?.map((p: { name: string }) => p.name) || []);
-    }).finally(() => setLoading(false));
+    }).then(() => setLoading(false)).catch(() => setLoading(false));
   }, []);
 
   const prices = useMemo(() => {
