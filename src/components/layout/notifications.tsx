@@ -441,7 +441,7 @@ export function Notifications() {
                         </span>
 
                         {/* Gate: Approve / Reject buttons for pending actions */}
-                        {(notification.metadata as Record<string, unknown>)?.pending_action_id &&
+                        {Boolean((notification.metadata as Record<string, unknown>)?.pending_action_id) &&
                           !notification.read && (
                             <div className="mt-2 flex items-center gap-2">
                               <button
