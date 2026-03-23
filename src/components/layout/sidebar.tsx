@@ -64,6 +64,7 @@ const navTree: NavNode[] = [
       { id: "emails", label: "Email Composer", icon: Mail, href: "/emails" },
       { id: "feedback", label: "Feedback Loop", icon: MessageSquare, href: "/feedback" },
       { id: "calendrier", label: "Calendrier", icon: Calendar, href: "/calendrier" },
+      { id: "marches", label: "Marchés Publics", icon: Landmark, href: "/marches", badge: "109", badgeColor: "cyan" },
     ],
   },
   {

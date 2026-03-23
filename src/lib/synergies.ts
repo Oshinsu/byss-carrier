@@ -307,6 +307,33 @@ export const SYNERGY_RULES: SynergyRule[] = [
     },
   },
 
+  // ── Marchés Publics → Tender high-relevance notification ──
+  {
+    id: "tender-high-relevance-notify",
+    source: "marches",
+    trigger: "tender_analyzed",
+    description: "Marché analysé score > 70 → Notification suggestion répondre",
+    execute: async (data) => {
+      const title = (data.tenderTitle as string) || "Marché public";
+      const score = (data.matchScore as number) || 0;
+      const acheteur = (data.acheteur as string) || "";
+      const dateLimite = (data.dateLimite as string) || "";
+
+      if (score < 70) return;
+
+      const goNoGo = (data.goNoGo as string) || "A EVALUER";
+      const deadlineInfo = dateLimite ? ` — Limite: ${dateLimite}` : "";
+
+      await createNotification(
+        "prospect",
+        `Marché pertinent — ${title.slice(0, 60)}`,
+        `Score ${score}% | ${goNoGo} | ${acheteur}${deadlineInfo}. Préparer la réponse.`,
+        "/marches",
+        { tenderId: data.tenderId, score, acheteur, goNoGo, trigger: "tender-high-relevance" },
+      );
+    },
+  },
+
   // ── Calendar → Event created notification ──
   {
     id: "calendar-event-created-notify",
@@ -450,4 +477,26 @@ export function onSprintCompleted(gameName: string, sprintNumber: number) {
  */
 export function onEventCreated(title: string, description?: string) {
   return triggerSynergy("calendrier", "event_created", { title, description });
+}
+
+/**
+ * Convenience: trigger the tender-analyzed synergy.
+ * Only fires notification if matchScore >= 70.
+ */
+export function onTenderAnalyzed(
+  tenderId: string,
+  tenderTitle: string,
+  acheteur: string,
+  matchScore: number,
+  goNoGo: string,
+  dateLimite?: string,
+) {
+  return triggerSynergy("marches", "tender_analyzed", {
+    tenderId,
+    tenderTitle,
+    acheteur,
+    matchScore,
+    goNoGo,
+    dateLimite,
+  });
 }
