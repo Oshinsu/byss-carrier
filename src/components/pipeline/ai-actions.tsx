@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import type { Prospect } from "./prospect-card";
 
 /* ─── Types ──────────────────────────────────────────── */
-type TabKey = "analyse" | "email" | "proposition";
+type TabKey = "analyse" | "email" | "proposition" | "score" | "suggest";
 
 interface AIActionsProps {
   prospect: Prospect;
