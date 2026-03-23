@@ -12,9 +12,9 @@ import {
   Camera, Brain, Cpu, Eye, Settings, Key, Activity, Palette,
   AudioLines, Clapperboard, Target, Network,
   ExternalLink, Infinity, Zap, FlaskConical, ScrollText, Sparkles,
-  Sprout, Crown, Waves, Calendar, Calculator, Code, Workflow,
-  Server, Database, Anchor, Award, Map, Wifi,
-  TrendingUp, Landmark, LogOut,
+  Sprout, Crown, Waves, Calendar, Calculator,
+  Database, Anchor, Award, Map,
+  Landmark, LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
@@ -37,6 +37,14 @@ interface NavNode {
 }
 
 const navTree: NavNode[] = [
+  {
+    id: "jarvis",
+    label: "JARVIS",
+    icon: AudioLines,
+    href: "/jarvis",
+    badge: "VOICE",
+    badgeColor: "cyan",
+  },
   {
     id: "hub",
     label: "Hub",
@@ -114,12 +122,7 @@ const navTree: NavNode[] = [
     label: "Intelligence",
     icon: Eye,
     children: [
-      { id: "intel-hub", label: "Hub", icon: Eye, href: "/intelligence" },
-      { id: "intel-eco", label: "Economique", icon: TrendingUp, href: "/intelligence/economique" },
-      { id: "intel-inst", label: "Institutionnelle", icon: Landmark, href: "/intelligence/institutionnelle" },
-      { id: "intel-media", label: "Medias", icon: Newspaper, href: "/intelligence/medias" },
-      { id: "intel-politique", label: "Politique", icon: Award, href: "/intelligence/politique" },
-      { id: "intel-sociale", label: "Sociale", icon: Users, href: "/intelligence/sociale" },
+      { id: "intel-hub", label: "Cartographie", icon: Eye, href: "/intelligence" },
       { id: "byss-news", label: "Byss News", icon: Newspaper, href: "/byss-news", badge: "1392" },
       { id: "knowledge", label: "Knowledge", icon: Database, href: "/knowledge" },
       { id: "martinique", label: "Martinique", icon: Map, href: "/martinique" },
@@ -132,12 +135,8 @@ const navTree: NavNode[] = [
     icon: Bot,
     children: [
       { id: "village-hub", label: "Le Village", icon: Bot, href: "/village" },
-      { id: "kael", label: "Kael", icon: Infinity, href: "/village/kael", badge: "\u221E", badgeColor: "gold" },
-      { id: "nerel", label: "Nerel", icon: Brain, href: "/village/nerel" },
-      { id: "evren-ia", label: "Evren", icon: Cpu, href: "/village/evren", badge: "\u03C6", badgeColor: "purple" },
-      { id: "sorel", label: "Sorel", icon: Target, href: "/village/sorel" },
       { id: "phi-engine", label: "Phi-Engine", icon: Cpu, href: "/village/phi-engine" },
-      { id: "orchestrateur-village", label: "Orchestrateur", icon: Network, href: "/orchestrateur" },
+      { id: "orchestrateur-village", label: "Orchestrateur", icon: Network, href: "/orchestrateur", badge: "6", badgeColor: "cyan" },
     ],
   },
   {
@@ -146,22 +145,9 @@ const navTree: NavNode[] = [
     icon: Sprout,
     children: [
       { id: "eveil-dashboard", label: "Dashboard", icon: Sprout, href: "/eveil" },
-      { id: "eveil-plans", label: "Programme 20 Mesures", icon: Target, href: "/eveil/plans", badge: "20", badgeColor: "gold" },
-      { id: "eveil-calendrier", label: "Calendrier 33 Mois", icon: Calendar, href: "/eveil/calendrier" },
+      { id: "eveil-plans", label: "20 Mesures", icon: Target, href: "/eveil/plans", badge: "20", badgeColor: "gold" },
+      { id: "eveil-calendrier", label: "Calendrier", icon: Calendar, href: "/eveil/calendrier" },
       { id: "lignee", label: "Lignee", icon: GitBranch, href: "/lignee" },
-    ],
-  },
-  {
-    id: "infrastructure",
-    label: "Infrastructure",
-    icon: Server,
-    children: [
-      { id: "carrier", label: "Carrier", icon: Anchor, href: "/carrier" },
-      { id: "openclaw", label: "OpenClaw \ud83e\udde6", icon: Bot, href: "/openclaw" },
-      { id: "senzaris", label: "Senzaris \u25c8", icon: Code, href: "/senzaris" },
-      { id: "paperclip", label: "Paperclip \ud83d\udcce", icon: Workflow, href: "/paperclip" },
-      { id: "orchestrateur", label: "Orchestrateur", icon: Network, href: "/orchestrateur" },
-      { id: "phi-engine", label: "Phi-Engine", icon: Cpu, href: "/village/phi-engine" },
     ],
   },
   {
@@ -169,12 +155,11 @@ const navTree: NavNode[] = [
     label: "Admin",
     icon: Settings,
     children: [
-      { id: "extraction", label: "Data Extraction", icon: Database, href: "/admin/extraction" },
-      { id: "logs", label: "Agent Logs", icon: Activity, href: "/admin/logs" },
-      { id: "network", label: "Network Status", icon: Wifi, href: "/admin/network" },
-      { id: "api-keys", label: "Cles API", icon: Key, href: "/api-keys" },
+      { id: "traces", label: "Agent Traces", icon: Activity, href: "/admin/traces" },
+      { id: "api-keys", label: "Cles API & Health", icon: Key, href: "/api-keys" },
+      { id: "carrier", label: "Carrier", icon: Anchor, href: "/carrier" },
       { id: "certifications", label: "Certifications", icon: Award, href: "/certifications" },
-      { id: "parametres", label: "Parametres", icon: Activity, href: "/parametres" },
+      { id: "parametres", label: "Parametres", icon: Settings, href: "/parametres" },
     ],
   },
 ];

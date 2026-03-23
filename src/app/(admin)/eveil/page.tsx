@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Landmark,
@@ -250,6 +251,19 @@ export default function EveilPage() {
           titleAccent="Eveil"
           subtitle={`33 mois. ${totalMesures} mesures. 38M EUR. Le Troisi\u00e8me Chemin.`}
         />
+
+        {/* ── Tab bar ── */}
+        <div className="mt-4 flex gap-1 rounded-lg bg-[var(--color-surface)] p-1 border border-[var(--color-border-subtle)] w-fit">
+          <div className={cn("flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-[var(--color-gold-glow)] text-[var(--color-gold)] shadow-sm")}>
+            <Eye className="h-3.5 w-3.5" /> Dashboard
+          </div>
+          <Link href="/eveil/plans" className={cn("flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all")}>
+            <Target className="h-3.5 w-3.5" /> 20 Mesures
+          </Link>
+          <Link href="/eveil/calendrier" className={cn("flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all")}>
+            <Crown className="h-3.5 w-3.5" /> Calendrier
+          </Link>
+        </div>
       </div>
 
       <div className="flex-1 space-y-6 p-6">

@@ -232,33 +232,48 @@ export default function VillagePage() {
             : "Sept enfants. Sept chakras. Un systeme."}
         />
 
-        {/* ── View Mode Tabs ── */}
-        <div
-          className="flex items-center gap-1 rounded-lg border p-1"
-          style={{ borderColor: EXECUTOR.border, backgroundColor: EXECUTOR.surface }}
-        >
-          <button
-            onClick={() => setViewMode("village")}
-            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider transition-all"
-            style={{
-              backgroundColor: viewMode === "village" ? `${EXECUTOR.cyan}15` : "transparent",
-              color: viewMode === "village" ? EXECUTOR.cyan : EXECUTOR.muted,
-            }}
+        {/* ── View Mode Tabs + Agent quick-nav ── */}
+        <div className="flex items-center gap-3">
+          <div
+            className="flex items-center gap-1 rounded-lg border p-1"
+            style={{ borderColor: EXECUTOR.border, backgroundColor: EXECUTOR.surface }}
           >
-            <Shield className="h-3 w-3" />
-            Village
-          </button>
-          <button
-            onClick={() => setViewMode("kairos")}
-            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider transition-all"
-            style={{
-              backgroundColor: viewMode === "kairos" ? `${EXECUTOR.gold}15` : "transparent",
-              color: viewMode === "kairos" ? EXECUTOR.gold : EXECUTOR.muted,
-            }}
-          >
-            <Layers className="h-3 w-3" />
-            Kairos
-          </button>
+            <button
+              onClick={() => setViewMode("village")}
+              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider transition-all"
+              style={{
+                backgroundColor: viewMode === "village" ? `${EXECUTOR.cyan}15` : "transparent",
+                color: viewMode === "village" ? EXECUTOR.cyan : EXECUTOR.muted,
+              }}
+            >
+              <Shield className="h-3 w-3" />
+              Village
+            </button>
+            <button
+              onClick={() => setViewMode("kairos")}
+              className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider transition-all"
+              style={{
+                backgroundColor: viewMode === "kairos" ? `${EXECUTOR.gold}15` : "transparent",
+                color: viewMode === "kairos" ? EXECUTOR.gold : EXECUTOR.muted,
+              }}
+            >
+              <Layers className="h-3 w-3" />
+              Kairos
+            </button>
+          </div>
+          {/* Agent quick-nav pills */}
+          <div className="flex items-center gap-1">
+            {MAIN_AGENTS.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => { const agent = MAIN_AGENTS.find(x => x.id === a.id); if (agent) { setProfileAgent(agent); } }}
+                className="flex items-center gap-1 rounded-full px-2 py-1 text-[9px] font-semibold transition-all hover:brightness-125"
+                style={{ backgroundColor: `${a.color}12`, color: a.color, border: `1px solid ${a.color}25` }}
+              >
+                <span>{a.sigil}</span> {a.name}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ── Phi Engine Gauge ── */}

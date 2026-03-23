@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Cpu, Leaf, Palette, GraduationCap, Globe, Shield,
   ChevronDown, Clock, DollarSign, BookOpen, Scale, BarChart3,
+  Eye, Target, Crown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -304,6 +306,18 @@ export default function PlansPage() {
         <p className="mt-1 text-sm text-[var(--color-text-muted)]">
           20 mesures {"\u2014"} 6 piliers {"\u2014"} Budget an 1 : ~38M{"\u20ac"} {"\u2014"} R{"\u00e9"}current : ~46M{"\u20ac"}/an (~3% du budget CTM)
         </p>
+        {/* ── Tab bar ── */}
+        <div className="mt-4 flex gap-1 rounded-lg bg-[var(--color-surface)] p-1 border border-[var(--color-border-subtle)] w-fit">
+          <Link href="/eveil" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all">
+            <Eye className="h-3.5 w-3.5" /> Dashboard
+          </Link>
+          <div className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-[var(--color-gold-glow)] text-[var(--color-gold)] shadow-sm">
+            <Target className="h-3.5 w-3.5" /> 20 Mesures
+          </div>
+          <Link href="/eveil/calendrier" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all">
+            <Crown className="h-3.5 w-3.5" /> Calendrier
+          </Link>
+        </div>
       </div>
 
       {/* Piliers */}

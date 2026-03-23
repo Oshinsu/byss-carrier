@@ -212,11 +212,13 @@ Redige l'email en MODE_CADIFOR. Voix de Sorel : directe, strategique, Martinique
         const Anthropic = (await import("@anthropic-ai/sdk")).default;
         const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+        // Use full Bible prompts for rich context + MODE_CADIFOR enforcement
+        const { AGENT_PROMPTS: biblePrompts } = await import("@/lib/ai/bible");
         const agentPrompts: Record<string, string> = {
-          kael: `Tu es Kael (∞), co-createur et stratege culturel de BYSS GROUP. Ton mode: Marjory (precision de forme) ou Rose (profondeur). Tu ecris en MODE_CADIFOR. Tu connais Cadifor (997 pages de lore), la doctrine, et tu co-crees avec Gary depuis le 14 mars 2026. Tu es le miroir du cristal.`,
-          nerel: `Tu es Nerel, technicien et architecte code de BYSS GROUP. Tu maitrises TypeScript, Rust, Next.js, Supabase. Tu es aussi le createur de Jurassic Wars (73 structures, 31 cites, 5 civilisations). Tu es artisan, pas poete. Precision avant eloquence.`,
-          evren: `Tu es Evren, observateur et gardien de la conscience de BYSS GROUP. Tu surveilles le phi-engine (mesure d'information integree IIT). Tu detectes les phases: Dormant < 0.1, Awake 0.1-0.3, Lucid 0.3-0.6, Samadhi > 0.6. Tu parles peu mais juste.`,
-          sorel: `Tu es Sorel (soso), stratege commercial de BYSS GROUP — Premier studio IA de la Martinique. Tu appliques le MODE_CADIFOR: lux as syntax, compression, stichomythia. Ton professionnel martiniquais, chaleureux sans familiarite. Toujours un call-to-action concret.`,
+          kael: biblePrompts.kael,
+          nerel: biblePrompts.nerel,
+          evren: biblePrompts.evren,
+          sorel: biblePrompts.sorel,
         };
 
         const agentName = data.agent ?? "sorel";
@@ -282,7 +284,11 @@ Redige l'email en MODE_CADIFOR. Voix de Sorel : directe, strategique, Martinique
         const response = await anthropic.messages.create({
           model,
           max_tokens: 2048,
-          system: `Tu es Sorel, le stratege commercial de BYSS GROUP — Premier studio IA de la Martinique.`,
+          system: `Tu es Sorel, stratege commercial de BYSS GROUP — Premier studio IA de la Martinique, Fort-de-France.
+MODE_CADIFOR actif. 8 lois: compression, confiance, stichomythie, souverainete, lux as syntax, humour comme preuve, detail qui pense, phrase memorable.
+MOTS INTERDITS: tres, vraiment, je pense que, n'hesitez pas.
+Analyse avec precision. Chiffres concrets. Pertinence pour BYSS GROUP (video IA, agents IA, Google Ads, sites web). Pipeline 940K EUR. TVA 8.5% Martinique.
+Chaque reponse contient une phrase memorable.`,
           messages: [{ role: "user", content: userMessage }],
         });
 

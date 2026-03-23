@@ -1,12 +1,13 @@
 "use client";
 
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Key, Eye, EyeOff, Copy, Check, ExternalLink,
   Euro, AlertTriangle, CheckCircle2, Activity,
   Brain, Database, MessageSquare, CreditCard,
   BarChart3, FileSignature, Settings2, TrendingUp,
   Globe, Search, Flame, Github, Server,
+  Wifi, RefreshCw, Network, XCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -298,9 +299,74 @@ function EnvValue({ envVar, configured }: { envVar: string; configured: boolean 
 }
 
 /* ═══ Main Page ═══ */
+/* ═══ Network Health (merged from /admin/network) ═══ */
+type ServerStatus = "online" | "offline" | "degraded" | "checking" | "no-endpoint" | "cors-blocked";
+interface ServerConfig { name: string; type: string; healthUrl: string | null; apiKey: boolean; }
+interface ServerState { status: ServerStatus; latency: string; }
+
+const SERVERS: ServerConfig[] = [
+  { name: "Supabase", type: "Database", healthUrl: "https://supabase.com", apiKey: true },
+  { name: "Anthropic API", type: "LLM", healthUrl: "https://api.anthropic.com", apiKey: true },
+  { name: "OpenAI API", type: "LLM", healthUrl: "https://api.openai.com", apiKey: true },
+  { name: "Replicate", type: "Voice/Image", healthUrl: "https://api.replicate.com", apiKey: true },
+  { name: "Resend", type: "Email", healthUrl: "https://api.resend.com", apiKey: true },
+  { name: "Vercel", type: "Hosting", healthUrl: "https://vercel.com", apiKey: true },
+  { name: "OpenClaw", type: "MCP Server", healthUrl: null, apiKey: true },
+  { name: "Senzaris", type: "MCP Server", healthUrl: null, apiKey: false },
+  { name: "n8n", type: "Automation", healthUrl: null, apiKey: true },
+  { name: "Kling 3.0", type: "Video Gen", healthUrl: null, apiKey: true },
+];
+
+const STATUS_CFG: Record<string, { color: string; bg: string; label: string }> = {
+  online: { color: "text-emerald-400", bg: "bg-emerald-400", label: "online" },
+  degraded: { color: "text-amber-400", bg: "bg-amber-400", label: "degraded" },
+  offline: { color: "text-red-400", bg: "bg-red-400", label: "offline" },
+  checking: { color: "text-blue-400", bg: "bg-blue-400", label: "checking..." },
+  "no-endpoint": { color: "text-zinc-500", bg: "bg-zinc-500", label: "no endpoint" },
+  "cors-blocked": { color: "text-amber-400", bg: "bg-amber-400", label: "CORS" },
+};
+
+async function checkServer(url: string): Promise<{ status: ServerStatus; latency: string }> {
+  const start = performance.now();
+  try {
+    const res = await fetch(url, { method: "HEAD", mode: "no-cors", signal: AbortSignal.timeout(5000) });
+    const ms = Math.round(performance.now() - start);
+    if (res.status === 0 || (res.status >= 200 && res.status < 500)) return { status: "online", latency: `${ms}ms` };
+    return { status: "degraded", latency: `${ms}ms` };
+  } catch (err: unknown) {
+    const ms = Math.round(performance.now() - start);
+    if (err instanceof DOMException && err.name === "TimeoutError") return { status: "offline", latency: "timeout" };
+    if (ms < 4000) return { status: "cors-blocked", latency: `${ms}ms` };
+    return { status: "offline", latency: "error" };
+  }
+}
+
 export default function ApiKeysPage() {
   const [loading, setLoading] = useState(true);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"keys" | "health">("keys");
+  const [serverStates, setServerStates] = useState<Record<string, ServerState>>(() => {
+    const init: Record<string, ServerState> = {};
+    for (const srv of SERVERS) init[srv.name] = srv.healthUrl ? { status: "checking", latency: "—" } : { status: "no-endpoint", latency: "—" };
+    return init;
+  });
+  const [healthLoading, setHealthLoading] = useState(false);
+
+  const pingAll = useCallback(async () => {
+    setHealthLoading(true);
+    setServerStates((prev) => {
+      const next = { ...prev };
+      for (const srv of SERVERS) if (srv.healthUrl) next[srv.name] = { status: "checking", latency: "—" };
+      return next;
+    });
+    const checks = SERVERS.map(async (srv) => {
+      if (!srv.healthUrl) return;
+      const result = await checkServer(srv.healthUrl);
+      setServerStates((prev) => ({ ...prev, [srv.name]: result }));
+    });
+    await Promise.allSettled(checks);
+    setHealthLoading(false);
+  }, []);
 
   // Fetch real env var status from /api/health
   useEffect(() => {
@@ -392,9 +458,99 @@ export default function ApiKeysPage() {
       {/* ── Header ── */}
       <PageHeader
         title="API"
-        titleAccent="Keys"
-        subtitle="27 services, 7 categories — toutes les cles de l'Empire"
+        titleAccent="Keys & Health"
+        subtitle={`27 services, 7 categories — ${activeTab === "health" ? "live health checks" : "toutes les cles de l'Empire"}`}
       />
+
+      {/* ── Tab bar ── */}
+      <div className="flex gap-1 rounded-lg bg-[var(--color-surface)] p-1 border border-[var(--color-border-subtle)]">
+        {(["keys", "health"] as const).map((tab) => (
+          <button
+            key={tab}
+            onClick={() => { setActiveTab(tab); if (tab === "health" && !healthLoading) pingAll(); }}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all",
+              activeTab === tab
+                ? "bg-[var(--color-gold-glow)] text-[var(--color-gold)] shadow-sm"
+                : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
+            )}
+          >
+            {tab === "keys" ? <><Key className="h-4 w-4" /> Cles API</> : <><Wifi className="h-4 w-4" /> Reseau Health</>}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Health Tab ── */}
+      {activeTab === "health" && (
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--color-gold-glow)]">
+                <Network className="h-5 w-5 text-[var(--color-gold)]" />
+              </div>
+              <div>
+                <h2 className="font-[family-name:var(--font-clash-display)] text-base font-bold text-[var(--color-text)]">Reseau BYSS</h2>
+                <p className="text-[10px] text-[var(--color-text-muted)]">{SERVERS.length} services — live health checks</p>
+              </div>
+            </div>
+            <button onClick={pingAll} disabled={healthLoading} className="flex items-center gap-1.5 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-3 py-1.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)] disabled:opacity-50">
+              <RefreshCw className={`h-3.5 w-3.5 ${healthLoading ? "animate-spin" : ""}`} /> Ping All
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-4 py-3">
+              <Server className="h-4 w-4 text-emerald-400" />
+              <div>
+                <div className="font-mono text-lg font-bold text-[var(--color-text)]">{Object.values(serverStates).filter((s) => s.status === "online").length}</div>
+                <div className="text-[10px] text-[var(--color-text-muted)]">Online</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-4 py-3">
+              <Server className="h-4 w-4 text-amber-400" />
+              <div>
+                <div className="font-mono text-lg font-bold text-[var(--color-text)]">{Object.values(serverStates).filter((s) => s.status === "degraded" || s.status === "cors-blocked").length}</div>
+                <div className="text-[10px] text-[var(--color-text-muted)]">Degraded</div>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-4 py-3">
+              <Key className="h-4 w-4 text-[var(--color-gold)]" />
+              <div>
+                <div className="font-mono text-lg font-bold text-[var(--color-text)]">{SERVERS.filter((s) => s.apiKey).length}</div>
+                <div className="text-[10px] text-[var(--color-text-muted)]">API Keys</div>
+              </div>
+            </div>
+          </div>
+          <div className="overflow-hidden rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface-raised)]/30">
+                  <th className="py-2 pl-4 pr-3 text-[9px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Service</th>
+                  <th className="py-2 pr-3 text-[9px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Type</th>
+                  <th className="py-2 pr-3 text-center text-[9px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Status</th>
+                  <th className="py-2 pr-4 text-right text-[9px] font-medium uppercase tracking-wider text-[var(--color-text-muted)]">Latency</th>
+                </tr>
+              </thead>
+              <tbody>
+                {SERVERS.map((srv) => {
+                  const state = serverStates[srv.name] ?? { status: "offline", latency: "—" };
+                  const cfg = STATUS_CFG[state.status] ?? STATUS_CFG.offline;
+                  return (
+                    <tr key={srv.name} className="border-b border-[var(--color-border-subtle)] last:border-b-0 hover:bg-[var(--color-surface-raised)]/30">
+                      <td className="py-2.5 pl-4 pr-3"><div className="flex items-center gap-2"><div className={`h-2 w-2 rounded-full ${cfg.bg} ${state.status === "checking" ? "animate-pulse" : ""}`} /><span className="text-sm font-medium text-[var(--color-text)]">{srv.name}</span></div></td>
+                      <td className="py-2.5 pr-3 text-xs text-[var(--color-text-muted)]">{srv.type}</td>
+                      <td className={`py-2.5 pr-3 text-center text-[10px] font-medium ${cfg.color}`}>{cfg.label}</td>
+                      <td className="py-2.5 pr-4 text-right font-mono text-[10px] text-[var(--color-text-secondary)]">{state.latency}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── Keys Tab ── */}
+      {activeTab !== "health" && <>
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -638,6 +794,7 @@ export default function ApiKeysPage() {
           </span>
         </p>
       </div>
+      </>}
     </div>
   );
 }

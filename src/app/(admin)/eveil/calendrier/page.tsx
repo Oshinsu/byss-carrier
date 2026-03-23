@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion } from "motion/react";
-import { Timer, Flame, Crown, Sparkles, Star, Zap, Check, Search, Swords, Megaphone, Vote } from "lucide-react";
+import { Timer, Flame, Crown, Sparkles, Star, Zap, Check, Search, Swords, Megaphone, Vote, Eye, Target } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -160,6 +161,18 @@ export default function CalendrierPage() {
           <p className="mt-1 text-sm text-[var(--color-text-muted)]">
             Mars 2026 {"\u2192"} D{"\u00e9"}cembre 2028 {"\u2014"} 5 phases {"\u2014"} Objectif : {"\u00c9"}lections CTM
           </p>
+          {/* ── Tab bar ── */}
+          <div className="mt-4 flex gap-1 rounded-lg bg-[var(--color-surface)] p-1 border border-[var(--color-border-subtle)] w-fit">
+            <Link href="/eveil" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all">
+              <Eye className="h-3.5 w-3.5" /> Dashboard
+            </Link>
+            <Link href="/eveil/plans" className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-all">
+              <Target className="h-3.5 w-3.5" /> 20 Mesures
+            </Link>
+            <div className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium bg-[var(--color-gold-glow)] text-[var(--color-gold)] shadow-sm">
+              <Crown className="h-3.5 w-3.5" /> Calendrier
+            </div>
+          </div>
         </div>
         {hydrated && (
           <div className="text-right">
