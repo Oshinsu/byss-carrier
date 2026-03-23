@@ -71,8 +71,10 @@ export async function initPhiEngine(): Promise<boolean> {
   if (typeof window === 'undefined') return false // SSR guard
 
   try {
-    const wasm = await import('../phi-wasm/senzaris_wasm')
-    await wasm.default()
+    // @ts-ignore — WASM module loaded dynamically, types not available at build time
+    const wasm = await import(/* webpackIgnore: true */ '../phi-wasm/senzaris_wasm').catch(() => null)
+    if (!wasm) return false
+    await wasm.default?.()
 
     engine = new wasm.PhiEngine()
 
