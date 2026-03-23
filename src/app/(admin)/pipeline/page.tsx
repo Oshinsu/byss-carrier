@@ -215,7 +215,7 @@ export default function PipelinePage() {
   const [error, setError] = useState<string | null>(null);
   const [aiModal, setAiModal] = useState<{
     prospect: Prospect;
-    tab: "analyse" | "email" | "proposition";
+    tab: "analyse" | "email" | "proposition" | "score" | "suggest";
   } | null>(null);
   const [activeProspect, setActiveProspect] = useState<Prospect | null>(null);
   const { toast } = useToast();
