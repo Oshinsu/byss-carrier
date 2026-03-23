@@ -9,6 +9,7 @@ import {
   Wallet,
   Zap,
 } from "lucide-react";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { glassCard, glassBg, inputCls } from "@/types/gulf-stream";
@@ -26,6 +27,7 @@ interface X402PanelProps {
 }
 
 export function X402Panel({ configured, wallet, txCount, onSaveWallet }: X402PanelProps) {
+  const [, copy] = useCopyToClipboard();
   return (
     <div className="space-y-4">
       {/* Merchant Status */}
@@ -73,7 +75,7 @@ export function X402Panel({ configured, wallet, txCount, onSaveWallet }: X402Pan
               <div className="space-y-2">
                 <p className="break-all font-mono text-xs text-[var(--color-gold)]">{wallet}</p>
                 <button
-                  onClick={() => navigator.clipboard.writeText(wallet)}
+                  onClick={() => copy(wallet)}
                   className="flex items-center gap-1 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
                 >
                   <Copy className="h-3 w-3" />

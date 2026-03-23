@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 import { Map, Landmark, Shield, ChevronDown, Eye, EyeOff, Users, Maximize2, Bone, ExternalLink, Waves, Mountain, Wind, TreePine as TreeIcon } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════
@@ -114,28 +116,15 @@ const MAP_STATS = [
   { label: "Villes", value: "31", icon: Shield, tooltip: "73 structures architecturales repertoriees par Nayou" },
 ];
 
-const LS_KEY = "jw-map-explored";
-
 const allCities = Object.values(FACTION_CITIES).flatMap((cities) => cities.map((c) => c.name));
 
 export default function JWMapPage() {
   const [expandedBiome, setExpandedBiome] = useState<string | null>(null);
   const [expandedFaction, setExpandedFaction] = useState<string | null>(null);
-  const [explored, setExplored] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) setExplored(JSON.parse(saved));
-    } catch {}
-  }, []);
+  const [explored, setExplored] = useLocalStorage<Record<string, boolean>>(STORAGE_KEYS.JW_MAP, {});
 
   const toggleExplored = (city: string) => {
-    setExplored((prev) => {
-      const next = { ...prev, [city]: !prev[city] };
-      localStorage.setItem(LS_KEY, JSON.stringify(next));
-      return next;
-    });
+    setExplored((prev) => ({ ...prev, [city]: !prev[city] }));
   };
 
   const exploredCount = allCities.filter((c) => explored[c]).length;

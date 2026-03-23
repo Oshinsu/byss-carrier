@@ -5,6 +5,7 @@
 // ═══════════════════════════════════════════════════════
 
 import { NextResponse } from "next/server";
+import { rateLimit } from "@/lib/security/rate-limiter";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 
@@ -50,6 +51,14 @@ export async function GET(request: Request) {
 // POST — Generate new insight from medallion data
 // ---------------------------------------------------------------------------
 export async function POST() {
+  const { allowed, remaining } = rateLimit("insights-route", 5, 60000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, {
+      status: 429,
+      headers: { "Retry-After": "60", "X-RateLimit-Remaining": "0" },
+    });
+  }
+
   try {
     const supabase = await createClient();
 

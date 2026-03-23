@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
 import { Building2, Search, X, CheckCircle2, Circle } from "lucide-react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 const CATEGORIES = [
   {
@@ -62,26 +64,13 @@ const CATEGORIES = [
   },
 ];
 
-const LS_KEY = "jw-structures-documented";
-
 export default function StructuresPage() {
   const [search, setSearch] = useState("");
-  const [documented, setDocumented] = useState<Record<string, boolean>>({});
+  const [documented, setDocumented] = useLocalStorage<Record<string, boolean>>(STORAGE_KEYS.JW_STRUCTURES, {});
   const q = search.toLowerCase();
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) setDocumented(JSON.parse(saved));
-    } catch {}
-  }, []);
-
   const toggleDocumented = (name: string) => {
-    setDocumented((prev) => {
-      const next = { ...prev, [name]: !prev[name] };
-      localStorage.setItem(LS_KEY, JSON.stringify(next));
-      return next;
-    });
+    setDocumented((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
   const totalStructures = CATEGORIES.reduce((sum, c) => sum + c.structures.length, 0);

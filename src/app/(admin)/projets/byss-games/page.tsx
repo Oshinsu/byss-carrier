@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 import {
   Gamepad2, Star, Globe, Crown, Search, ChevronDown, ChevronUp,
   ExternalLink, Flame, Swords, Smartphone, Monitor, Wrench,
@@ -204,8 +206,6 @@ const TECH_STACK = [
   { domain: "Versionning", tool: "GitHub (Oshinsu)", usage: "Tous les projets" },
 ];
 
-const LS_KEY = "byss-games-state";
-
 interface PageState {
   expandedGames: Record<string, boolean>;
   expandedFoyers: boolean;
@@ -216,30 +216,16 @@ interface PageState {
 
 export default function ByssGamesPage() {
   const [search, setSearch] = useState("");
-  const [state, setState] = useState<PageState>({
+  const [state, setState, loaded] = useLocalStorage<PageState>(STORAGE_KEYS.BYSS_GAMES_STATE, {
     expandedGames: {},
     expandedFoyers: false,
     expandedStack: false,
     expandedPipeline: false,
     expandedActions: false,
   });
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setState(JSON.parse(raw));
-    } catch {}
-    setLoaded(true);
-  }, []);
-
-  const persist = (next: PageState) => {
-    setState(next);
-    localStorage.setItem(LS_KEY, JSON.stringify(next));
-  };
 
   const toggleGame = (name: string) => {
-    persist({ ...state, expandedGames: { ...state.expandedGames, [name]: !state.expandedGames[name] } });
+    setState({ ...state, expandedGames: { ...state.expandedGames, [name]: !state.expandedGames[name] } });
   };
 
   const filtered = useMemo(() => {
@@ -307,7 +293,7 @@ export default function ByssGamesPage() {
       {/* ── Foyer Strategy ────────────────────────── */}
       <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] overflow-hidden">
         <div
-          onClick={() => persist({ ...state, expandedFoyers: !state.expandedFoyers })}
+          onClick={() => setState({ ...state, expandedFoyers: !state.expandedFoyers })}
           className="flex cursor-pointer items-center justify-between p-5 transition-all hover:bg-[var(--color-surface-2)]"
         >
           <div className="flex items-center gap-3">
@@ -541,7 +527,7 @@ export default function ByssGamesPage() {
       {/* ── Tech Stack ────────────────────────────── */}
       <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] overflow-hidden">
         <div
-          onClick={() => persist({ ...state, expandedStack: !state.expandedStack })}
+          onClick={() => setState({ ...state, expandedStack: !state.expandedStack })}
           className="flex cursor-pointer items-center justify-between p-5 transition-all hover:bg-[var(--color-surface-2)]"
         >
           <div className="flex items-center gap-3">
@@ -596,7 +582,7 @@ export default function ByssGamesPage() {
       {/* ── 3D Asset Pipeline ──────────────────────── */}
       <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] overflow-hidden">
         <div
-          onClick={() => persist({ ...state, expandedPipeline: !state.expandedPipeline })}
+          onClick={() => setState({ ...state, expandedPipeline: !state.expandedPipeline })}
           className="flex cursor-pointer items-center justify-between p-5 transition-all hover:bg-[var(--color-surface-2)]"
         >
           <div className="flex items-center gap-3">
@@ -685,7 +671,7 @@ export default function ByssGamesPage() {
       {/* ── Priority Actions Checklist ────────────── */}
       <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] overflow-hidden">
         <div
-          onClick={() => persist({ ...state, expandedActions: !state.expandedActions })}
+          onClick={() => setState({ ...state, expandedActions: !state.expandedActions })}
           className="flex cursor-pointer items-center justify-between p-5 transition-all hover:bg-[var(--color-surface-2)]"
         >
           <div className="flex items-center gap-3">

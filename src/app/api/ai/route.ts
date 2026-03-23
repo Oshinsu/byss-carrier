@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/security/rate-limiter";
 import {
   generateBriefing,
   analyzeProspect,
@@ -18,6 +19,14 @@ import { buildRAGContext } from "@/lib/ai/rag";
 // ═══════════════════════════════════════════════════════
 
 export async function POST(request: NextRequest) {
+  const { allowed, remaining } = rateLimit("ai-route", 10, 60000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, {
+      status: 429,
+      headers: { "Retry-After": "60", "X-RateLimit-Remaining": "0" },
+    });
+  }
+
   const start = Date.now();
 
   try {

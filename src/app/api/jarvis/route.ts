@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/security/rate-limiter";
 import Anthropic from "@anthropic-ai/sdk";
 import { classifyIntent, JARVIS_SYSTEM_PROMPT } from "@/lib/jarvis";
 import { buildRAGContext } from "@/lib/ai/rag";
@@ -166,6 +167,14 @@ async function executeAction(
 }
 
 export async function POST(request: NextRequest) {
+  const { allowed, remaining } = rateLimit("jarvis-route", 20, 60000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, {
+      status: 429,
+      headers: { "Retry-After": "60", "X-RateLimit-Remaining": "0" },
+    });
+  }
+
   const start = Date.now();
 
   try {

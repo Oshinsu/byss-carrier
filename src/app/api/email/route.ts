@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/security/rate-limiter";
 import {
   sendEmail,
   sendBatchEmails,
@@ -15,6 +16,14 @@ import { createClient } from "@/lib/supabase/server";
 // ═══════════════════════════════════════════════════════
 
 export async function POST(request: NextRequest) {
+  const { allowed, remaining } = rateLimit("email-route", 10, 60000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, {
+      status: 429,
+      headers: { "Retry-After": "60", "X-RateLimit-Remaining": "0" },
+    });
+  }
+
   try {
     const body = await request.json();
     const { action } = body;

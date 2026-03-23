@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import {
   Mail,
   Send,
@@ -169,7 +170,7 @@ export default function EmailComposerPage() {
   const [editSubject, setEditSubject] = useState("");
   const [editBody, setEditBody] = useState("");
   const [hasGenerated, setHasGenerated] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, copy] = useCopyToClipboard();
 
   /* ── History ── */
   const [emailHistory, setEmailHistory] = useState<GeneratedEmail[]>([]);
@@ -357,9 +358,7 @@ export default function EmailComposerPage() {
   /* ── Copy ── */
   const handleCopy = () => {
     const signature = `\n\nGary Bissol\nFondateur — BYSS GROUP SAS\nFort-de-France, Martinique`;
-    navigator.clipboard.writeText(`Objet: ${editSubject}\n\n${editBody}${signature}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    copy(`Objet: ${editSubject}\n\n${editBody}${signature}`);
   };
 
   /* ── Send via Resend ── */

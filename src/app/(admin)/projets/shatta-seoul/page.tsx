@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 import { Music, Globe, TrendingUp, Users, Video, Mic, ExternalLink } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════
@@ -31,8 +32,6 @@ const AI_PERSONAS = [
 
 const PHASE_STATUSES = ["planned", "in_progress", "done"] as const;
 type PhaseStatus = (typeof PHASE_STATUSES)[number];
-const LS_KEY = "byss-shatta-seoul-milestones";
-
 function cycleStatus(s: PhaseStatus): PhaseStatus {
   return PHASE_STATUSES[(PHASE_STATUSES.indexOf(s) + 1) % PHASE_STATUSES.length];
 }
@@ -54,28 +53,14 @@ const defaultState = (): State => ({
 });
 
 export default function ShattaSeoulPage() {
-  const [state, setState] = useState<State>(defaultState);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setState(JSON.parse(raw));
-    } catch {}
-    setLoaded(true);
-  }, []);
-
-  const persist = useCallback((next: State) => {
-    setState(next);
-    localStorage.setItem(LS_KEY, JSON.stringify(next));
-  }, []);
+  const [state, setState, loaded] = useLocalStorage<State>(STORAGE_KEYS.SHATTA_SEOUL_MILESTONES, defaultState());
 
   const togglePhase = (name: string) => {
-    persist({ ...state, phases: { ...state.phases, [name]: cycleStatus(state.phases[name] ?? "planned") } });
+    setState({ ...state, phases: { ...state.phases, [name]: cycleStatus(state.phases[name] ?? "planned") } });
   };
 
   const toggleArtist = (name: string) => {
-    persist({ ...state, artists: { ...state.artists, [name]: !(state.artists[name] ?? true) } });
+    setState({ ...state, artists: { ...state.artists, [name]: !(state.artists[name] ?? true) } });
   };
 
   const phaseVals = Object.values(state.phases);

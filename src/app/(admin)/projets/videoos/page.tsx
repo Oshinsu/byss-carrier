@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import { Film, Music, Brain, Layers, Zap, Timer, Code, FlaskConical } from "lucide-react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 /* ═══════════════════════════════════════════════════════
    VIDEOÒS — AI-First Video Editing Software
@@ -26,8 +27,6 @@ const PHASES = [
 
 const STATUSES = ["planned", "in_progress", "done"] as const;
 type Status = (typeof STATUSES)[number];
-const LS_KEY = "byss-videoos-milestones";
-
 function cycleStatus(s: Status): Status {
   return STATUSES[(STATUSES.indexOf(s) + 1) % STATUSES.length];
 }
@@ -49,28 +48,14 @@ const defaultState = (): State => ({
 });
 
 export default function VideoOSPage() {
-  const [state, setState] = useState<State>(defaultState);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setState(JSON.parse(raw));
-    } catch {}
-    setLoaded(true);
-  }, []);
-
-  const persist = useCallback((next: State) => {
-    setState(next);
-    localStorage.setItem(LS_KEY, JSON.stringify(next));
-  }, []);
+  const [state, setState, loaded] = useLocalStorage<State>(STORAGE_KEYS.VIDEOOS_MILESTONES, defaultState());
 
   const togglePhase = (name: string) => {
-    persist({ ...state, phases: { ...state.phases, [name]: cycleStatus(state.phases[name] ?? "planned") } });
+    setState({ ...state, phases: { ...state.phases, [name]: cycleStatus(state.phases[name] ?? "planned") } });
   };
 
   const togglePipeline = (name: string) => {
-    persist({ ...state, pipeline: { ...state.pipeline, [name]: cycleStatus(state.pipeline[name] ?? "planned") } });
+    setState({ ...state, pipeline: { ...state.pipeline, [name]: cycleStatus(state.pipeline[name] ?? "planned") } });
   };
 
   const all = [...Object.values(state.phases), ...Object.values(state.pipeline)];

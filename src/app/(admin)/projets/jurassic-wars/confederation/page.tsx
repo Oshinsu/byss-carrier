@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
 import { Sword, Shield, Swords, Crown, Flame, Anchor, TreePine, ChevronDown } from "lucide-react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 const DIPLOMATIC_CYCLE = ["Allie", "Neutre", "Hostile", "Guerre"] as const;
 type DiplomaticStatus = (typeof DIPLOMATIC_CYCLE)[number];
@@ -132,31 +134,20 @@ const TREATIES = [
   { name: "Silence de Quetz", between: "Ishtir / tous", since: "400 ans", desc: "Quetz, ville-nid des quetzalcoatlus, territoire sacre inviolable." },
 ];
 
-const LS_KEY = "jw-confederation-status";
+const DEFAULT_STATUSES: Record<string, DiplomaticStatus> = Object.fromEntries(
+  FACTIONS_DATA.map((f) => [f.name, f.defaultStatus])
+);
 
 export default function ConfederationPage() {
-  const [statuses, setStatuses] = useState<Record<string, DiplomaticStatus>>(() => {
-    const defaults: Record<string, DiplomaticStatus> = {};
-    FACTIONS_DATA.forEach((f) => { defaults[f.name] = f.defaultStatus; });
-    return defaults;
-  });
+  const [statuses, setStatuses] = useLocalStorage<Record<string, DiplomaticStatus>>(STORAGE_KEYS.JW_CONFEDERATION, DEFAULT_STATUSES);
   const [expanded, setExpanded] = useState<string | null>(null);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) setStatuses(JSON.parse(saved));
-    } catch {}
-  }, []);
 
   const cycleStatus = (factionName: string) => {
     setStatuses((prev) => {
       const current = prev[factionName] ?? "Neutre";
       const idx = DIPLOMATIC_CYCLE.indexOf(current);
       const nextIdx = idx >= DIPLOMATIC_CYCLE.length - 1 ? 0 : idx + 1;
-      const next = { ...prev, [factionName]: DIPLOMATIC_CYCLE[nextIdx] };
-      localStorage.setItem(LS_KEY, JSON.stringify(next));
-      return next;
+      return { ...prev, [factionName]: DIPLOMATIC_CYCLE[nextIdx] };
     });
   };
 

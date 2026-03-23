@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import {
   FlaskConical, HelpCircle, Search, BarChart3, GitMerge, Lightbulb,
   CheckCircle2, FileText, Compass, FileSearch, ShieldCheck, Cpu,
@@ -155,7 +156,7 @@ export default function ResearchPage() {
   const [history, setHistory] = useState<ResearchHistoryEntry[]>([]);
   const [graph, setGraph] = useState<KnowledgeGraph>({ nodes: [], edges: [] });
   const [showHistory, setShowHistory] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, copy] = useCopyToClipboard();
   const resultRef = useRef<HTMLDivElement>(null);
 
   // ── Init ──
@@ -279,10 +280,8 @@ export default function ResearchPage() {
   const handleCopy = useCallback(() => {
     if (!result) return;
     const text = `# ${result.question}\n\n${result.summary}\n\n## Findings\n${result.findings.map((f) => `- [${f.confidence}] ${f.insight}`).join("\n")}\n\n## Sources\n${result.sources.map((s) => `- ${s.title}${s.url ? ` (${s.url})` : ""}`).join("\n")}`;
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }, [result]);
+    copy(text);
+  }, [result, copy]);
 
   // ── Deepen research ──
   const handleDeepen = useCallback(() => {

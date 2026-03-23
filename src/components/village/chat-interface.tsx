@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { Send, ChevronDown, ChevronUp, Scroll, Brain } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Agent } from "./agent-card";
-import { addEpisodicMemory, getEpisodicMemories } from "@/lib/memory";
-import type { EpisodicMemory } from "@/types";
 
 /* ═══════════════════════════════════════════════════════
    TYPES
@@ -112,7 +110,6 @@ export function ChatInterface({ agent }: ChatInterfaceProps) {
   const [isTyping, setIsTyping] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
   const [showMemory, setShowMemory] = useState(false);
-  const [memories, setMemories] = useState<EpisodicMemory[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -136,13 +133,9 @@ export function ChatInterface({ agent }: ChatInterfaceProps) {
         },
       ]);
       setShowPrompt(false);
-      // Load agent memories
-      const agentMemories = getEpisodicMemories(agent.id as "kael" | "nerel" | "evren" | "sorel", 20);
-      setMemories(agentMemories);
       inputRef.current?.focus();
     } else {
       setMessages([]);
-      setMemories([]);
     }
   }, [agent]);
 
@@ -206,14 +199,6 @@ export function ChatInterface({ agent }: ChatInterfaceProps) {
         },
       ]);
 
-      // Record to episodic memory (fire-and-forget)
-      addEpisodicMemory(
-        agent.id as "kael" | "nerel" | "evren" | "sorel",
-        "conversation",
-        `User: ${userMessage.slice(0, 200)}\nAgent: ${agentResponse.slice(0, 300)}`,
-        { conversationLength: messages.length + 2 },
-        0.6
-      ).catch(() => {});
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -347,11 +332,11 @@ export function ChatInterface({ agent }: ChatInterfaceProps) {
           className={cn("flex flex-1 items-center gap-2 px-4 py-2 text-left text-[10px] transition-colors hover:text-[var(--color-text)]", showMemory ? "text-[var(--color-gold)]" : "text-[var(--color-text-muted)]")}
         >
           <Brain className="h-3 w-3" />
-          Memoire ({memories.length})
+          Memoire
         </button>
       </div>
 
-      {/* ── Memory panel ── */}
+      {/* ── Memory panel — backed by pgvector sessions ── */}
       <AnimatePresence>
         {showMemory && (
           <motion.div
@@ -361,18 +346,7 @@ export function ChatInterface({ agent }: ChatInterfaceProps) {
             className="overflow-hidden border-b border-[var(--color-border-subtle)]"
           >
             <div className="max-h-[150px] overflow-y-auto px-4 py-2">
-              {memories.length === 0 ? (
-                <p className="text-[10px] italic text-[var(--color-text-muted)]">Aucun souvenir enregistre. Les conversations sont memorisees automatiquement.</p>
-              ) : (
-                <div className="space-y-1.5">
-                  {memories.slice(-10).reverse().map((m) => (
-                    <div key={m.id} className="rounded bg-[var(--color-surface-2)] px-2 py-1.5">
-                      <p className="text-[9px] text-[var(--color-text-muted)]">{m.content.slice(0, 120)}...</p>
-                      <p className="mt-0.5 text-[8px] text-[var(--color-text-muted)]/50">{m.date}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <p className="text-[10px] italic text-[var(--color-text-muted)]">Memoire agent: pgvector embeddings + sessions actives.</p>
             </div>
           </motion.div>
         )}

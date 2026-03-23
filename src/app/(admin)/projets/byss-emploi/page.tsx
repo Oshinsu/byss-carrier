@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import { Briefcase, Server, AlertTriangle, Database, Zap, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 /* ═══════════════════════════════════════════════════════
    BYSS EMPLOI — France Travail MCP Platform
@@ -49,8 +50,6 @@ const CRITICAL_ISSUES = [
 
 const SERVICE_STATUSES = ["planned", "partial", "active", "done"] as const;
 type ServiceStatus = (typeof SERVICE_STATUSES)[number];
-const LS_KEY = "byss-emploi-milestones";
-
 function cycleServiceStatus(s: ServiceStatus): ServiceStatus {
   return SERVICE_STATUSES[(SERVICE_STATUSES.indexOf(s) + 1) % SERVICE_STATUSES.length];
 }
@@ -82,28 +81,14 @@ const defaultState = (): State => ({
 });
 
 export default function ByssEmploiPage() {
-  const [state, setState] = useState<State>(defaultState);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setState(JSON.parse(raw));
-    } catch {}
-    setLoaded(true);
-  }, []);
-
-  const persist = useCallback((next: State) => {
-    setState(next);
-    localStorage.setItem(LS_KEY, JSON.stringify(next));
-  }, []);
+  const [state, setState, loaded] = useLocalStorage<State>(STORAGE_KEYS.BYSS_EMPLOI_MILESTONES, defaultState());
 
   const toggleService = (name: string) => {
-    persist({ ...state, services: { ...state.services, [name]: cycleServiceStatus(state.services[name] ?? "planned") } });
+    setState({ ...state, services: { ...state.services, [name]: cycleServiceStatus(state.services[name] ?? "planned") } });
   };
 
   const toggleIssue = (issue: string) => {
-    persist({ ...state, issues: { ...state.issues, [issue]: !state.issues[issue] } });
+    setState({ ...state, issues: { ...state.issues, [issue]: !state.issues[issue] } });
   };
 
   const serviceDone = Object.values(state.services).filter((s) => s === "done" || s === "active").length;

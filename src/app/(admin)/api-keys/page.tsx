@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { SkeletonCard, SkeletonKPI } from "@/components/ui/loading-skeleton";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 
 /* ═══════════════════════════════════════════════════════
    BYSS EMPIRE — API Keys & Services Registry
@@ -265,13 +266,7 @@ function BudgetBar({ usage, budget }: { usage: number; budget: number }) {
 
 /* ── Masked env value ── */
 function EnvValue({ envVar, configured }: { envVar: string; configured: boolean }) {
-  const [copied, setCopied] = useState(false);
-
-  const copy = useCallback(() => {
-    navigator.clipboard.writeText(envVar);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  }, [envVar]);
+  const [copied, copy] = useCopyToClipboard();
 
   if (!configured) {
     return <span className="text-[10px] italic text-red-400/70">Non configure</span>;
@@ -291,7 +286,7 @@ function EnvValue({ envVar, configured }: { envVar: string; configured: boolean 
       <code className="text-[10px] text-[var(--color-text-muted)] font-mono">
         ****{envVar.slice(-4)}
       </code>
-      <button onClick={copy} className="p-0.5 text-[var(--color-text-muted)] hover:text-[var(--color-gold)] transition-colors">
+      <button onClick={() => copy(envVar)} className="p-0.5 text-[var(--color-text-muted)] hover:text-[var(--color-gold)] transition-colors">
         {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
       </button>
     </div>

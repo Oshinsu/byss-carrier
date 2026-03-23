@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { motion } from "motion/react";
 import {
   User, Palette, Bell, Plug, Database, Info, Moon, Mail,
@@ -135,10 +136,10 @@ function ActionButton({
 
 /* ── Copy button ── */
 function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
+  const [copied, copy] = useCopyToClipboard();
   return (
     <button
-      onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+      onClick={() => copy(text)}
       className="p-0.5 text-[var(--color-text-muted)] hover:text-[var(--color-gold)] transition-colors"
     >
       {copied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}

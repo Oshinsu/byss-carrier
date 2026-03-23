@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Brain, Mail, FileText, Copy, Check, Loader2 } from "lucide-react";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { cn } from "@/lib/utils";
 import type { Prospect } from "./prospect-card";
 
@@ -24,12 +25,10 @@ const tabs: { key: TabKey; label: string; icon: React.ElementType }[] = [
 /* ─── Component ──────────────────────────────────────── */
 export function AIActions({ prospect, initialTab, onClose }: AIActionsProps) {
   const [activeTab, setActiveTab] = useState<TabKey>(initialTab);
-  const [copied, setCopied] = useState(false);
+  const [copied, copy] = useCopyToClipboard();
 
   const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    copy(text);
   };
 
   return (

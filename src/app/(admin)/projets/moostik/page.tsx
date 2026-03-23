@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Clapperboard, Eye, Film, Tv, CalendarDays, ChevronDown, Sparkles, Brain, Layers, Check, ExternalLink } from "lucide-react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 /* ═══════════════════════════════════════════════════════
    MOOSTIK — Scene Generator by BLOODWINGSStudio
@@ -119,8 +121,6 @@ function epStatusStyle(s: EpStatus) {
   return { bg: "#6B728020", color: "#6B7280", label: "planned" };
 }
 
-const LS_KEY = "byss-moostik-milestones";
-
 interface State {
   episodes: Record<string, EpStatus>;
 }
@@ -137,26 +137,12 @@ function buildDefaultState(): State {
 
 export default function MoostikPage() {
   const [activeSeason, setActiveSeason] = useState<number | null>(null);
-  const [state, setState] = useState<State>(buildDefaultState);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setState(JSON.parse(raw));
-    } catch {}
-    setLoaded(true);
-  }, []);
-
-  const persist = useCallback((next: State) => {
-    setState(next);
-    localStorage.setItem(LS_KEY, JSON.stringify(next));
-  }, []);
+  const [state, setState, loaded] = useLocalStorage<State>(STORAGE_KEYS.MOOSTIK_MILESTONES, buildDefaultState());
 
   const toggleEpStatus = (seasonId: number, epTitle: string) => {
     const key = `S${seasonId}-${epTitle}`;
     const current = state.episodes[key] ?? "planned";
-    persist({ ...state, episodes: { ...state.episodes, [key]: cycleEpStatus(current) } });
+    setState({ ...state, episodes: { ...state.episodes, [key]: cycleEpStatus(current) } });
   };
 
   const allEps = Object.values(state.episodes);

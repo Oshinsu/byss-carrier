@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 import { motion } from "motion/react";
 import {
   Calculator,
@@ -109,6 +110,7 @@ const TIER_META: Record<Tier, { label: string; icon: React.ElementType; badge?: 
    ═══════════════════════════════════════════════════════ */
 export default function PricingPage() {
   const { add: notify } = useNotifications();
+  const [, copy] = useCopyToClipboard();
 
   const [loading, setLoading] = useState(true);
   const [prospect, setProspect] = useState("");
@@ -530,7 +532,7 @@ export default function PricingPage() {
               </span>
             </div>
             <button
-              onClick={() => navigator.clipboard.writeText(proposalContent)}
+              onClick={() => copy(proposalContent)}
               className="rounded-lg border border-[var(--color-border-subtle)] px-3 py-1.5 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
             >
               Copier

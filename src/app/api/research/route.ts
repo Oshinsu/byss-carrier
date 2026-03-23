@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/security/rate-limiter";
 import { createClient } from "@/lib/supabase/server";
 import { logAgentAction } from "@/lib/db/queries";
 import { callOpenRouter } from "@/lib/ai/router";
@@ -115,6 +116,14 @@ function depthToTask(depth: ResearchDepth): "analysis" | "commercial" | "bulk" {
 }
 
 export async function POST(request: NextRequest) {
+  const { allowed, remaining } = rateLimit("research-route", 5, 60000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, {
+      status: 429,
+      headers: { "Retry-After": "60", "X-RateLimit-Remaining": "0" },
+    });
+  }
+
   const start = Date.now();
 
   try {

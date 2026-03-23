@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import {
   ShoppingCart, Globe, TrendingUp, Bot, Zap,
   DollarSign, MapPin, Package, BarChart3, CheckCircle2, Construction,
 } from "lucide-react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 /* ═══════════════════════════════════════════════════════
    E-COMMERCE ASSAULT — Multi-Store Autonomous Empire
@@ -34,8 +35,6 @@ const PHASES = ["Phase 1 — store-creator-v1", "Phase 2 — scaling", "Phase 3 
 const PHASE_STATUSES = ["planned", "in_progress", "done"] as const;
 type PhaseStatus = (typeof PHASE_STATUSES)[number];
 
-const LS_KEY = "byss-ecommerce-milestones";
-
 interface MilestoneState {
   phases: Record<string, PhaseStatus>;
   markets: Record<string, PhaseStatus>;
@@ -58,28 +57,14 @@ function statusStyle(s: PhaseStatus) {
 }
 
 export default function EcommercePage() {
-  const [state, setState] = useState<MilestoneState>(defaultState);
-  const [loaded, setLoaded] = useState(false);
-
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setState(JSON.parse(raw));
-    } catch {}
-    setLoaded(true);
-  }, []);
-
-  const persist = useCallback((next: MilestoneState) => {
-    setState(next);
-    localStorage.setItem(LS_KEY, JSON.stringify(next));
-  }, []);
+  const [state, setState, loaded] = useLocalStorage<MilestoneState>(STORAGE_KEYS.ECOMMERCE_MILESTONES, defaultState());
 
   const togglePhase = (name: string) => {
-    persist({ ...state, phases: { ...state.phases, [name]: cycleStatus(state.phases[name] ?? "planned") } });
+    setState({ ...state, phases: { ...state.phases, [name]: cycleStatus(state.phases[name] ?? "planned") } });
   };
 
   const toggleMarket = (country: string) => {
-    persist({ ...state, markets: { ...state.markets, [country]: cycleStatus(state.markets[country] ?? "planned") } });
+    setState({ ...state, markets: { ...state.markets, [country]: cycleStatus(state.markets[country] ?? "planned") } });
   };
 
   const allItems = [...Object.values(state.phases), ...Object.values(state.markets)];

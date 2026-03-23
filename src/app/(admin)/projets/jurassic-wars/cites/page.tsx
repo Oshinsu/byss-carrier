@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "motion/react";
 import { Landmark, Users, Search, X, Eye, EyeOff } from "lucide-react";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 const CITIES = [
   // Empire Pangeen (8)
@@ -43,25 +45,12 @@ const CITIES = [
   { name: "Osstheim", faction: "Dravenkhor", pop: "105K", type: "Mine", color: "text-emerald-400" },
 ];
 
-const LS_KEY = "jw-cites-visited";
-
 export default function CitesPage() {
   const [search, setSearch] = useState("");
-  const [visited, setVisited] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(LS_KEY);
-      if (saved) setVisited(JSON.parse(saved));
-    } catch {}
-  }, []);
+  const [visited, setVisited] = useLocalStorage<Record<string, boolean>>(STORAGE_KEYS.JW_CITES, {});
 
   const toggleVisited = (name: string) => {
-    setVisited((prev) => {
-      const next = { ...prev, [name]: !prev[name] };
-      localStorage.setItem(LS_KEY, JSON.stringify(next));
-      return next;
-    });
+    setVisited((prev) => ({ ...prev, [name]: !prev[name] }));
   };
 
   const filtered = search.trim()

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/security/rate-limiter";
 
 // ---------------------------------------------------------------------------
 // Replicate API proxy
@@ -94,6 +95,14 @@ async function replicateGet(path: string) {
 // ---------------------------------------------------------------------------
 
 export async function POST(request: NextRequest) {
+  const { allowed, remaining } = rateLimit("replicate-route", 5, 60000);
+  if (!allowed) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, {
+      status: 429,
+      headers: { "Retry-After": "60", "X-RateLimit-Remaining": "0" },
+    });
+  }
+
   if (!REPLICATE_TOKEN) {
     return NextResponse.json(
       { error: "REPLICATE_API_TOKEN not configured" },
