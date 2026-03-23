@@ -28,12 +28,12 @@ User wants to produce content: teaser, clip, pub, court-métrage, trailer.
 
 ### Stage 4: Video Generation
 - Build Kling 3.0 multi-shot prompts (max 6 cuts per 15s)
-- Call /api via fal.ai endpoint
+- Call /api/replicate with action "generate-video"
 - Cost estimate before generation
 
 ### Stage 5: Audio
-- Music: MiniMax prompt from Suno SOTA library or custom
-- Voice-off: ElevenLabs TTS with Caribbean accent (if applicable)
+- Music: MiniMax Music 2.5+ via Replicate (action "generate-music")
+- Voice-off: XTTS-v2 via Replicate (action "generate-voice") with Caribbean accent (if applicable)
 - SFX: Kling native audio for ambient
 
 ### Stage 6: Beat Sync

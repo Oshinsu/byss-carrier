@@ -14,7 +14,7 @@ const INITIAL_STEPS = [
   { id: "char", name: "Character Design", tool: "Midjourney v6 + Photoshop", progress: 100, icon: "Image" },
   { id: "scene", name: "Scene Generation", tool: "Kling 3.0 + Runway Gen-3", progress: 60, icon: "Cpu" },
   { id: "anim", name: "Animation IA", tool: "Kling 3.0 + Nano Banana Pro", progress: 40, icon: "Clapperboard" },
-  { id: "voice", name: "Voice Acting", tool: "ElevenLabs + Studio local", progress: 10, icon: "Mic" },
+  { id: "voice", name: "Voice Acting", tool: "XTTS-v2 (Replicate) + Studio local", progress: 10, icon: "Mic" },
   { id: "music", name: "Soundtrack", tool: "Suno + Udio", progress: 5, icon: "Music" },
   { id: "comp", name: "Compositing Final", tool: "DaVinci Resolve + After Effects", progress: 0, icon: "Film" },
 ];

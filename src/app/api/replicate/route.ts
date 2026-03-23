@@ -13,6 +13,7 @@ const MODELS = {
   "flux-2-pro": "black-forest-labs/flux-2-pro",
   "kling-3": "kuaishou-video/kling-3",
   "minimax-music-2.5": "minimax/music-2.5",
+  "xtts-v2": "lucataco/xtts-v2",
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -42,6 +43,12 @@ interface GenerateMusicPayload {
   referenceAudioUrl?: string;
 }
 
+interface GenerateVoicePayload {
+  text: string;
+  speakerWav?: string;
+  language?: string;
+}
+
 interface StatusPayload {
   predictionId: string;
 }
@@ -54,6 +61,7 @@ type ActionPayload =
   | { action: "generate-image" } & GenerateImagePayload
   | { action: "generate-video" } & GenerateVideoPayload
   | { action: "generate-music" } & GenerateMusicPayload
+  | { action: "generate-voice" } & GenerateVoicePayload
   | { action: "status" } & StatusPayload
   | { action: "cancel" } & CancelPayload;
 
@@ -170,6 +178,23 @@ export async function POST(request: NextRequest) {
 
         const prediction = await replicatePost("/predictions", {
           model: MODELS["minimax-music-2.5"],
+          input,
+        });
+        return NextResponse.json(prediction);
+      }
+
+      // ---- Voice/TTS generation (XTTS-v2) -----------------------------------
+      case "generate-voice": {
+        const input: Record<string, unknown> = {
+          text: payload.text,
+          language: payload.language ?? "fr",
+        };
+        if (payload.speakerWav) {
+          input.speaker_wav = payload.speakerWav;
+        }
+
+        const prediction = await replicatePost("/predictions", {
+          model: MODELS["xtts-v2"],
           input,
         });
         return NextResponse.json(prediction);

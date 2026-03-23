@@ -59,14 +59,14 @@ const ALL_SERVICES: ServiceEntry[] = [
   },
   {
     id: "replicate", service: "Replicate", envVar: "REPLICATE_API_TOKEN",
-    configured: true, purpose: "Kling 3.0, Nano Banana Pro, MiniMax Music",
+    configured: true, purpose: "All generation: Kling 3.0, Nano Banana Pro, MiniMax Music, TTS",
     getKeyUrl: "https://replicate.com", icon: "R", iconColor: "text-pink-400",
     monthlyBudget: 100, monthlyUsage: 8, sparkline: [1, 2, 1, 3, 5, 6, 8], category: "ia",
   },
   {
-    id: "vercel-ai", service: "Vercel AI SDK", envVar: "AI_MODEL_*",
+    id: "ai-sdk", service: "AI SDK", envVar: "AI_MODEL_*",
     configured: true, purpose: "Fallback model routing",
-    getKeyUrl: "#", icon: "V", iconColor: "text-gray-400",
+    getKeyUrl: "#", icon: "AI", iconColor: "text-gray-400",
     monthlyBudget: 0, monthlyUsage: 0, sparkline: [0, 0, 1, 0, 1, 0, 0], category: "ia",
   },
 

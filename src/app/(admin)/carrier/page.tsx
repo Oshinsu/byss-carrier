@@ -169,7 +169,7 @@ const TECH_STACK = [
 
 const KEY_DEPS = [
   { name: "@anthropic-ai/sdk", version: "0.39.0", purpose: "Claude API direct" },
-  { name: "@ai-sdk/anthropic", version: "3.0.63", purpose: "Vercel AI SDK bridge" },
+  { name: "@ai-sdk/anthropic", version: "3.0.63", purpose: "AI SDK bridge" },
   { name: "@supabase/ssr", version: "0.6.1", purpose: "Server-side Supabase" },
   { name: "motion", version: "12.6.3", purpose: "Animations" },
   { name: "drizzle-orm", version: "0.43.1", purpose: "Database ORM" },

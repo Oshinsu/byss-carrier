@@ -9,8 +9,8 @@ import {
 import { cn } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════
-   MUSIC PIPELINE — MiniMax Music 2.5+ / Suno
-   Token plan unifi\u00E9 (text + video + music + speech)
+   MUSIC PIPELINE — MiniMax Music 2.5+ via Replicate / Suno
+   All generation routed through Replicate API
    Genres: OST, jingle, zouk, shatta, instrumental, SFX
    ═══════════════════════════════════════════════════════ */
 
@@ -314,8 +314,8 @@ export default function MusicPage() {
   const [selectedGenre, setSelectedGenre] = useState("ost");
   const [prompt, setPrompt] = useState("");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
-  const [miniMaxLoading, setMiniMaxLoading] = useState(false);
-  const [miniMaxSuccess, setMiniMaxSuccess] = useState(false);
+  const [replicateLoading, setReplicateLoading] = useState(false);
+  const [replicateSuccess, setReplicateSuccess] = useState(false);
   const [jobs, setJobs] = useState<MusicJob[]>([]);
   const [mounted, setMounted] = useState(false);
 
@@ -342,33 +342,37 @@ export default function MusicPage() {
     setGeneratedPrompt(fullPrompt);
   };
 
-  const handleLaunchMiniMax = async () => {
-    if (!generatedPrompt || miniMaxLoading) return;
-    setMiniMaxLoading(true);
+  const handleLaunchReplicate = async () => {
+    if (!generatedPrompt || replicateLoading) return;
+    setReplicateLoading(true);
     try {
-      await navigator.clipboard.writeText(generatedPrompt);
+      // Launch generation via Replicate API route
+      const res = await fetch("/api/replicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "generate-music", prompt: generatedPrompt }),
+      });
+      const data = await res.json();
 
       // Add job to history
       const job: MusicJob = {
-        id: `mus_${Date.now()}`,
+        id: data.id || `mus_${Date.now()}`,
         prompt: generatedPrompt,
         genre: genreConfig.label,
-        provider: "minimax",
-        status: "prompt_copied",
+        provider: "replicate/minimax-music-2.5",
+        status: "generating",
         resultUrl: "",
         createdAt: new Date().toISOString(),
       };
       updateJobs((prev) => [job, ...prev]);
 
-      setMiniMaxSuccess(true);
-      // Open MiniMax in new tab
-      window.open("https://minimax.io", "_blank", "noopener,noreferrer");
+      setReplicateSuccess(true);
       setTimeout(() => {
-        setMiniMaxSuccess(false);
-        setMiniMaxLoading(false);
+        setReplicateSuccess(false);
+        setReplicateLoading(false);
       }, 4000);
     } catch {
-      setMiniMaxLoading(false);
+      setReplicateLoading(false);
     }
   };
 
@@ -402,7 +406,7 @@ export default function MusicPage() {
             Music <span className="text-[var(--color-gold)]">Pipeline</span>
           </h1>
           <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-            MiniMax Music 2.5+ — Token plan unifie (text + video + music + speech)
+            MiniMax Music 2.5+ via Replicate — Generation unifiee
           </p>
         </div>
         {mounted && jobs.length > 0 && (
@@ -416,7 +420,7 @@ export default function MusicPage() {
       {/* Models */}
       <div className="grid grid-cols-2 gap-3">
         {[
-          { name: "MiniMax Music 2.5+", desc: "Meilleure qualite generation musicale. Lyrics, instrumental, SFX.", cost: "$0.075/run", primary: true },
+          { name: "MiniMax Music 2.5+ (Replicate)", desc: "Meilleure qualite generation musicale. Lyrics, instrumental, SFX.", cost: "$0.075/run", primary: true },
           { name: "Suno", desc: "Alternative rapide pour prototypage. Full songs.", cost: "$0.05/run", primary: false },
         ].map((m) => (
           <div key={m.name} className={cn("rounded-xl border p-4", m.primary ? "border-[var(--color-gold)] bg-[oklch(0.75_0.12_85/0.04)]" : "border-[var(--color-border-subtle)] bg-[var(--color-surface)]")}>
@@ -488,34 +492,34 @@ export default function MusicPage() {
               <Copy className="h-3 w-3" />Copier
             </button>
             <button
-              onClick={handleLaunchMiniMax}
-              disabled={miniMaxLoading}
+              onClick={handleLaunchReplicate}
+              disabled={replicateLoading}
               className={cn(
                 "flex items-center gap-1 rounded-lg px-3 py-1.5 text-[10px] transition-all",
-                miniMaxSuccess
+                replicateSuccess
                   ? "bg-[oklch(0.72_0.19_155/0.15)] text-[var(--color-green)]"
                   : "bg-[#00D4FF15] text-[var(--color-cyan)] hover:bg-[#00D4FF25]",
-                miniMaxLoading && !miniMaxSuccess && "cursor-not-allowed opacity-60"
+                replicateLoading && !replicateSuccess && "cursor-not-allowed opacity-60"
               )}
             >
-              {miniMaxLoading && !miniMaxSuccess ? (
+              {replicateLoading && !replicateSuccess ? (
                 <Loader2 className="h-3 w-3 animate-spin" />
-              ) : miniMaxSuccess ? (
+              ) : replicateSuccess ? (
                 <Check className="h-3 w-3" />
               ) : (
                 <Play className="h-3 w-3" />
               )}
-              {miniMaxSuccess ? "Prompt copi\u00E9 \u2014 ouvrir MiniMax Music" : "Lancer MiniMax"}
+              {replicateSuccess ? "Generation lancee via Replicate" : "Lancer via Replicate"}
             </button>
-            {miniMaxSuccess && (
+            {replicateSuccess && (
               <a
-                href="https://minimax.io"
+                href="https://replicate.com/predictions"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1 rounded-lg bg-[var(--color-gold-glow)] px-3 py-1.5 text-[10px] font-medium text-[var(--color-gold)] transition-all hover:bg-[var(--color-gold)] hover:text-black"
               >
                 <ExternalLink className="h-3 w-3" />
-                Ouvrir MiniMax
+                Voir sur Replicate
               </a>
             )}
           </div>

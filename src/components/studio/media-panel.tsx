@@ -133,9 +133,9 @@ function AIGeneratePanel() {
 
   const generators = [
     { key: "image", label: "Generer Image", sublabel: "Replicate — Nano Banana Pro", icon: ImageIcon, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
-    { key: "video", label: "Generer Video", sublabel: "Kling 3.0 via fal.ai", icon: Video, color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
-    { key: "music", label: "Generer Musique", sublabel: "MiniMax", icon: Music, color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
-    { key: "voix", label: "Generer Voix-off", sublabel: "ElevenLabs (bientot)", icon: Mic, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
+    { key: "video", label: "Generer Video", sublabel: "Kling 3.0 via Replicate", icon: Video, color: "text-cyan-400", bg: "bg-cyan-500/10 border-cyan-500/20" },
+    { key: "music", label: "Generer Musique", sublabel: "MiniMax Music via Replicate", icon: Music, color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
+    { key: "voix", label: "Generer Voix-off", sublabel: "XTTS-v2 via Replicate", icon: Mic, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
   ];
 
   const handleGenerate = async (type: string) => {

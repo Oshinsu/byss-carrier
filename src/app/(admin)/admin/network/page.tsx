@@ -30,7 +30,7 @@ const SERVERS: ServerConfig[] = [
   { name: "Anthropic API", type: "LLM", healthUrl: "https://api.anthropic.com", apiKey: true },
   { name: "OpenAI API", type: "LLM", healthUrl: "https://api.openai.com", apiKey: true },
   { name: "Midjourney", type: "Image Gen", healthUrl: null, apiKey: true },
-  { name: "ElevenLabs", type: "Voice", healthUrl: "https://api.elevenlabs.io", apiKey: true },
+  { name: "XTTS-v2 (Replicate)", type: "Voice", healthUrl: "https://api.replicate.com", apiKey: true },
   { name: "Kling 3.0", type: "Video Gen", healthUrl: null, apiKey: true },
   { name: "Resend", type: "Email", healthUrl: "https://api.resend.com", apiKey: true },
   { name: "Vercel", type: "Hosting", healthUrl: "https://vercel.com", apiKey: true },

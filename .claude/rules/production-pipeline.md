@@ -5,11 +5,11 @@ paths:
 ---
 # Production Pipeline Rules
 
-## SOTA Stack (March 2026)
-- Video: Kling 3.0 via fal.ai ($0.029/sec, 6 multi-shot, 15s, native audio)
+## SOTA Stack (March 2026) — All via Replicate
+- Video: Kling 3.0 via Replicate ($0.029/sec, 6 multi-shot, 15s, native audio)
 - Image: Nano Banana Pro via Replicate ($0.09-0.12/image, 4K, text rendering)
-- Music: MiniMax Music 2.5+ ($0.075/run)
-- TTS: ElevenLabs PVC (Caribbean accent clone) or Qwen3-TTS (open source)
+- Music: MiniMax Music 2.5+ via Replicate ($0.075/run)
+- TTS: XTTS-v2 via Replicate (Caribbean accent clone) or Qwen3-TTS (open source)
 - Edit: BYSS Studio (Remotion-based) or OpenCut (47K stars, MIT, Next.js)
 
 ## Pipeline Stages (SEQUENTIAL — dependencies matter)
@@ -17,7 +17,7 @@ paths:
 2. Style Lock → review & approve visual style, lock Element Library
 3. Storyboard → generate shot list with descriptions (Claude/Kael)
 4. Video Generation → Kling 3.0 multi-shot per scene
-5. Audio → Music (MiniMax) + Voice-off (ElevenLabs/Qwen3-TTS)
+5. Audio → Music (MiniMax via Replicate) + Voice-off (XTTS-v2 via Replicate / Qwen3-TTS)
 6. Beat Sync → align cuts to music beats (BeatSync-Engine pattern)
 7. Assembly → Remotion composition + final render
 8. Review → quality check + client approval
@@ -31,7 +31,7 @@ paths:
 - Story Instagram 15s (9:16) — photo + text → animated story
 
 ## Cost Awareness
-- Always route via fal.ai (cheapest Kling endpoint)
+- All generation routed through Replicate (single API token)
 - Batch generate context images before starting video
 - Use MiniMax M2.7 for prompt refinement, Opus only for final creative review
 - Log every generation cost via usage-tracker

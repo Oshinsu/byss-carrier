@@ -58,7 +58,7 @@ pnpm seed         # Seed Supabase tables
 - Direct Anthropic → Village IA, Email Sorel, briefing
 
 ## Watch out for
-- SWC blocked by Windows AppControl — works fine on Vercel (Linux)
+- SWC blocked by Windows AppControl — works fine on Netlify (Linux)
 - `--color-gold` CSS var = CYAN (renamed but kept for backward compat)
 - Auth middleware: only garybyss972@gmail.com and gary@byss-group.com
 - Factur-X mandatory September 2026 — system built and ready

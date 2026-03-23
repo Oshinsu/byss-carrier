@@ -18,7 +18,7 @@ import { VIDEO_STATUS_CONFIG } from "@/lib/constants";
 import type { VideoStatus, VideoTier } from "@/types";
 
 /* ═══════════════════════════════════════════════════════
-   VIDEO PIPELINE — Kling 3.0 / Hailuo 2.3 / MiniMax
+   VIDEO PIPELINE — Kling 3.0 / Hailuo 2.3 / MiniMax (via Replicate)
    Brief → Prompt → Generation → Review → Delivery
    Marge: 99.96% ($0.30 cost → $750 sell)
    ═══════════════════════════════════════════════════════ */
@@ -103,12 +103,12 @@ const PIPELINE_STAGES: PipelineStage[] = [
   },
   {
     id: 4, title: "Video Generation", description: "Kling 3.0 multi-shot per scene, Element Library consistency",
-    tools: ["Kling 3.0 (fal.ai)", "Multi-shot API"], estimatedTime: "2-8 min/shot", dependencies: [1, 2, 3], status: "locked",
+    tools: ["Kling 3.0 (Replicate)", "Multi-shot API"], estimatedTime: "2-8 min/shot", dependencies: [1, 2, 3], status: "locked",
     color: "#10B981", icon: Film,
   },
   {
     id: 5, title: "Audio", description: "Music generation + voice-off recording/synthesis",
-    tools: ["MiniMax Music", "ElevenLabs", "Qwen3-TTS"], estimatedTime: "5-15 min", dependencies: [3], status: "locked",
+    tools: ["MiniMax Music (Replicate)", "XTTS-v2 (Replicate)", "Qwen3-TTS"], estimatedTime: "5-15 min", dependencies: [3], status: "locked",
     color: "#EC4899", icon: Music,
   },
   {
@@ -146,7 +146,7 @@ const PROVIDER_SPECS: ProviderSpec[] = [
     name: "Kling 3.0",
     arena: "#1 Arena (ELO 1248)",
     costPerSec: 0.029,
-    costLabel: "$0.029/sec (fal.ai)",
+    costLabel: "$0.029/sec (Replicate)",
     features: ["Multi-shot", "Element Library", "Character Consistency", "Voice Binding", "Camera Control"],
     color: "#00B4D8",
     recommended: true,
@@ -275,7 +275,7 @@ export default function VideoPage() {
             Video <span className="text-[var(--color-gold)]">Pipeline</span>
           </h1>
           <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-            Kling 3.0 + Hailuo 2.3 + MiniMax — Marge {margin}%
+            Kling 3.0 + Hailuo 2.3 + MiniMax via Replicate — Marge {margin}%
           </p>
         </div>
         <button
@@ -688,7 +688,7 @@ export default function VideoPage() {
                 <Mic className="mx-auto h-6 w-6 text-purple-400/50" />
                 <p className="mt-2 text-xs font-bold text-purple-400/70">Voice Binding</p>
                 <p className="mt-1 text-[10px] text-[var(--color-text-muted)]">
-                  Upload voice sample pour ElevenLabs / Qwen3-TTS cloning
+                  Upload voice sample pour XTTS-v2 (Replicate) / Qwen3-TTS cloning
                 </p>
                 <button className="mt-3 rounded-lg border border-purple-500/20 px-3 py-1.5 text-[10px] font-medium text-purple-400 hover:bg-purple-500/10">
                   Upload voice (bient{"\u00F4"}t)

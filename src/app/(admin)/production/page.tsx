@@ -129,7 +129,7 @@ const PRODUCTION_TEMPLATES: ProductionTemplate[] = [
     inputs: ["Flyer image", "Event details (lieu, date, DJ, theme)"],
     output: "25s vertical video avec musique, transitions rythmees, texte anime",
     estimatedCost: "$0.73 (25s x $0.029/s)",
-    workflow: "1. Upload flyer → 2. Context images (lieu, ambiance) via Nano Banana Pro → 3. Kling 3.0 multi-shot (5 cuts x 5s) → 4. MiniMax audio (beat electro/afro) → 5. Beat sync + text overlays → 6. Remotion render 9:16",
+    workflow: "1. Upload flyer → 2. Context images (lieu, ambiance) via Nano Banana Pro → 3. Kling 3.0 multi-shot (5 cuts x 5s) → 4. MiniMax audio via Replicate (beat electro/afro) → 5. Beat sync + text overlays → 6. Remotion render 9:16",
     color: "#F59E0B",
   },
   {
@@ -162,7 +162,7 @@ const PRODUCTION_TEMPLATES: ProductionTemplate[] = [
     inputs: ["Script complet", "Character refs", "Location refs"],
     output: "Short film cinematique, multi-acte, voice-off + musique",
     estimatedCost: "$5.22-8.70 (180-300s x $0.029/s)",
-    workflow: "1. Script breakdown (actes, scenes) → 2. Character lock (Element Library) → 3. Storyboard 20-30 shots → 4. Kling 3.0 generation scene par scene → 5. ElevenLabs voice-off → 6. MiniMax score → 7. Beat sync + assembly → 8. Color grade + Remotion render",
+    workflow: "1. Script breakdown (actes, scenes) → 2. Character lock (Element Library) → 3. Storyboard 20-30 shots → 4. Kling 3.0 generation scene par scene → 5. XTTS-v2 voice-off (Replicate) → 6. MiniMax score (Replicate) → 7. Beat sync + assembly → 8. Color grade + Remotion render",
     color: "#00B4D8",
   },
   {
@@ -173,7 +173,7 @@ const PRODUCTION_TEMPLATES: ProductionTemplate[] = [
     inputs: ["Faction JW", "Scene description", "Mood (epique/intime/sombre)"],
     output: "Trailer cinematique Jurassic Wars, IMAX style, orchestral",
     estimatedCost: "$0.87 (30s x $0.029/s)",
-    workflow: "1. Faction lore + character refs → 2. Kael storyboard (6 shots x 5s) → 3. Kling 3.0 cinematic (21:9 crop) → 4. Orchestral score (MiniMax) → 5. Sound design + impact cuts → 6. Remotion render + letterbox",
+    workflow: "1. Faction lore + character refs → 2. Kael storyboard (6 shots x 5s) → 3. Kling 3.0 cinematic (21:9 crop) → 4. Orchestral score (MiniMax via Replicate) → 5. Sound design + impact cuts → 6. Remotion render + letterbox",
     color: "#EF4444",
   },
   {
@@ -501,7 +501,7 @@ export default function ProductionPage() {
                   Production Templates
                 </h2>
                 <p className="mt-1 text-xs text-[var(--color-text-muted)]">
-                  Workflows pr{"\u00E9"}-configur{"\u00E9"}s — Kling 3.0 via fal.ai ($0.029/sec)
+                  Workflows pr{"\u00E9"}-configur{"\u00E9"}s — Kling 3.0 via Replicate ($0.029/sec)
                 </p>
               </div>
               <div className="flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/5 px-3 py-1">
@@ -599,7 +599,7 @@ export default function ProductionPage() {
               <div className="flex items-center gap-3">
                 <DollarSign className="h-5 w-5 text-cyan-400" />
                 <div>
-                  <p className="text-xs font-bold text-cyan-400">Pricing Kling 3.0 via fal.ai</p>
+                  <p className="text-xs font-bold text-cyan-400">Pricing Kling 3.0 via Replicate</p>
                   <p className="mt-0.5 text-[10px] text-[var(--color-text-muted)]">
                     $0.029/seconde g{"\u00E9"}n{"\u00E9"}r{"\u00E9"}e — Multi-shot, Element Library, Voice Binding inclus — Marge 99%+ sur tous les templates
                   </p>

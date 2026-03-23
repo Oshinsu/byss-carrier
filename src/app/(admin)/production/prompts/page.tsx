@@ -95,7 +95,7 @@ const MODEL_OPTIONS = [
   "Stable Diffusion",
   "Flux Pro",
   "Runway Gen-4",
-  "ElevenLabs",
+  "XTTS-v2 (Replicate)",
 ];
 
 /* ═══════════════════════════════════════════════════════

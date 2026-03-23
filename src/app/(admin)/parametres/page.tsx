@@ -200,8 +200,8 @@ const ALL_INTEGRATIONS: IntegrationEntry[] = [
   // IA & LLM
   { name: "Anthropic (Claude)", envVar: "ANTHROPIC_API_KEY", configured: true, purpose: "Village IA, AI actions, code agent", category: "IA & LLM", icon: Brain },
   { name: "OpenRouter", envVar: "OPENROUTER_API_KEY", configured: true, purpose: "17 modeles SOTA routes", category: "IA & LLM", icon: Zap },
-  { name: "Replicate", envVar: "REPLICATE_API_TOKEN", configured: true, purpose: "Kling 3.0, MiniMax Music", category: "IA & LLM", icon: Sparkles },
-  { name: "Vercel AI SDK", envVar: "AI_MODEL_*", configured: true, purpose: "Fallback model routing", category: "IA & LLM", icon: Activity },
+  { name: "Replicate", envVar: "REPLICATE_API_TOKEN", configured: true, purpose: "All generation: Kling 3.0, MiniMax Music, TTS", category: "IA & LLM", icon: Sparkles },
+  { name: "AI SDK", envVar: "AI_MODEL_*", configured: true, purpose: "Fallback model routing", category: "IA & LLM", icon: Activity },
   // Database
   { name: "Supabase URL", envVar: "NEXT_PUBLIC_SUPABASE_URL", configured: true, purpose: "16 tables, 518 rows, RLS", category: "Database", icon: Database },
   { name: "Supabase Anon", envVar: "NEXT_PUBLIC_SUPABASE_ANON_KEY", configured: true, purpose: "Client-side queries", category: "Database", icon: Database },
@@ -639,7 +639,7 @@ export default function ParametresPage() {
               {[
                 "Next.js 16.2", "React 19", "TypeScript 5", "Tailwind CSS 4",
                 "Supabase", "Zustand", "Motion", "Claude (Anthropic)",
-                "OpenRouter", "Replicate", "Vercel", "Resend",
+                "OpenRouter", "Replicate", "Netlify", "Resend",
               ].map((tech) => (
                 <Badge key={tech} variant="gold" size="sm">
                   {tech}

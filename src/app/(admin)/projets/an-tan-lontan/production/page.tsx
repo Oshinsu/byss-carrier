@@ -11,7 +11,7 @@ const ICON_MAP: Record<string, typeof Film> = { Film, Image, Cpu, Clapperboard, 
 
 const INITIAL_PIPELINE = [
   { id: "research", name: "Recherche Historique", tool: "Archives + Claude", progress: 100, icon: "Film" },
-  { id: "script", name: "Script & Narration", tool: "Claude Opus + ElevenLabs", progress: 100, icon: "Mic" },
+  { id: "script", name: "Script & Narration", tool: "Claude Opus + XTTS-v2 (Replicate)", progress: 100, icon: "Mic" },
   { id: "keyframe", name: "Keyframe Generation", tool: "Midjourney v6", progress: 70, icon: "Image" },
   { id: "anim", name: "Animation Video", tool: "Kling 3.0 + Nano Banana Pro", progress: 45, icon: "Cpu" },
   { id: "music", name: "Musique Creole", tool: "Suno + instruments locaux", progress: 30, icon: "Music" },

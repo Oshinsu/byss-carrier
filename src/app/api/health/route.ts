@@ -154,9 +154,7 @@ export async function GET() {
   let knowledgeIndexed = false;
   try {
     // Internal fetch to knowledge API
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const res = await fetch(`${baseUrl}/api/knowledge`, {
       cache: "no-store",
@@ -176,9 +174,7 @@ export async function GET() {
   let phiScore = 0;
   let phiPhase = "dormant";
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
     const res = await fetch(`${baseUrl}/api/consciousness`, {
       cache: "no-store",

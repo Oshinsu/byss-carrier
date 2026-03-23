@@ -210,7 +210,7 @@ export const PROJECTS: Record<string, ProjectData> = {
     description: "Marketing musical caribeen x K-pop. 157K views / 200EUR = 0.0013EUR CPV (17x benchmark).",
     status: "Actif",
     color: "#EF4444",
-    techStack: ["Kling 3.0", "ElevenLabs", "Suno", "Meta Ads", "TikTok"],
+    techStack: ["Kling 3.0", "XTTS-v2 (Replicate)", "Suno", "Meta Ads", "TikTok"],
     type: "cultural",
   },
   defense: {

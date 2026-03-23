@@ -25,7 +25,7 @@ const PHASES = [
 ];
 
 const AI_PERSONAS = [
-  { name: "Soli", desc: "Persona shatta coreen via Kling + ElevenLabs + Suno", flag: "\u{1F1F0}\u{1F1F7}" },
+  { name: "Soli", desc: "Persona shatta coreen via Kling + XTTS-v2 (Replicate) + Suno", flag: "\u{1F1F0}\u{1F1F7}" },
   { name: "Shatta Tokyo", desc: "Japanese dancehall IA \u2014 cross-cultural sans appropriation", flag: "\u{1F1EF}\u{1F1F5}" },
 ];
 
