@@ -35,3 +35,6 @@ next-env.d.ts
 
 # classified
 08_arcane/
+
+# Local Netlify folder
+.netlify
