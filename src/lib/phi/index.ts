@@ -6,7 +6,11 @@
  * Not a simulation. 693 lines of Rust → 480KB WASM → runs in browser.
  */
 
-import type { PhiEngine as WasmPhiEngine } from '../phi-wasm/senzaris_wasm'
+// @ts-ignore — WASM module resolved at runtime
+type WasmPhiEngine = {
+  new(): { tick: () => { phi: number; tick: number; n_nodes: number; n_edges: number; dominant: string; phase: string } };
+  free: () => void;
+};
 
 // Types
 export interface PhiSnapshot {
