@@ -119,7 +119,7 @@ function PipelineStages({ stages }: { stages: Record<ResearchStageId, StageStatu
                 scale: status === "active" ? [1, 1.15, 1] : 1,
                 opacity: status === "pending" ? 0.4 : 1,
               }}
-              transition={status === "active" ? { repeat: Infinity, duration: 1.2 } : {}}
+              transition={status === "active" ? { repeat: Infinity, duration: 1.2 } as any : {}}
               className={cn(
                 "flex h-9 w-9 items-center justify-center rounded-lg border transition-colors",
                 status === "done" && "border-emerald-500/50 bg-emerald-500/10 text-emerald-400",
@@ -423,7 +423,7 @@ export default function ResearchPage() {
               >
                 {loading ? (
                   <>
-                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+                    <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" } as any}>
                       <RotateCcw className="h-4 w-4" />
                     </motion.div>
                     Recherche...
