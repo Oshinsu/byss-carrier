@@ -425,6 +425,102 @@ export const SYNERGY_RULES: SynergyRule[] = [
     },
   },
 
+  // ── Marchés → Status GO → Calendar J-7 + CRM ──
+  {
+    id: "marche-status-go-calendar",
+    source: "marches",
+    trigger: "status_changed",
+    description: "Marché → GO → Rappel calendrier J-7 + prospect CRM",
+    execute: async (data) => {
+      const newStatus = (data.newStatus as string) || "";
+      if (newStatus !== "go") return;
+
+      const title = (data.title as string) || "Marché";
+      const acheteur = (data.acheteur as string) || "";
+      const dateLimite = (data.dateLimite as string) || "";
+
+      let reminderMsg = "Date limite non précisée — vérifier le dossier";
+      if (dateLimite) {
+        const d = new Date(dateLimite);
+        d.setDate(d.getDate() - 7);
+        reminderMsg = `Rappel J-7 : soumission avant le ${d.toLocaleDateString("fr-FR", { day: "numeric", month: "long" })}`;
+      }
+
+      await createNotification(
+        "reminder",
+        `Deadline marché — ${title.slice(0, 50)}`,
+        reminderMsg,
+        "/calendrier",
+        { marcheId: data.marcheId, trigger: "marche-go-calendar" },
+      );
+
+      await createNotification(
+        "prospect",
+        `Prospect marché — ${acheteur || title.slice(0, 40)}`,
+        `Marché GO. Créer/lier prospect CRM.`,
+        "/pipeline",
+        { marcheId: data.marcheId, acheteur, trigger: "marche-go-crm" },
+      );
+    },
+  },
+
+  // ── Marchés → Status Submitted → Finance projection ──
+  {
+    id: "marche-status-submitted-finance",
+    source: "marches",
+    trigger: "status_changed",
+    description: "Marché soumis → Projection budgétaire finance",
+    execute: async (data) => {
+      const newStatus = (data.newStatus as string) || "";
+      if (newStatus !== "submitted") return;
+
+      const title = (data.title as string) || "Marché";
+      const budget = (data.budget as number) || 0;
+
+      await createNotification(
+        "invoice",
+        `Projection — ${title.slice(0, 50)}`,
+        budget > 0
+          ? `Offre soumise : ${budget.toLocaleString("fr-FR")} EUR. A suivre.`
+          : "Offre soumise. Budget à confirmer.",
+        "/finance",
+        { marcheId: data.marcheId, budget, trigger: "marche-submitted-finance" },
+      );
+    },
+  },
+
+  // ── Marchés → Status Won → Invoice + Pipeline update ──
+  {
+    id: "marche-status-won-invoice",
+    source: "marches",
+    trigger: "status_changed",
+    description: "Marché gagné → Facture + prospect 'signé'",
+    execute: async (data) => {
+      const newStatus = (data.newStatus as string) || "";
+      if (newStatus !== "won") return;
+
+      const title = (data.title as string) || "Marché";
+      const acheteur = (data.acheteur as string) || "";
+      const budget = (data.budget as number) || 0;
+
+      await createNotification(
+        "invoice",
+        `Marché gagné — ${acheteur}`,
+        `"${title.slice(0, 50)}" remporté. ${budget > 0 ? `${budget.toLocaleString("fr-FR")} EUR.` : ""} Créer la facture.`,
+        "/finance",
+        { marcheId: data.marcheId, budget, trigger: "marche-won-invoice" },
+      );
+
+      await createNotification(
+        "prospect",
+        `Client signé — ${acheteur}`,
+        `Passer le prospect lié en "Signé".`,
+        "/pipeline",
+        { marcheId: data.marcheId, trigger: "marche-won-pipeline" },
+      );
+    },
+  },
+
   // ── Production → Image completed → Notification ──
   {
     id: "image-completed-notify",
@@ -700,5 +796,28 @@ export function onMusicCompleted(jobId: string, title: string) {
   return triggerSynergy("production", "music_completed", {
     jobId,
     title,
+  });
+}
+
+/**
+ * Convenience: trigger marché status change synergies.
+ * Fires: calendar reminder (GO), CRM prospect (GO), finance projection (submitted),
+ * invoice + pipeline update (won).
+ */
+export function onMarcheStatusChanged(
+  marcheId: string,
+  title: string,
+  acheteur: string,
+  newStatus: string,
+  budget?: number,
+  dateLimite?: string,
+) {
+  return triggerSynergy("marches", "status_changed", {
+    marcheId,
+    title,
+    acheteur,
+    newStatus,
+    budget,
+    dateLimite,
   });
 }

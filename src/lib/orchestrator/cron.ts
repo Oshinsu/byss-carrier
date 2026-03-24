@@ -120,6 +120,79 @@ export const CRON_TASKS: CronTask[] = [
     },
   },
   {
+    id: "scan_marches",
+    name: "Scan Marchés Publics",
+    schedule: "8h00",
+    description: "Scanne les nouveaux marchés BOAMP 972 et importe les pertinents (score > 50)",
+    enabled: true,
+    handler: async () => {
+      try {
+        // Fetch latest from BOAMP
+        const res = await fetch("/api/boamp?action=latest&limit=50");
+        if (!res.ok) return { success: false, message: `BOAMP erreur: ${res.status}` };
+        const data = await res.json();
+        const tenders = data.results ?? [];
+
+        if (tenders.length === 0) {
+          return { success: true, message: "Aucun nouveau marché détecté" };
+        }
+
+        // Score each tender
+        const { scoreTenderRelevance } = await import("@/lib/data/cpv-codes");
+        const scored = tenders.map((t: Record<string, string>) => ({
+          ...t,
+          score: scoreTenderRelevance(t.intitule || "", t.descripteur || ""),
+        }));
+
+        // Import those with score > 50
+        const relevant = scored.filter((t: { score: number }) => t.score > 50);
+        let imported = 0;
+        let notified = 0;
+
+        for (const tender of relevant) {
+          const importRes = await fetch("/api/boamp", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "import",
+              tender,
+              relevanceScore: tender.score,
+            }),
+          });
+          if (importRes.ok) {
+            const result = await importRes.json();
+            if (result.imported) imported++;
+          }
+
+          // Notify for score > 70
+          if (tender.score > 70) {
+            const { onTenderAnalyzed } = await import("@/lib/synergies");
+            await onTenderAnalyzed(
+              tender.id,
+              tender.intitule,
+              tender.acheteur,
+              tender.score,
+              "A EVALUER",
+              tender.dateLimite,
+            );
+            notified++;
+          }
+        }
+
+        return {
+          success: true,
+          message: `${tenders.length} marchés scannés, ${imported} importés, ${notified} alertes`,
+          data: { scanned: tenders.length, imported, notified, relevant: relevant.length },
+        };
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : "Erreur scan marchés",
+        };
+      }
+    },
+  },
+  {
     id: "health_check",
     name: "Health Check APIs",
     schedule: "14h00",
