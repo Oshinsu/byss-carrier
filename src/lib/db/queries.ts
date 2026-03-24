@@ -195,11 +195,18 @@ export async function getEveilMesures() {
 
 // ── AGENT LOGS ────────────────────────────────
 
-export async function logAgentAction(log: Partial<AgentLog>) {
-  const supabase = await createClient();
-  const { error } = await supabase
-    .from("agent_logs")
-    .insert(log);
+export async function logAgentAction(log: Record<string, unknown>) {
+  const supabase = createClient();
+  // Map camelCase (Drizzle) to snake_case (Supabase)
+  const mapped: Record<string, unknown> = {};
+  const keyMap: Record<string, string> = {
+    agentName: 'agent_name', inputTokens: 'input_tokens', outputTokens: 'output_tokens',
+    costUsd: 'cost_usd', durationMs: 'duration_ms', createdAt: 'created_at',
+  };
+  for (const [k, v] of Object.entries(log)) {
+    mapped[keyMap[k] || k] = v;
+  }
+  const { error } = await supabase.from("agent_logs").insert(mapped);
   if (error) console.error("Failed to log agent action:", error);
 }
 

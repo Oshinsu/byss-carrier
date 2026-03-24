@@ -205,7 +205,7 @@ Redige l'email en MODE_CADIFOR. Voix de Sorel : directe, strategique, Martinique
 
       case "briefing": {
         model = "claude-sonnet-4-6";
-        result = await generateBriefing(data.pipelineData);
+        result = await generateBriefing(data?.pipelineData ?? {});
         break;
       }
 
