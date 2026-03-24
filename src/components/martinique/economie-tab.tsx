@@ -33,9 +33,9 @@ export function TabEconomie() {
       <ImperialGlass>
         <SectionLabel color="#00B4D8">INDICATEURS MACRO</SectionLabel>
         <div className="grid grid-cols-2 gap-2">
-          <MetricCell label="PIB" value="9.3 Md\u20AC" sub="+1.2% (2024)" />
+          <MetricCell label="PIB" value="9.3 Md\€" sub="+1.2% (2024)" />
           <MetricCell label="CHOMAGE" value="15.2%" sub="Q4 2025" alert />
-          <MetricCell label="SALAIRE MED." value="1 850\u20AC" sub="/mois net" />
+          <MetricCell label="SALAIRE MED." value="1 850\€" sub="/mois net" />
           <MetricCell label="TVA" value="8.5%" sub="vs 20% metropole" />
           <MetricCell label="INFLATION" value="+40%" sub="alimentaire vs metro" alert />
           <MetricCell label="POPULATION" value="350K" sub="-0.8%/an" alert />
@@ -43,7 +43,7 @@ export function TabEconomie() {
       </ImperialGlass>
 
       <ImperialGlass>
-        <SectionLabel color="#00B4D8">PIB EVOLUTION (Md{"\u20AC"})</SectionLabel>
+        <SectionLabel color="#00B4D8">PIB EVOLUTION (Md{"\€"})</SectionLabel>
         <div className="flex items-end gap-2" style={{ height: 120 }}>
           {PIB_HISTORY.map((d) => {
             const h = (d.value / 10) * 100;
@@ -77,7 +77,7 @@ export function TabEconomie() {
             <div key={t.label} className="rounded border border-[#00D4FF10] bg-[#0A1628] p-2 text-center">
               <div className="text-[8px] uppercase text-[#ffffff30]">{t.label}</div>
               <div className="font-[family-name:var(--font-clash-display)] text-lg font-bold" style={{ color: t.color }}>
-                {t.value > 0 ? `${t.value}` : `${t.value}`} Md{"\u20AC"}
+                {t.value > 0 ? `${t.value}` : `${t.value}`} Md{"\€"}
               </div>
             </div>
           ))}

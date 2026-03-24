@@ -31,7 +31,7 @@ export function TabPolitique() {
           <MetricCell label="PRES. CTM" value="Letchimy" sub="PPM -- 2021" />
           <MetricCell label="DEPUTES AN" value="4" sub="Assemblee Nationale" />
           <MetricCell label="SENATEURS" value="2" sub="Senat" />
-          <MetricCell label="BUDGET CTM" value="1.3 Md\u20AC" sub="/an" />
+          <MetricCell label="BUDGET CTM" value="1.3 Md\€" sub="/an" />
           <MetricCell label="PROCHAINES" value="Dec 2028" sub="Op. Eveil" />
           <MetricCell label="CONSEILLERS" value="51" sub="Assemblee MQ" />
         </div>
@@ -87,14 +87,14 @@ export function TabPolitique() {
         <SectionLabel color="#00B4D8">CTM -- COMPETENCES</SectionLabel>
         <div className="space-y-1">
           {[
-            { comp: "Transport", budget: "~180 M\u20AC" },
-            { comp: "Lycees", budget: "~120 M\u20AC" },
-            { comp: "Formation pro", budget: "~90 M\u20AC" },
-            { comp: "Dev. economique", budget: "~200 M\u20AC" },
-            { comp: "Culture/Patrimoine", budget: "~45 M\u20AC" },
-            { comp: "Environnement", budget: "~150 M\u20AC" },
-            { comp: "Amenagement", budget: "~250 M\u20AC" },
-            { comp: "Social/Sante", budget: "~300 M\u20AC" },
+            { comp: "Transport", budget: "~180 M\€" },
+            { comp: "Lycees", budget: "~120 M\€" },
+            { comp: "Formation pro", budget: "~90 M\€" },
+            { comp: "Dev. economique", budget: "~200 M\€" },
+            { comp: "Culture/Patrimoine", budget: "~45 M\€" },
+            { comp: "Environnement", budget: "~150 M\€" },
+            { comp: "Amenagement", budget: "~250 M\€" },
+            { comp: "Social/Sante", budget: "~300 M\€" },
           ].map((c) => (
             <div key={c.comp} className="flex items-center justify-between border-b border-[#00D4FF08] px-1 py-1">
               <span className="text-[9px] text-[#ffffff50]">{c.comp}</span>
@@ -115,7 +115,7 @@ export function TabPolitique() {
             <div className="text-[8px] text-[#ffffff30]">Mesures</div>
           </div>
           <div className="rounded border border-[#00B4D820] bg-[#00B4D808] p-2 text-center">
-            <div className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[#00B4D8]">38M{"\u20AC"}</div>
+            <div className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[#00B4D8]">38M{"\€"}</div>
             <div className="text-[8px] text-[#ffffff30]">Programme</div>
           </div>
           <div className="rounded border border-[#00B4D820] bg-[#00B4D808] p-2 text-center">

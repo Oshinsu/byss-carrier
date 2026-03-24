@@ -75,9 +75,9 @@ export default function MartiniquePage() {
       try {
         const supabase = createClient();
         const [prospectsRes, activitiesRes, intelRes] = await Promise.all([
-          supabase.from("prospects").select("id, name, sector, status, city").order("name"),
-          supabase.from("activities").select("id, type, description, created_at, entity_name").order("created_at", { ascending: false }).limit(20),
-          supabase.from("intel_entities").select("id, domain, name, status"),
+          supabase.from("prospects").select("id, name, sector, phase, notes").order("name"),
+          supabase.from("activities").select("id, type, title, description, created_at").order("created_at", { ascending: false }).limit(20),
+          supabase.from("intel_entities").select("id, domain, name, type, influence_score"),
         ]);
         if (prospectsRes.data) setProspects(prospectsRes.data);
         if (activitiesRes.data) setActivities(activitiesRes.data as ActivityRecord[]);
@@ -93,7 +93,7 @@ export default function MartiniquePage() {
       setLoadingProspects(true);
       try {
         const supabase = createClient();
-        const { data, error } = await supabase.from("prospects").select("id, name, sector, status, city").order("name").limit(500);
+        const { data, error } = await supabase.from("prospects").select("id, name, sector, phase, notes").order("name").limit(500);
         if (error) console.error("Martinique prospects:", error.message);
         if (data) setProspects(data);
       } catch (e) { console.error("Martinique load:", e); } finally { setLoadingProspects(false); }

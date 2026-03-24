@@ -11,16 +11,16 @@ interface Prospect {
 }
 
 const TOP_GROUPES = [
-  { name: "GBH (Hayot)", ca: "6 Md\u20AC", secteur: "Distribution/Auto/Industrie", employes: "22 000", influence: 10 },
-  { name: "SARA", ca: "800 M\u20AC", secteur: "Raffinerie/Energie", employes: "450", influence: 8 },
-  { name: "Orange Cara\u00EFbe", ca: "650 M\u20AC", secteur: "T\u00E9l\u00E9com", employes: "1 200", influence: 7 },
-  { name: "Digicel Antilles", ca: "400 M\u20AC", secteur: "T\u00E9l\u00E9com", employes: "600", influence: 7 },
-  { name: "Groupe Cretinoir", ca: "350 M\u20AC", secteur: "Distribution", employes: "800", influence: 6 },
-  { name: "Groupe Reynoird", ca: "300 M\u20AC", secteur: "Distribution/BTP", employes: "1 500", influence: 6 },
-  { name: "SFR Cara\u00EFbe", ca: "250 M\u20AC", secteur: "T\u00E9l\u00E9com", employes: "400", influence: 5 },
-  { name: "Groupe Fabre-Domergue", ca: "200 M\u20AC", secteur: "Automobile", employes: "500", influence: 5 },
-  { name: "Groupe Aubery", ca: "180 M\u20AC", secteur: "Automobile/Distrib", employes: "700", influence: 5 },
-  { name: "Groupe Dufry Antilles", ca: "150 M\u20AC", secteur: "Duty-Free/Travel", employes: "300", influence: 4 },
+  { name: "GBH (Hayot)", ca: "6 Md\€", secteur: "Distribution/Auto/Industrie", employes: "22 000", influence: 10 },
+  { name: "SARA", ca: "800 M\€", secteur: "Raffinerie/Energie", employes: "450", influence: 8 },
+  { name: "Orange Cara\u00EFbe", ca: "650 M\€", secteur: "T\u00E9l\u00E9com", employes: "1 200", influence: 7 },
+  { name: "Digicel Antilles", ca: "400 M\€", secteur: "T\u00E9l\u00E9com", employes: "600", influence: 7 },
+  { name: "Groupe Cretinoir", ca: "350 M\€", secteur: "Distribution", employes: "800", influence: 6 },
+  { name: "Groupe Reynoird", ca: "300 M\€", secteur: "Distribution/BTP", employes: "1 500", influence: 6 },
+  { name: "SFR Cara\u00EFbe", ca: "250 M\€", secteur: "T\u00E9l\u00E9com", employes: "400", influence: 5 },
+  { name: "Groupe Fabre-Domergue", ca: "200 M\€", secteur: "Automobile", employes: "500", influence: 5 },
+  { name: "Groupe Aubery", ca: "180 M\€", secteur: "Automobile/Distrib", employes: "700", influence: 5 },
+  { name: "Groupe Dufry Antilles", ca: "150 M\€", secteur: "Duty-Free/Travel", employes: "300", influence: 4 },
 ];
 
 interface Props {
@@ -120,7 +120,7 @@ export function TabEntreprises({ prospects, loading, sectorCounts }: Props) {
           <div className="mt-1 space-y-1 text-[9px]">
             <div className="flex justify-between"><span className="text-[#ffffff30]">Inscrites</span><span className="text-[#ffffff60]">~25K</span></div>
             <div className="flex justify-between"><span className="text-[#ffffff30]">President</span><span className="text-[#ffffff60]">P. Jock</span></div>
-            <div className="flex justify-between"><span className="text-[#ffffff30]">Budget</span><span className="text-[#ffffff60]">~18M{"\u20AC"}</span></div>
+            <div className="flex justify-between"><span className="text-[#ffffff30]">Budget</span><span className="text-[#ffffff60]">~18M{"\€"}</span></div>
           </div>
         </ImperialGlass>
         <ImperialGlass>

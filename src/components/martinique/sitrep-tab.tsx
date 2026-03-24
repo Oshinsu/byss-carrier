@@ -94,10 +94,10 @@ export function TabSitrep({ mqTime, signalCount, pipelineCount, lastActivity, ac
       <ImperialGlass>
         <SectionLabel>METRIQUES CLES</SectionLabel>
         <div className="grid grid-cols-2 gap-2">
-          <MetricCell label="PIB" value="9.3 Md\u20AC" sub="+1.2% (2024)" />
+          <MetricCell label="PIB" value="9.3 Md\€" sub="+1.2% (2024)" />
           <MetricCell label="CHOMAGE" value="15.2%" sub="Q4 2025" alert />
           <MetricCell label="POPULATION" value="350K" sub="-0.8%/an (exode)" alert />
-          <MetricCell label="SALAIRE MED." value="1 850\u20AC" sub="/mois net" />
+          <MetricCell label="SALAIRE MED." value="1 850\€" sub="/mois net" />
         </div>
       </ImperialGlass>
 
