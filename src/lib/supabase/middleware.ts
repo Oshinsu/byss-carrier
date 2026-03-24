@@ -8,7 +8,7 @@ const ADMIN_EMAILS = [
 
 export async function updateSession(request: NextRequest) {
   // Public routes that don't require auth
-  const publicPaths = ["/login", "/api/auth/callback"];
+  const publicPaths = ["/login", "/api/auth/callback", "/api/", "/launch", "/news"];
   const isPublicRoute = publicPaths.some((p) =>
     request.nextUrl.pathname.startsWith(p)
   );
