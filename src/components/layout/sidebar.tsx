@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
@@ -394,6 +394,23 @@ export function Sidebar({ onCommandBarOpen }: SidebarProps) {
   const [hydrated, setHydrated] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
+  const navScrollRef = useRef<HTMLElement>(null);
+  const scrollPosKey = "byss-sidebar-scroll";
+
+  // Save scroll position on scroll
+  const handleNavScroll = useCallback(() => {
+    if (navScrollRef.current) {
+      sessionStorage.setItem(scrollPosKey, String(navScrollRef.current.scrollTop));
+    }
+  }, []);
+
+  // Restore scroll position after navigation
+  useEffect(() => {
+    const saved = sessionStorage.getItem(scrollPosKey);
+    if (saved && navScrollRef.current) {
+      navScrollRef.current.scrollTop = parseInt(saved, 10);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     setExpandedIds(loadExpanded());
@@ -489,7 +506,11 @@ export function Sidebar({ onCommandBarOpen }: SidebarProps) {
       </div>
 
       {/* -- Fractal Navigation -- */}
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[var(--color-border-subtle)]">
+      <nav
+        ref={navScrollRef}
+        onScroll={handleNavScroll}
+        className="flex-1 space-y-0.5 overflow-y-auto px-2 py-1 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-[var(--color-border-subtle)]"
+      >
         {navTree.map((node) => (
           <NavItem
             key={node.id}
