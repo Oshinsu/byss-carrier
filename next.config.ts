@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.anthropic.com https://openrouter.ai https://api.replicate.com https://gamma-api.polymarket.com https://boamp-datadila.opendatasoft.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.anthropic.com https://openrouter.ai https://api.replicate.com https://gamma-api.polymarket.com https://boamp-datadila.opendatasoft.com https://recherche-entreprises.api.gouv.fr https://api-adresse.data.gouv.fr https://geo.api.gouv.fr https://data.culture.gouv.fr https://transport.data.gouv.fr;",
           },
         ],
       },

@@ -45,7 +45,7 @@ export const useEditorStore = create<EditorState>((set, get) => {
     resolution: FORMAT_RESOLUTIONS[(stored.format as Format) ?? "16:9"],
     fps: 30,
     currentTime: 0,
-    duration: 0,
+    duration: 10, // default 10s timeline
     isPlaying: false,
     tracks: stored.tracks ?? DEFAULT_TRACKS.map(t => ({ ...t })),
     assets: stored.assets ?? [],
