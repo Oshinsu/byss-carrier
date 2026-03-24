@@ -314,15 +314,31 @@ export default function GamesStudioPage() {
 
   const runAI = useCallback(async (game: GameProject, action: AIAction) => {
     setAiLoading(`${game.slug}-${action}`);
-    // Simulated AI call — in production, hits /api/ai with game context
-    await new Promise((r) => setTimeout(r, 1500 + Math.random() * 1000));
-    const results: Record<AIAction, string> = {
-      brainstorm: `## 5 Mecaniques pour ${game.name}\n\n1. **Systeme de Reputation Dynamique** — Les actions du joueur modifient les relations entre civs en temps reel. Chaque decision cree des ondes diplomatiques.\n\n2. **Ressources Saisonnieres** — Cycle 4 saisons affectant production, moral, et strategies militaires. L'hiver force l'adaptation.\n\n3. **Espionnage Linguistique** — Intercepter et decoder les messages ennemis. Le Traducteur comme classe speciale.\n\n4. **Architecture Evolutive** — Les batiments mutent selon l'usage. Un marche surcharge devient un bazar, puis un hub commercial.\n\n5. **Memoire Collective** — Les PNJ se souviennent des actions passees et adaptent leur comportement sur 10 generations.`,
-      prototype: `## GDScript — ${game.name}\n\n\`\`\`gdscript\nextends Node2D\nclass_name ReputationSystem\n\n@export var decay_rate: float = 0.02\nvar reputation_matrix: Dictionary = {}\n\nfunc _ready():\n    for civ_a in GameData.civilizations:\n        reputation_matrix[civ_a.id] = {}\n        for civ_b in GameData.civilizations:\n            if civ_a.id != civ_b.id:\n                reputation_matrix[civ_a.id][civ_b.id] = 0.0\n\nfunc modify_reputation(from: String, to: String, delta: float):\n    reputation_matrix[from][to] = clamp(\n        reputation_matrix[from][to] + delta, -100.0, 100.0\n    )\n    # Ripple effect to allies\n    for ally_id in get_allies(from):\n        var ripple = delta * 0.3\n        reputation_matrix[ally_id][to] += ripple\n    reputation_changed.emit(from, to)\n\`\`\``,
-      "sprint-plan": `## Sprint Plan — ${game.name} (Sprint ${game.sprintCount + 1})\n\n**Goal:** Implementer le core loop minimum viable.\n\n| # | Tache | Priorite | Estimation | Assignee |\n|---|-------|----------|------------|----------|\n| 1 | Setup Godot project structure | P0 | 2h | Claude |\n| 2 | Systeme de ressources de base | P0 | 4h | Claude |\n| 3 | UI HUD principal | P1 | 3h | Nerel |\n| 4 | Systeme de construction | P0 | 6h | Claude |\n| 5 | Sauvegarde localStorage | P1 | 2h | Evren |\n| 6 | 3 types de batiments | P1 | 4h | Claude |\n| 7 | Tests unitaires core | P2 | 3h | QA |\n\n**Risques:** Integration Supabase si offline. Perf Godot mobile.\n**Capacite:** 24h disponibles ce sprint.`,
-      "code-review": `## Code Review — ${game.name}\n\n### Fichiers analyses: 12\n### Issues trouvees: 3\n\n**[P1] resource_manager.gd:45** — Division par zero possible si \`production_rate == 0\`.\nFix: Ajouter guard clause.\n\n**[P2] building_system.gd:112** — Magic number \`1.5\` dans le calcul de cout.\nFix: Extraire en constante \`UPGRADE_COST_MULTIPLIER\`.\n\n**[P3] ui_hud.gd:78** — Signal non deconnecte dans \`_exit_tree()\`.\nFix: Ajouter \`disconnect()\" dans cleanup.\n\n### Positif\n- Architecture data-driven respectee\n- Separation claire Model/View\n- Nommage coherent`,
-    };
-    setAiResult({ game: game.slug, action, result: results[action] });
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "game_studio",
+          data: {
+            gameName: game.name,
+            gameSlug: game.slug,
+            gameStatus: game.status,
+            sprintCount: game.sprintCount,
+            aiAction: action,
+          },
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiResult({ game: game.slug, action, result: data.result || "Pas de resultat." });
+      } else {
+        setAiResult({ game: game.slug, action, result: `Erreur API (${res.status}). Reessayez.` });
+      }
+    } catch (err) {
+      console.error("[games] AI error:", err);
+      setAiResult({ game: game.slug, action, result: "Le systeme a flanché. Pas le vaisseau." });
+    }
     setAiLoading(null);
   }, []);
 

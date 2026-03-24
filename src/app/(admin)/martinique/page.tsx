@@ -6,9 +6,15 @@ import { Radio, TrendingUp, Building2, Users, Landmark, Cpu, Shield, Crosshair, 
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 
+import dynamic from "next/dynamic";
 import { ImperialGlass, LiveBadge } from "@/components/martinique/primitives";
-import { MartiniqueMap, ZoneInfoOverlay } from "@/components/martinique/zone-filter";
+import { ZoneInfoOverlay } from "@/components/martinique/zone-filter";
 import type { ZoneId } from "@/components/martinique/zone-filter";
+
+const RealMap = dynamic(
+  () => import("@/components/martinique/real-map").then((m) => m.RealMap),
+  { ssr: false, loading: () => <div className="flex h-[500px] items-center justify-center text-[10px] text-[#ffffff30]">Chargement carte...</div> }
+);
 import { TabSitrep } from "@/components/martinique/sitrep-tab";
 import type { ActivityRecord } from "@/components/martinique/sitrep-tab";
 import { TabEconomie } from "@/components/martinique/economie-tab";
@@ -178,7 +184,7 @@ export default function MartiniquePage() {
                   <span className="ml-2 h-1.5 w-1.5 rounded-full bg-[#22C55E]" /> Marina
                 </div>
               </div>
-              <MartiniqueMap activeZone={activeZone} onZoneClick={handleZoneClick} />
+              <RealMap activeZone={activeZone} onZoneClick={handleZoneClick} onCityClick={(city) => console.log("[martinique] city:", city)} />
               <ZoneInfoOverlay activeZone={activeZone} />
               <div className="mt-4 grid grid-cols-4 gap-2">
                 {[
