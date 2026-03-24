@@ -24,6 +24,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Instagram,
+  Bot,
 } from "lucide-react";
 import { KpiWidget } from "@/components/dashboard/kpi-widget";
 import { ConstellationMap } from "@/components/dashboard/constellation-map";
