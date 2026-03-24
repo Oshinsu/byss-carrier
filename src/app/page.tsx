@@ -157,15 +157,19 @@ export default function ExecutorBridge() {
       .catch(() => {});
   }, []);
 
-  /* Fetch pipeline stats */
+  /* Fetch pipeline stats from Supabase directly */
   useEffect(() => {
-    fetch("/api/stats/pipeline")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.pipeline) setPipelineValue(data.pipeline);
-        if (data.mrr) setMrr(data.mrr);
-      })
-      .catch(() => {});
+    import("@/lib/supabase/client").then(({ createClient }) => {
+      const sb = createClient();
+      sb.from("prospects").select("estimated_basket, probability, mrr, phase").then(({ data }) => {
+        if (data) {
+          const pipeline = data.reduce((sum, p) => sum + ((p.estimated_basket || 0) * (p.probability || 0) / 100), 0);
+          const mrrTotal = data.filter(p => p.phase === "signe").reduce((sum, p) => sum + (p.mrr || 0), 0);
+          setPipelineValue(Math.round(pipeline).toLocaleString("fr-FR") + "€");
+          setMrr(mrrTotal.toLocaleString("fr-FR") + "€");
+        }
+      });
+    }).catch(() => {});
 
     fetch("/api/knowledge")
       .then((r) => r.json())
