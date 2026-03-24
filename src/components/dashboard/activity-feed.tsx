@@ -1,63 +1,160 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Mail,
   FileText,
   UserPlus,
   CreditCard,
-  MessageSquare,
+  Video,
   Zap,
-  Phone,
-  CheckCircle2,
+  TrendingUp,
+  Search,
+  Bot,
+  Calendar,
+  Landmark,
+  FlaskConical,
+  Gamepad2,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import type { NotificationType } from "@/lib/notifications";
 
 /* ─── Types ─────────────────────────────────────────── */
-type ActivityType =
-  | "email"
-  | "invoice"
+type FeedEventType =
   | "prospect"
-  | "payment"
-  | "message"
-  | "ai"
-  | "call"
-  | "task";
+  | "invoice"
+  | "system"
+  | "agent"
+  | "alert"
+  | "reminder"
+  | "email"
+  | "video"
+  | "marche"
+  | "gulf"
+  | "research"
+  | "calendar"
+  | "game";
 
-interface ActivityItem {
+interface FeedEvent {
   id: string;
-  type: ActivityType;
+  type: FeedEventType;
   title: string;
+  message: string | null;
+  actionUrl: string | null;
   timestamp: string;
-  unread: boolean;
+  isNew: boolean;
+  source: "notification" | "agent_log";
 }
 
-/* ─── Icon Mapping ──────────────────────────────────── */
-const typeIcons: Record<ActivityType, React.ElementType> = {
-  email: Mail,
-  invoice: FileText,
-  prospect: UserPlus,
-  payment: CreditCard,
-  message: MessageSquare,
-  ai: Zap,
-  call: Phone,
-  task: CheckCircle2,
+/* ─── Visual Config ───────────────────────────────────── */
+const typeConfig: Record<
+  FeedEventType,
+  { icon: React.ElementType; color: string; borderColor: string }
+> = {
+  prospect: {
+    icon: UserPlus,
+    color: "var(--color-green)",
+    borderColor: "rgba(16,185,129,0.5)",
+  },
+  invoice: {
+    icon: FileText,
+    color: "var(--color-gold)",
+    borderColor: "rgba(0,180,216,0.5)",
+  },
+  email: {
+    icon: Mail,
+    color: "var(--color-blue)",
+    borderColor: "rgba(59,130,246,0.5)",
+  },
+  video: {
+    icon: Video,
+    color: "#A855F7",
+    borderColor: "rgba(168,85,247,0.5)",
+  },
+  marche: {
+    icon: Landmark,
+    color: "#F59E0B",
+    borderColor: "rgba(245,158,11,0.5)",
+  },
+  gulf: {
+    icon: TrendingUp,
+    color: "#06B6D4",
+    borderColor: "rgba(6,182,212,0.5)",
+  },
+  research: {
+    icon: FlaskConical,
+    color: "#EC4899",
+    borderColor: "rgba(236,72,153,0.5)",
+  },
+  agent: {
+    icon: Bot,
+    color: "#8B5CF6",
+    borderColor: "rgba(139,92,246,0.5)",
+  },
+  calendar: {
+    icon: Calendar,
+    color: "#3B82F6",
+    borderColor: "rgba(59,130,246,0.5)",
+  },
+  system: {
+    icon: Zap,
+    color: "var(--color-gold)",
+    borderColor: "rgba(0,180,216,0.5)",
+  },
+  alert: {
+    icon: Bell,
+    color: "var(--color-red)",
+    borderColor: "rgba(239,68,68,0.5)",
+  },
+  reminder: {
+    icon: Calendar,
+    color: "#F59E0B",
+    borderColor: "rgba(245,158,11,0.5)",
+  },
+  game: {
+    icon: Gamepad2,
+    color: "#10B981",
+    borderColor: "rgba(16,185,129,0.5)",
+  },
 };
 
-const typeColors: Record<ActivityType, string> = {
-  email: "text-[var(--color-blue)]",
-  invoice: "text-[var(--color-gold)]",
-  prospect: "text-[var(--color-green)]",
-  payment: "text-[var(--color-green)]",
-  message: "text-[var(--color-blue)]",
-  ai: "text-[var(--color-amber)]",
-  call: "text-[var(--color-fire)]",
-  task: "text-[var(--color-green)]",
-};
+/* ─── Classify notification type to feed type ─────────── */
+function classifyEvent(
+  notifType: string,
+  metadata?: Record<string, unknown>,
+): FeedEventType {
+  // Check metadata trigger for more specific classification
+  const trigger = (metadata?.trigger as string) || "";
+  if (trigger.startsWith("pipeline")) return "prospect";
+  if (trigger.startsWith("email")) return "email";
+  if (trigger.startsWith("video") || trigger.startsWith("production"))
+    return "video";
+  if (trigger.startsWith("tender") || trigger.startsWith("marche"))
+    return "marche";
+  if (trigger.startsWith("gulf")) return "gulf";
+  if (trigger.startsWith("research")) return "research";
+  if (trigger.startsWith("calendar")) return "calendar";
+  if (trigger.startsWith("sprint") || trigger.startsWith("game"))
+    return "game";
+  if (trigger.startsWith("invoice") || trigger.startsWith("finance"))
+    return "invoice";
 
-/* ─── Format relative time ──────────────────────────── */
+  // Fallback to notification type
+  const typeMap: Record<string, FeedEventType> = {
+    prospect: "prospect",
+    invoice: "invoice",
+    system: "system",
+    agent: "agent",
+    alert: "alert",
+    reminder: "reminder",
+  };
+  return typeMap[notifType] || "system";
+}
+
+/* ─── Format relative time ───────────────────────────── */
 function formatRelativeTime(dateStr: string): string {
   const now = new Date();
   const date = new Date(dateStr);
@@ -77,53 +174,143 @@ function formatRelativeTime(dateStr: string): string {
   }).format(date);
 }
 
-/* ─── Activity Feed Component ───────────────────────── */
+/* ─── Activity Feed Component ─────────────────────────── */
 export function ActivityFeed() {
-  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [events, setEvents] = useState<FeedEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<FeedEventType | "all">("all");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Fetch initial data: notifications + agent_logs
   useEffect(() => {
-    async function fetchActivities() {
+    async function fetchAll() {
       const supabase = createClient();
       try {
-        const { data, error } = await supabase
-          .from("activities")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(10);
+        const [notifRes, agentRes] = await Promise.all([
+          supabase
+            .from("notifications")
+            .select("id, type, title, message, action_url, created_at, metadata, read")
+            .order("created_at", { ascending: false })
+            .limit(50),
+          supabase
+            .from("agent_logs")
+            .select("id, agent_name, action, model, success, created_at, cost_usd")
+            .order("created_at", { ascending: false })
+            .limit(20),
+        ]);
 
-        if (error) throw error;
-        if (data && data.length > 0) {
-          setActivities(
-            data.map((a) => ({
-              id: a.id,
-              type: (Object.keys(typeIcons).includes(a.type)
-                ? a.type
-                : "task") as ActivityType,
-              title: a.title,
-              timestamp: formatRelativeTime(a.created_at),
-              unread: !a.is_read,
-            }))
-          );
+        const feed: FeedEvent[] = [];
+
+        // Map notifications
+        if (notifRes.data) {
+          for (const n of notifRes.data) {
+            feed.push({
+              id: n.id,
+              type: classifyEvent(n.type, n.metadata as Record<string, unknown>),
+              title: n.title,
+              message: n.message,
+              actionUrl: n.action_url,
+              timestamp: n.created_at,
+              isNew: !n.read,
+              source: "notification",
+            });
+          }
         }
+
+        // Map agent logs
+        if (agentRes.data) {
+          for (const a of agentRes.data) {
+            feed.push({
+              id: `agent-${a.id}`,
+              type: "agent",
+              title: `${a.agent_name} — ${a.action}`,
+              message: `${a.model} | ${a.success ? "OK" : "FAIL"} | $${(a.cost_usd ?? 0).toFixed(4)}`,
+              actionUrl: "/admin/traces",
+              timestamp: a.created_at,
+              isNew: false,
+              source: "agent_log",
+            });
+          }
+        }
+
+        // Sort by timestamp descending
+        feed.sort(
+          (a, b) =>
+            new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        );
+
+        setEvents(feed);
       } catch (err) {
-        console.error("Activity feed fetch error:", err);
+        console.error("[activity-feed] fetch error:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchActivities();
+    fetchAll();
   }, []);
 
-  const unreadCount = activities.filter((a) => a.unread).length;
+  // Real-time subscription on notifications table
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("activity-feed-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications" },
+        (payload) => {
+          const n = payload.new as {
+            id: string;
+            type: string;
+            title: string;
+            message: string | null;
+            action_url: string | null;
+            created_at: string;
+            metadata: Record<string, unknown>;
+          };
+          const newEvent: FeedEvent = {
+            id: n.id,
+            type: classifyEvent(n.type, n.metadata),
+            title: n.title,
+            message: n.message,
+            actionUrl: n.action_url,
+            timestamp: n.created_at,
+            isNew: true,
+            source: "notification",
+          };
+          setEvents((prev) => [newEvent, ...prev].slice(0, 70));
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Filter events
+  const filteredEvents =
+    filter === "all" ? events : events.filter((e) => e.type === filter);
+
+  const newCount = events.filter((e) => e.isNew).length;
+
+  // Filter buttons
+  const filterOptions: Array<{ key: FeedEventType | "all"; label: string }> = [
+    { key: "all", label: "Tout" },
+    { key: "prospect", label: "Pipeline" },
+    { key: "invoice", label: "Finance" },
+    { key: "video", label: "Production" },
+    { key: "marche", label: "Marches" },
+    { key: "gulf", label: "Gulf" },
+    { key: "agent", label: "Agents" },
+  ];
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.4 }}
-      className="overflow-hidden rounded-xl border border-[var(--color-border-subtle)] transition-colors hover:border-[var(--color-gold-muted)]"
+      className="flex h-full flex-col overflow-hidden rounded-xl border border-[var(--color-border-subtle)] transition-colors hover:border-[var(--color-gold-muted)]"
       style={{
         background:
           "linear-gradient(135deg, oklch(0.12 0.01 270 / 0.6) 0%, oklch(0.10 0.01 270 / 0.8) 100%)",
@@ -131,96 +318,127 @@ export function ActivityFeed() {
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[var(--color-border-subtle)] px-5 py-4">
-        <div>
-          <h3 className="font-[family-name:var(--font-clash-display)] text-base font-semibold text-[var(--color-text)]">
-            Activite Recente
-          </h3>
-          <p className="text-xs text-[var(--color-text-muted)]">
-            {loading ? "..." : `${unreadCount} nouvelles`}
-          </p>
+      <div className="border-b border-[var(--color-border-subtle)] px-5 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="font-[family-name:var(--font-clash-display)] text-base font-semibold text-[var(--color-text)]">
+              Flux Systeme
+            </h3>
+            <p className="text-xs text-[var(--color-text-muted)]">
+              {loading
+                ? "..."
+                : `${newCount} nouvelles | ${events.length} evenements`}
+            </p>
+          </div>
+          <div className="flex h-2 w-2 animate-pulse rounded-full bg-[var(--color-green)]" />
         </div>
-        <button className="text-xs text-[var(--color-gold-muted)] transition-colors hover:text-[var(--color-gold)]">
-          Tout voir
-        </button>
+
+        {/* Filter Pills */}
+        <div className="mt-3 flex gap-1.5 overflow-x-auto">
+          {filterOptions.map((opt) => (
+            <button
+              key={opt.key}
+              onClick={() => setFilter(opt.key)}
+              className={cn(
+                "shrink-0 rounded-md px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider transition-all",
+                filter === opt.key
+                  ? "bg-[var(--color-gold-glow)] text-[var(--color-gold)]"
+                  : "text-[var(--color-text-muted)] hover:text-[var(--color-text)]",
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Activity List */}
-      <div className="max-h-[440px] overflow-y-auto">
+      {/* Event List */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="space-y-0">
-            {Array.from({ length: 5 }).map((_, i) => (
+            {Array.from({ length: 8 }).map((_, i) => (
               <div
                 key={i}
-                className="flex items-start gap-3 border-b border-[var(--color-border-subtle)] px-5 py-3.5 last:border-b-0"
+                className="flex items-start gap-3 border-b border-[var(--color-border-subtle)] px-5 py-3 last:border-b-0"
               >
-                <div className="h-2 w-2 rounded-full bg-transparent" />
-                <div className="h-8 w-8 shrink-0 animate-pulse rounded-lg bg-[#1A1A2E]" />
+                <div className="h-7 w-0.5 shrink-0 animate-pulse rounded-full bg-[#1A1A2E]" />
+                <div className="h-7 w-7 shrink-0 animate-pulse rounded-lg bg-[#1A1A2E]" />
                 <div className="flex-1 space-y-1.5">
-                  <div className="h-3.5 w-3/4 animate-pulse rounded bg-[#1A1A2E]" />
-                  <div className="h-2.5 w-1/3 animate-pulse rounded bg-[#1A1A2E]" />
+                  <div className="h-3 w-3/4 animate-pulse rounded bg-[#1A1A2E]" />
+                  <div className="h-2.5 w-1/2 animate-pulse rounded bg-[#1A1A2E]" />
                 </div>
               </div>
             ))}
           </div>
-        ) : activities.length === 0 ? (
-          <div className="flex items-center justify-center py-10 text-xs text-[var(--color-text-muted)]">
-            Aucune activite recente
+        ) : filteredEvents.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Search className="mb-2 h-5 w-5 text-[var(--color-text-muted)]/40" />
+            <p className="text-xs text-[var(--color-text-muted)]">
+              Le silence avant la tempete.
+            </p>
           </div>
         ) : (
-          activities.map((activity, i) => {
-            const Icon = typeIcons[activity.type];
-            return (
-              <motion.div
-                key={activity.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
-                className="group flex cursor-pointer items-start gap-3 border-b border-[var(--color-border-subtle)] px-5 py-3.5 transition-colors last:border-b-0 hover:bg-[var(--color-surface-2)]"
-              >
-                {/* Unread indicator */}
-                <div className="flex pt-1">
-                  <div
-                    className={cn(
-                      "h-2 w-2 rounded-full transition-colors",
-                      activity.unread
-                        ? "bg-[var(--color-gold)]"
-                        : "bg-transparent"
-                    )}
-                  />
-                </div>
-
-                {/* Icon */}
-                <div
-                  className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface-2)]",
-                    "transition-colors group-hover:bg-[var(--color-surface)]"
-                  )}
+          <AnimatePresence initial={false}>
+            {filteredEvents.map((event, i) => {
+              const config = typeConfig[event.type] || typeConfig.system;
+              const Icon = config.icon;
+              return (
+                <motion.a
+                  key={event.id}
+                  href={event.actionUrl || "#"}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 12 }}
+                  transition={{ duration: 0.25, delay: i < 10 ? i * 0.03 : 0 }}
+                  className="group flex items-start gap-3 border-b border-[var(--color-border-subtle)] px-5 py-3 transition-colors last:border-b-0 hover:bg-[var(--color-surface-2)]"
                 >
-                  <Icon
-                    className={cn("h-4 w-4", typeColors[activity.type])}
+                  {/* Colored left border */}
+                  <div
+                    className="mt-0.5 h-7 w-0.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: config.borderColor }}
                   />
-                </div>
 
-                {/* Content */}
-                <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
-                  <p
-                    className={cn(
-                      "truncate text-sm",
-                      activity.unread
-                        ? "font-medium text-[var(--color-text)]"
-                        : "text-[var(--color-text-muted)]"
-                    )}
+                  {/* Icon */}
+                  <div
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg"
+                    style={{ background: `${config.color}12` }}
                   >
-                    {activity.title}
-                  </p>
-                  <time className="text-[11px] text-[var(--color-text-muted)]">
-                    {activity.timestamp}
-                  </time>
-                </div>
-              </motion.div>
-            );
-          })
+                    <Icon
+                      className="h-3.5 w-3.5"
+                      style={{ color: config.color }}
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex flex-1 flex-col gap-0.5 overflow-hidden">
+                    <p
+                      className={cn(
+                        "truncate text-xs",
+                        event.isNew
+                          ? "font-medium text-[var(--color-text)]"
+                          : "text-[var(--color-text-muted)]",
+                      )}
+                    >
+                      {event.title}
+                    </p>
+                    {event.message && (
+                      <p className="truncate text-[10px] text-[var(--color-text-muted)]/70">
+                        {event.message}
+                      </p>
+                    )}
+                    <time className="text-[10px] text-[var(--color-text-muted)]/50">
+                      {formatRelativeTime(event.timestamp)}
+                    </time>
+                  </div>
+
+                  {/* New dot */}
+                  {event.isNew && (
+                    <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-gold)]" />
+                  )}
+                </motion.a>
+              );
+            })}
+          </AnimatePresence>
         )}
       </div>
     </motion.div>

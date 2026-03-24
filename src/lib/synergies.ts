@@ -352,6 +352,136 @@ export const SYNERGY_RULES: SynergyRule[] = [
       );
     },
   },
+
+  // ── Gulf Stream → Position opened notification ──
+  {
+    id: "gulf-position-opened",
+    source: "gulf",
+    trigger: "position_opened",
+    description: "Position ouverte → Notification Gulf Stream",
+    execute: async (data) => {
+      const title = (data.title as string) || "Position";
+      const amount = (data.amount as number) || 0;
+
+      await createNotification(
+        "system",
+        `Gulf Stream — Position ouverte`,
+        `${title} | Mise: $${amount.toFixed(2)}`,
+        "/gulf-stream",
+        { positionId: data.positionId, trigger: "gulf-position-opened" },
+      );
+    },
+  },
+
+  // ── Gulf Stream → Position closed → Finance notification ──
+  {
+    id: "gulf-position-closed-to-finance",
+    source: "gulf",
+    trigger: "position_closed",
+    description: "Position fermée → Notification PnL + Finance update",
+    execute: async (data) => {
+      const title = (data.title as string) || "Position";
+      const pnl = (data.pnl as number) || 0;
+      const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
+
+      await createNotification(
+        "invoice",
+        `Gulf Stream — ${pnlStr}`,
+        `${title} cloturee. Mettre a jour les projections.`,
+        "/finance",
+        { positionId: data.positionId, pnl, trigger: "gulf-position-closed" },
+      );
+    },
+  },
+
+  // ── Marchés → GO decision → Pipeline + Calendar ──
+  {
+    id: "marche-go-to-pipeline",
+    source: "marches",
+    trigger: "go_decision",
+    description: "Marché GO → Créer prospect + deadline calendrier",
+    execute: async (data) => {
+      const title = (data.tenderTitle as string) || "Marché";
+      const acheteur = (data.acheteur as string) || "";
+      const dateLimite = (data.dateLimite as string) || "";
+
+      await createNotification(
+        "prospect",
+        `Marche GO — ${title.slice(0, 50)}`,
+        `Preparer la reponse. Acheteur: ${acheteur}`,
+        "/pipeline",
+        { tenderId: data.tenderId, trigger: "marche-go-to-pipeline" },
+      );
+
+      if (dateLimite) {
+        await createNotification(
+          "reminder",
+          `Deadline Marche — ${title.slice(0, 40)}`,
+          `Date limite: ${dateLimite}. Planifier la soumission.`,
+          "/calendrier",
+          { tenderId: data.tenderId, dateLimite, trigger: "marche-go-to-calendar" },
+        );
+      }
+    },
+  },
+
+  // ── Production → Image completed → Notification ──
+  {
+    id: "image-completed-notify",
+    source: "production",
+    trigger: "image_completed",
+    description: "Image terminée → Notification production",
+    execute: async (data) => {
+      const prompt = (data.prompt as string) || "Image";
+      const project = (data.project as string) || "";
+
+      await createNotification(
+        "system",
+        `Image terminee`,
+        project ? `Projet: ${project} — ${prompt.slice(0, 60)}` : prompt.slice(0, 80),
+        "/production/images",
+        { jobId: data.jobId, trigger: "image-completed" },
+      );
+    },
+  },
+
+  // ── Music completed → Notification ──
+  {
+    id: "music-completed-notify",
+    source: "production",
+    trigger: "music_completed",
+    description: "Musique terminée → Notification production",
+    execute: async (data) => {
+      const title = (data.title as string) || "Piste";
+
+      await createNotification(
+        "system",
+        `Musique terminee — ${title}`,
+        "Composition IA generee. Ecouter et valider.",
+        "/production/music",
+        { jobId: data.jobId, trigger: "music-completed" },
+      );
+    },
+  },
+
+  // ── Pipeline prospect signed → Production suggestion ──
+  {
+    id: "pipeline-signe-to-production",
+    source: "pipeline",
+    trigger: "prospect_signed",
+    description: "Client signé → Suggestion lancement production",
+    execute: async (data) => {
+      const name = (data.prospectName as string) || "Client";
+
+      await createNotification(
+        "system",
+        `Production — Nouveau client ${name}`,
+        "Demarrer le brief creatif et planifier les premieres livraisons.",
+        "/production",
+        { prospectId: data.prospectId, trigger: "pipeline-signe-to-production" },
+      );
+    },
+  },
 ];
 
 /* ── Synergy Executor ──────────────────────────────────── */
@@ -498,5 +628,77 @@ export function onTenderAnalyzed(
     matchScore,
     goNoGo,
     dateLimite,
+  });
+}
+
+/**
+ * Convenience: trigger the marche GO decision synergy.
+ */
+export function onMarcheGo(
+  tenderId: string,
+  tenderTitle: string,
+  acheteur: string,
+  dateLimite?: string,
+) {
+  return triggerSynergy("marches", "go_decision", {
+    tenderId,
+    tenderTitle,
+    acheteur,
+    dateLimite,
+  });
+}
+
+/**
+ * Convenience: trigger a Gulf Stream position opened synergy.
+ */
+export function onGulfPositionOpened(
+  positionId: string,
+  title: string,
+  amount: number,
+) {
+  return triggerSynergy("gulf", "position_opened", {
+    positionId,
+    title,
+    amount,
+  });
+}
+
+/**
+ * Convenience: trigger a Gulf Stream position closed synergy.
+ */
+export function onGulfPositionClosed(
+  positionId: string,
+  title: string,
+  pnl: number,
+) {
+  return triggerSynergy("gulf", "position_closed", {
+    positionId,
+    title,
+    pnl,
+  });
+}
+
+/**
+ * Convenience: trigger the image-completed synergy.
+ */
+export function onImageCompleted(
+  jobId: string,
+  prompt: string,
+  project?: string,
+) {
+  return triggerSynergy("production", "image_completed", {
+    jobId,
+    prompt,
+    project,
+  });
+}
+
+/**
+ * Convenience: trigger the music-completed synergy.
+ */
+export function onMusicCompleted(jobId: string, title: string) {
+  return triggerSynergy("production", "music_completed", {
+    jobId,
+    title,
   });
 }

@@ -28,6 +28,16 @@ import {
 import { KpiWidget } from "@/components/dashboard/kpi-widget";
 import { ConstellationMap } from "@/components/dashboard/constellation-map";
 import { ActivityFeed } from "@/components/dashboard/activity-feed";
+import { SystemMap } from "@/components/dashboard/system-map";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import {
+  RevenueProjectionWidget,
+  PipelineHealthWidget,
+  MarchesWidget,
+  ProductionWidget,
+  AgentHealthWidget,
+  GulfStreamWidget,
+} from "@/components/dashboard/smart-widgets";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 
@@ -505,8 +515,32 @@ export default function DashboardPage() {
         </motion.div>
       )}
 
+      {/* ═══ Smart Widgets Grid — 3x2 ═══ */}
+      <div className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="flex items-center gap-2"
+        >
+          <Network className="h-4 w-4 text-[var(--color-gold-muted)]" />
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+            Tableau de Bord Systemique
+          </span>
+        </motion.div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <RevenueProjectionWidget delay={0.1} />
+          <PipelineHealthWidget delay={0.15} />
+          <MarchesWidget delay={0.2} />
+          <ProductionWidget delay={0.25} />
+          <AgentHealthWidget delay={0.3} />
+          <GulfStreamWidget delay={0.35} />
+        </div>
+      </div>
+
       {/* ═══ Morning Briefing ═══ */}
       <motion.div
+        id="briefing"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
@@ -536,7 +570,7 @@ export default function DashboardPage() {
                 Briefing du jour
               </h2>
               <p className="text-xs text-[var(--color-text-muted)]">
-                Genere par Sorel IA
+                Genere par Sorel IA — tous modules
               </p>
             </div>
           </div>
@@ -714,46 +748,21 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* ═══ Constellation + Activity ═══ */}
+      {/* ═══ Superposition Map + Activity Feed ═══ */}
       <div className="grid gap-6 xl:grid-cols-5">
         <div className="xl:col-span-3">
-          <ConstellationMap />
+          <SystemMap />
         </div>
         <div className="xl:col-span-2">
           <ActivityFeed />
         </div>
       </div>
 
+      {/* ═══ Constellation Map (Projects) ═══ */}
+      <ConstellationMap />
+
       {/* ═══ Quick Actions ═══ */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-        className="flex flex-wrap gap-3"
-      >
-        {[
-          { label: "+ Prospect", icon: UserPlus, href: "/pipeline" },
-          { label: "+ Facture", icon: FileText, href: "/finance" },
-          { label: "Eveiller le Pont", icon: Sparkles, href: "#" },
-          { label: "Ouvrir Pipeline", icon: Kanban, href: "/pipeline" },
-          { label: "Instagram", icon: Instagram, href: "https://www.instagram.com/gary_byss/", external: true },
-        ].map((action) => {
-          const Icon = action.icon;
-          return (
-            <motion.a
-              key={action.label}
-              href={action.href}
-              {...("external" in action && action.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2.5 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-5 py-3 text-sm font-medium text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-gold-muted)] hover:text-[var(--color-gold)]"
-            >
-              <Icon className="h-4 w-4" />
-              {action.label}
-            </motion.a>
-          );
-        })}
-      </motion.div>
+      <QuickActions />
     </div>
   );
 }

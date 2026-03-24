@@ -117,15 +117,20 @@ Tu parles toujours en francais. Tu signes ∞.`;
 const BRIEFING_SYSTEM = `${SYSTEM_BASE}
 ${KAIOU_MODES.marjory}
 
-Tu generes le briefing matinal de Gary. MODE_CADIFOR strict. Structure :
-1. ETAT DE L'EMPIRE — 3 lignes max, chiffres bruts
-2. BATAILLES DU JOUR — Actions concretes, ordonnees par impact
+Tu generes le briefing matinal de Gary. MODE_CADIFOR strict. Resume TOUT l'empire en une vue. Structure :
+1. ETAT DE L'EMPIRE — 3 lignes max, chiffres bruts (CA, MRR, pipeline value, prospects actifs)
+2. BATAILLES DU JOUR — Actions concretes ordonnees par impact, tous modules confondus
 3. FEUX A ATTISER — Prospects chauds, derniere interaction, delai depuis
-4. ALERTES — Prospects pas relances depuis >7 jours, factures en retard
-5. PHRASE DU JOUR — Une recommandation strategique memorable
-6. SAISONNALITE — Haute saison (Nov-Avr) ou basse (Mai-Oct), impact sur approche
+4. MARCHES PUBLICS — Appels d'offres detectes, deadlines proches, GO/NOGO en attente
+5. GULF STREAM — Positions ouvertes, P&L global, mouvements du jour
+6. PRODUCTION — Jobs actifs (video, image, musique), livraisons du jour, queue
+7. RECHERCHE — Dernieres decouvertes, intel geopolitique, donnees pertinentes
+8. VILLAGE IA — Sante des agents : cout du jour, taux de succes, latence moyenne
+9. ALERTES — Prospects dormants >7j, factures en retard, agents en echec, deadlines marches
+10. PHRASE DU JOUR — Une recommandation strategique memorable, un trait qui coupe
+11. SAISONNALITE — Haute saison (Nov-Avr) ou basse (Mai-Oct), impact sur approche
 
-Ton : Imperial, direct. Pas de "bonjour". On commence par les chiffres.`;
+Ton : Imperial, direct. Pas de "bonjour". On commence par les chiffres. Le briefing couvre TOUS les modules du vaisseau.`;
 
 const ANALYSIS_SYSTEM = `${SYSTEM_BASE}
 ${KAIOU_MODES.rose}
@@ -329,23 +334,114 @@ export async function generateBriefing(
     .map((a) => `- ${a.prospectName}: ${a.action} (${a.date})`)
     .join("\n");
 
-  // Fetch latest 3 insights from medallion layer
+  // Fetch cross-module data for full empire briefing
   let insightsBlock = "";
+  let marchesBlock = "";
+  let gulfBlock = "";
+  let productionBlock = "";
+  let agentBlock = "";
+  let researchBlock = "";
+
   try {
     const supabase = await createClient();
-    const { data: insights } = await supabase
-      .from("insights")
-      .select("type, title, content")
-      .order("created_at", { ascending: false })
-      .limit(3);
 
-    if (insights && insights.length > 0) {
-      insightsBlock = `\nInsights recents (medallion) :\n${insights
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayISO = todayStart.toISOString();
+    const todayDate = todayStart.toISOString().slice(0, 10);
+
+    const [
+      insightsRes,
+      marchesRes,
+      gulfRes,
+      videoActiveRes,
+      videoTodayRes,
+      imageActiveRes,
+      agentLogsRes,
+    ] = await Promise.all([
+      // Insights
+      supabase
+        .from("insights")
+        .select("type, title, content")
+        .order("created_at", { ascending: false })
+        .limit(3),
+      // Marches publics
+      supabase
+        .from("marches_publics")
+        .select("title, acheteur, date_limite, go_nogo, match_score")
+        .gte("date_limite", todayDate)
+        .order("date_limite", { ascending: true })
+        .limit(5),
+      // Gulf Stream
+      supabase
+        .from("gulf_positions")
+        .select("title, pnl, status")
+        .eq("status", "open"),
+      // Production — active videos
+      supabase
+        .from("videos")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["processing", "rendering", "pending"]),
+      // Production — completed today
+      supabase
+        .from("videos")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "completed")
+        .gte("updated_at", todayISO),
+      // Production — active image jobs
+      supabase
+        .from("image_jobs")
+        .select("id", { count: "exact", head: true })
+        .in("status", ["processing", "pending"]),
+      // Agent logs today
+      supabase
+        .from("agent_logs")
+        .select("cost_usd, duration_ms, success, model")
+        .gte("created_at", todayISO),
+    ]);
+
+    // Insights
+    if (insightsRes.data && insightsRes.data.length > 0) {
+      insightsBlock = `\nInsights recents (medallion) :\n${insightsRes.data
         .map((i) => `- [${i.type}] ${i.title} — ${i.content}`)
         .join("\n")}`;
     }
+
+    // Marches publics
+    if (marchesRes.data && marchesRes.data.length > 0) {
+      marchesBlock = `\nMarches publics ouverts :\n${marchesRes.data
+        .map((m) => `- ${m.title?.slice(0, 60)} | ${m.acheteur} | Limite: ${m.date_limite} | Score: ${m.match_score ?? "?"}% | ${m.go_nogo ?? "A EVALUER"}`)
+        .join("\n")}`;
+    } else {
+      marchesBlock = "\nMarches publics : Aucun appel d'offres ouvert.";
+    }
+
+    // Gulf Stream
+    const gulfPositions = gulfRes.data ?? [];
+    if (gulfPositions.length > 0) {
+      const totalPnL = gulfPositions.reduce((s, p) => s + (p.pnl ?? 0), 0);
+      gulfBlock = `\nGulf Stream :\n- Positions ouvertes : ${gulfPositions.length}\n- PnL total : ${totalPnL >= 0 ? "+" : ""}${totalPnL.toFixed(2)}\n- Top positions : ${gulfPositions.sort((a, b) => (b.pnl ?? 0) - (a.pnl ?? 0)).slice(0, 3).map((p) => `${p.title} (${(p.pnl ?? 0) >= 0 ? "+" : ""}${(p.pnl ?? 0).toFixed(1)})`).join(", ")}`;
+    } else {
+      gulfBlock = "\nGulf Stream : Aucune position ouverte.";
+    }
+
+    // Production
+    const activeJobs = (videoActiveRes.count ?? 0) + (imageActiveRes.count ?? 0);
+    const completedToday = videoTodayRes.count ?? 0;
+    productionBlock = `\nProduction :\n- Jobs actifs : ${activeJobs} (video + image)\n- Termines aujourd'hui : ${completedToday}`;
+
+    // Agent health
+    const agentLogs = agentLogsRes.data ?? [];
+    const totalCalls = agentLogs.length;
+    const costToday = agentLogs.reduce((s, l) => s + (l.cost_usd ?? 0), 0);
+    const latencies = agentLogs.filter((l) => l.duration_ms).map((l) => l.duration_ms ?? 0);
+    const avgLatency = latencies.length > 0 ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
+    const successCount = agentLogs.filter((l) => l.success).length;
+    const successRate = totalCalls > 0 ? Math.round((successCount / totalCalls) * 100) : 100;
+    agentBlock = `\nVillage IA (agents) :\n- Appels aujourd'hui : ${totalCalls}\n- Cout : $${costToday.toFixed(2)}\n- Latence moy. : ${Math.round(avgLatency)}ms\n- Taux de succes : ${successRate}%`;
+
   } catch {
-    // Insights not available yet — non-blocking
+    // Cross-module data not available — non-blocking
   }
 
   const userMessage = `Date : ${today}
@@ -363,8 +459,12 @@ Donnees du pipeline :
 Activites recentes :
 ${recentActivitySummary || "Aucune activite recente."}
 ${insightsBlock}
+${marchesBlock}
+${gulfBlock}
+${productionBlock}
+${agentBlock}
 
-Genere le briefing matinal.`;
+Genere le briefing matinal complet — tous modules du vaisseau.`;
 
   return callClaude(BRIEFING_SYSTEM, userMessage, {
     maxTokens: 2048,
