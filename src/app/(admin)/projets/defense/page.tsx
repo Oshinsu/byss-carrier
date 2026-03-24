@@ -125,6 +125,67 @@ export default function DefensePage() {
         </div>
       </div>
 
+      {/* Security Layer Details */}
+      <div>
+        <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+          Architecture 4 couches — Detail
+        </h2>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { title: "Detection", color: "#3B82F6", desc: "Analyse comportementale temps reel. Chaque processus est profile par son empreinte systeme : appels API, patterns I/O, consommation memoire. L'IA detecte les anomalies avant la premiere action malveillante — pas apres.", metrics: "Latence detection : <50ms | Faux positifs : <0.3%" },
+            { title: "Prevention", color: "#10B981", desc: "Zero-trust architecture. Chaque requete est authentifiee, chaque permission est ephemere. Chiffrement post-quantique (CRYSTALS-Kyber) sur toutes les communications internes. Aucun secret en clair, jamais.", metrics: "Rotation cles : 24h | Encryption : AES-256 + Kyber-1024" },
+            { title: "Response", color: "#F59E0B", desc: "Agents autonomes de reponse. Quand une menace est confirmee, l'agent isole le systeme compromis, capture l'etat forensique, et deploie le patch — sans intervention humaine. Le temps de reaction d'un humain est un luxe qu'on ne peut pas se permettre.", metrics: "MTTR : <120s | Isolation auto : <5s" },
+            { title: "Recovery", color: "#8B5CF6", desc: "Restauration etat sain garantie. Snapshots immutables toutes les 15 minutes. Rollback selectif par microservice. L'attaquant peut detruire — il ne peut pas empecher la resurrection.", metrics: "RPO : 15min | RTO : <5min | Snapshots : immutables" },
+          ].map((layer, i) => (
+            <motion.div
+              key={layer.title}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 + i * 0.1 }}
+              className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5"
+            >
+              <h3 className="text-sm font-bold" style={{ color: layer.color }}>{layer.title}</h3>
+              <p className="mt-2 text-xs leading-relaxed text-[var(--color-text-muted)]">{layer.desc}</p>
+              <div className="mt-3 rounded-lg bg-[var(--color-surface-2)] p-2">
+                <p className="font-mono text-[9px] text-[var(--color-cyan)]">{layer.metrics}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Threat Model */}
+      <div className="rounded-xl border border-[var(--color-fire)] bg-[#EF444406] p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertTriangle className="h-5 w-5 text-[var(--color-fire)]" />
+          <h2 className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-fire)]">
+            Modele de menaces — 5 vecteurs
+          </h2>
+        </div>
+        <div className="space-y-3">
+          {[
+            { vector: "Supply Chain Poisoning", severity: "Critique", desc: "Dependances NPM/PyPI compromises. Detection : hash verification + behavioral sandbox pre-deploy." },
+            { vector: "LLM Prompt Injection", severity: "Critique", desc: "Manipulation des agents IA via inputs craftes. Defense : input sanitization multi-couche + output validation." },
+            { vector: "Credential Stuffing", severity: "Eleve", desc: "Attaques par identifiants voles. Defense : zero-trust + MFA obligatoire + rate limiting adaptatif." },
+            { vector: "Insider Threat", severity: "Eleve", desc: "Acces malveillant interne. Defense : least privilege dynamique + audit trail immutable + anomaly detection." },
+            { vector: "DDoS Layer 7", severity: "Moyen", desc: "Saturation applicative. Defense : WAF IA + auto-scaling + circuit breaker pattern." },
+          ].map((threat, i) => (
+            <div key={threat.vector} className="flex items-start gap-3 rounded-lg bg-[var(--color-surface)] p-3">
+              <span className={`mt-0.5 shrink-0 rounded-full px-2 py-0.5 text-[8px] font-bold uppercase ${
+                threat.severity === "Critique" ? "bg-red-500/15 text-red-400" :
+                threat.severity === "Eleve" ? "bg-amber-500/15 text-amber-400" : "bg-blue-500/15 text-blue-400"
+              }`}>
+                {threat.severity}
+              </span>
+              <div className="min-w-0 flex-1">
+                <h4 className="text-xs font-bold text-[var(--color-text)]">{threat.vector}</h4>
+                <p className="mt-0.5 text-[10px] text-[var(--color-text-muted)]">{threat.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Research Sources */}
       <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5">
         <Server className="mb-2 h-5 w-5 text-[var(--color-gold)]" />

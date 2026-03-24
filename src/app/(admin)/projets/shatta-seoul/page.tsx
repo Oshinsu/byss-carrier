@@ -242,6 +242,42 @@ export default function ShattaSeoulPage() {
         </div>
       </div>
 
+      {/* Campaign Performance Detail */}
+      <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="h-5 w-5 text-[var(--color-gold)]" />
+          <h2 className="text-sm font-bold text-[var(--color-text)]">Performance campagnes — Detail</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            { metric: "Budget total depense", value: "200\u20AC", benchmark: "N/A", ratio: "Budget micro, resultats macro", color: "#10B981" },
+            { metric: "Cout par vue (CPV)", value: "0.0013\u20AC", benchmark: "0.02\u20AC", ratio: "17x inferieur au benchmark", color: "#F59E0B" },
+            { metric: "Taux d'engagement", value: "4.2%", benchmark: "1.5%", ratio: "2.8x le standard industrie", color: "#3B82F6" },
+            { metric: "Nouveaux followers", value: "+2 300", benchmark: "N/A", ratio: "Croissance organique post-campagne", color: "#8B5CF6" },
+          ].map((m, i) => (
+            <motion.div
+              key={m.metric}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.08 }}
+              className="rounded-lg bg-[var(--color-surface-2)] p-4"
+            >
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">{m.metric}</p>
+              <p className="mt-1 font-mono text-xl font-bold" style={{ color: m.color }}>{m.value}</p>
+              {m.benchmark !== "N/A" && (
+                <p className="text-[9px] text-[var(--color-text-muted)]">Benchmark : {m.benchmark}</p>
+              )}
+              <p className="mt-1 text-[10px] font-medium" style={{ color: m.color }}>{m.ratio}</p>
+            </motion.div>
+          ))}
+        </div>
+        <div className="mt-4 rounded-lg border border-[var(--color-gold)]/20 bg-[var(--color-gold-glow)] p-3">
+          <p className="text-[10px] text-[var(--color-text-muted)]">
+            <span className="font-bold text-[var(--color-gold)]">Strategie :</span> Micro-budget, ciblage diaspora caribeenne, contenu natif TikTok/Reels. Pas de production lourde — authenticite studio + behind-the-scenes. Le CPV prouve que le contenu caribeeen trouve son audience sans surenchère publicitaire.
+          </p>
+        </div>
+      </div>
+
       {/* AI Personas */}
       <div>
         <h2 className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">

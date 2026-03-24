@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import {
   Key, Eye, EyeOff, Copy, Check, ExternalLink,
   Euro, AlertTriangle, CheckCircle2, Activity,

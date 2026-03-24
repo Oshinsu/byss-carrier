@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "motion/react",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-tooltip",
+      "date-fns",
+    ],
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },

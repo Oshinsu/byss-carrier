@@ -150,18 +150,61 @@ export default function ByssEmploiPage() {
         ))}
       </div>
 
-      {/* Data Sources */}
+      {/* Stats Progress Bars */}
+      <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5">
+        <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+          Metriques cles — progression
+        </h3>
+        <div className="space-y-4">
+          {[
+            { label: "Offres indexees", value: "95 000+", target: "150 000", pct: 63, color: "#3B82F6" },
+            { label: "Utilisateurs beta", value: "2 400", target: "10 000", pct: 24, color: "#10B981" },
+            { label: "Regions couvertes", value: "13 / 18", target: "18", pct: 72, color: "#F59E0B" },
+            { label: "Services MCP actifs", value: "27 / 34", target: "34", pct: 79, color: "#8B5CF6" },
+            { label: "Outils IA integres", value: "50+", target: "100", pct: 50, color: "#00B4D8" },
+          ].map((m) => (
+            <div key={m.label}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-medium text-[var(--color-text)]">{m.label}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">
+                  <span className="font-mono font-bold" style={{ color: m.color }}>{m.value}</span>
+                  <span className="text-[var(--color-text-muted)]"> / {m.target}</span>
+                </span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-surface-2)]">
+                <motion.div
+                  className="h-full rounded-full"
+                  style={{ backgroundColor: m.color }}
+                  initial={{ width: 0 }}
+                  animate={{ width: `${m.pct}%` }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Data Sources — Enhanced */}
       <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5">
         <h3 className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
           <Database className="h-3 w-3" style={{ color: "#0b1120" }} />
-          Sources de donnees
+          Sources de donnees — Detail
         </h3>
         <div className="grid grid-cols-5 gap-3">
-          {DATA_SOURCES.map((ds) => (
-            <div key={ds.name} className="group relative rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-2)] p-3 text-center">
-              <Tooltip label={`Source: ${ds.name} — Frequence: ${ds.frequency}`} />
+          {[
+            { name: "France Travail", frequency: "Quotidien", records: "95K+ offres", api: "27 endpoints", desc: "API principale emploi. Recherche, referentiels ROME, communes, NAF. Actualisation quotidienne automatique via n8n." },
+            { name: "INSEE", frequency: "Mensuel", records: "13 regions", api: "1 endpoint", desc: "Donnees territoriales. Population active, taux chomage, bassins d'emploi. Croisement avec offres pour scoring territorial." },
+            { name: "ROME v4", frequency: "Trimestriel", records: "532 fiches", api: "Referentiel", desc: "Repertoire Operationnel des Metiers. Classification officielle. Mapping competences-metiers pour le matching IA." },
+            { name: "RNCP", frequency: "Trimestriel", records: "12K+ titres", api: "Referentiel", desc: "Repertoire National des Certifications Professionnelles. Lien diplome-metier. Validation des acquis." },
+            { name: "CPF", frequency: "Mensuel", records: "48K+ formations", api: "Referentiel", desc: "Compte Personnel de Formation. Catalogue formations eligibles. Budget disponible par utilisateur." },
+          ].map((ds) => (
+            <div key={ds.name} className="group relative rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-2)] p-3">
+              <Tooltip label={ds.desc} />
               <p className="text-xs font-bold text-[var(--color-text)]">{ds.name}</p>
               <p className="text-[9px] text-[var(--color-text-muted)]">{ds.frequency}</p>
+              <p className="mt-1 font-mono text-[9px] text-[var(--color-cyan)]">{ds.records}</p>
+              <p className="text-[8px] text-[var(--color-text-muted)]">{ds.api}</p>
               <div className="mx-auto mt-1.5 h-1.5 w-1.5 rounded-full bg-emerald-400" />
             </div>
           ))}

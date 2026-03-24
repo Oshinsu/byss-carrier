@@ -170,6 +170,74 @@ export default function VideoOSPage() {
         </div>
       </div>
 
+      {/* Feature Comparison Table */}
+      <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] overflow-hidden">
+        <div className="border-b border-[var(--color-border-subtle)] px-5 py-3">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Comparatif — VideoOS vs marche</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-[var(--color-border-subtle)] bg-[var(--color-surface-2)]">
+                <th className="px-4 py-2.5 text-left font-semibold text-[var(--color-text-muted)]">Feature</th>
+                {["VideoOS", "Premiere Pro", "CapCut", "DaVinci"].map((tool) => (
+                  <th key={tool} className={`px-3 py-2.5 text-center font-semibold ${tool === "VideoOS" ? "text-[var(--color-gold)]" : "text-[var(--color-text-muted)]"}`}>
+                    {tool}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { feature: "Beat-sync auto", videoos: true, premiere: false, capcut: false, davinci: false },
+                { feature: "Multi-agents IA", videoos: true, premiere: false, capcut: false, davinci: false },
+                { feature: "1M context (film entier)", videoos: true, premiere: false, capcut: false, davinci: false },
+                { feature: "Separation audio Demucs", videoos: true, premiere: false, capcut: false, davinci: true },
+                { feature: "Export timeline EDL/XML", videoos: true, premiere: true, capcut: false, davinci: true },
+                { feature: "Gratuit", videoos: false, premiere: false, capcut: true, davinci: true },
+                { feature: "GPU local", videoos: false, premiere: true, capcut: false, davinci: true },
+                { feature: "Plugin ecosystem", videoos: false, premiere: true, capcut: false, davinci: true },
+              ].map((row) => (
+                <tr key={row.feature} className="border-b border-[var(--color-border-subtle)] last:border-b-0 hover:bg-[var(--color-surface-2)]/50">
+                  <td className="px-4 py-2 text-[var(--color-text)]">{row.feature}</td>
+                  {[row.videoos, row.premiere, row.capcut, row.davinci].map((val, i) => (
+                    <td key={i} className="px-3 py-2 text-center">
+                      <span className={val ? "text-emerald-400" : "text-[var(--color-text-muted)]"}>{val ? "\u2713" : "\u2014"}</span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* AI Pipeline Detail */}
+      <div className="rounded-xl border border-purple-500/20 bg-purple-500/5 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Brain className="h-5 w-5 text-purple-400" />
+          <h2 className="text-sm font-bold text-purple-300">Pipeline IA — Detail technique</h2>
+        </div>
+        <div className="space-y-4">
+          {[
+            { stage: "1. Demucs v4", tech: "Meta AI", detail: "Separation 4 stems (voix, batterie, basse, autre) a 9.20dB SDR. Modele Hybrid Transformer. Inference GPU : 2.3s pour 3min audio. Permet le montage sur chaque stem independamment.", color: "#3B82F6" },
+            { stage: "2. BEAST", tech: "Streaming Transformer", detail: "Beat tracking temps reel avec hierarchie metrique complete : croche, noire, blanche, ronde. Detection downbeat, tempo, time signature. Latence <100ms. Le rythme structure le montage : croche = cut rapide, noire = transition, blanche = plan large.", color: "#F59E0B" },
+            { stage: "3. Editor Agent", tech: "EditDuet (SIGGRAPH 2025)", detail: "Agent generatif qui produit un premier montage complet. Prend en input : hierarchie beats + stems + rushes indexes. Output : timeline EDL avec cuts, transitions, speed ramps alignes sur la musique.", color: "#8B5CF6" },
+            { stage: "4. Critic Agent", tech: "Claude Opus 4.6", detail: "Evalue le montage de l'Editor : coherence narrative, rythme visuel, variete des plans. Score 0-100 avec feedback structure. Si score <70, l'Editor regenere. Boucle moyenne : 2.3 iterations avant convergence.", color: "#00B4D8" },
+          ].map((s) => (
+            <div key={s.stage} className="flex items-start gap-3 rounded-lg bg-[var(--color-surface)] p-4">
+              <span className="mt-0.5 shrink-0 rounded-md px-2 py-1 font-mono text-[9px] font-bold" style={{ backgroundColor: `${s.color}15`, color: s.color }}>{s.stage}</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-[var(--color-text)]">{s.tech}</span>
+                </div>
+                <p className="mt-1 text-[10px] leading-relaxed text-[var(--color-text-muted)]">{s.detail}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Key Advantage */}
       <div className="group relative">
         <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5 text-center">

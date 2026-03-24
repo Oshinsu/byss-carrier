@@ -149,6 +149,60 @@ export default function ArchipelPage() {
         </div>
       </div>
 
+      {/* Market Opportunity */}
+      <div>
+        <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+          Marche &amp; concurrence
+        </h2>
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { name: "Spotify", users: "626M", share: "31%", weakness: "Algorithme sourd aux micro-genres caribbeens. Zouk love et bouyon dans le meme bac. Zero curation locale.", color: "#1DB954" },
+            { name: "Deezer", users: "16M", share: "2%", weakness: "Catalogue DOM-TOM delaisse. Pas de metadata creole. Interface generique. Aucun investissement dans les scenes locales.", color: "#FF0092" },
+            { name: "Audiomack", users: "20M", share: "3%", weakness: "Forte Afrique, faible Caraibe. Pas d'IA de recommandation. Upload-only, zero decouverte. Monetisation floue.", color: "#FFA500" },
+          ].map((c, i) => (
+            <motion.div
+              key={c.name}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + i * 0.1 }}
+              className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-bold" style={{ color: c.color }}>{c.name}</h3>
+                <span className="font-mono text-[10px] text-[var(--color-text-muted)]">{c.share} global</span>
+              </div>
+              <p className="font-mono text-lg font-bold text-[var(--color-text)]">{c.users}</p>
+              <p className="text-[9px] text-[var(--color-text-muted)] mb-3">utilisateurs actifs</p>
+              <div className="rounded-lg bg-red-500/5 border border-red-500/10 p-2">
+                <p className="text-[10px] text-red-400 font-medium">Faiblesse</p>
+                <p className="text-[10px] text-[var(--color-text-muted)] mt-0.5">{c.weakness}</p>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tech Stack */}
+      <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Cpu className="h-5 w-5 text-[var(--color-cyan)]" />
+          <h2 className="text-sm font-bold text-[var(--color-text)]">Stack technique</h2>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {[
+            { tech: "Sonic Pi + Web Audio API", role: "Moteur audio", desc: "Traitement audio temps reel dans le navigateur. Analyse spectrale, extraction de features, playback zero-latence. Sonic Pi pour la generation et le prototypage algorithmique.", color: "#3B82F6" },
+            { tech: "Annoy (Spotify)", role: "Recommandation", desc: "Approximate Nearest Neighbors Oh Yeah. Index vectoriel 128 dimensions entraine sur les features audio caribbeennes. Recherche sub-milliseconde sur 500K+ tracks.", color: "#10B981" },
+            { tech: "Kubernetes + Kafka", role: "Infrastructure", desc: "Microservices conteneurises. Kafka pour le streaming d'events (plays, skips, likes). Auto-scaling par region. Deploiement blue-green zero downtime.", color: "#8B5CF6" },
+          ].map((t, i) => (
+            <div key={t.tech} className="rounded-lg bg-[var(--color-surface-2)] p-4">
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: t.color }}>{t.role}</span>
+              <h3 className="mt-1 text-xs font-bold text-[var(--color-text)]">{t.tech}</h3>
+              <p className="mt-2 text-[10px] leading-relaxed text-[var(--color-text-muted)]">{t.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Philosophy */}
       <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-6 text-center">
         <Heart className="mx-auto mb-3 h-6 w-6 text-[var(--color-gold)]" />

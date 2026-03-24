@@ -152,6 +152,80 @@ export default function ZenithEcoPage() {
         </p>
       </div>
 
+      {/* Solar Simulator */}
+      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Calculator className="h-5 w-5 text-emerald-400" />
+          <h2 className="text-sm font-bold text-emerald-300">Simulateur solaire — Concept</h2>
+        </div>
+        <p className="text-xs text-[var(--color-text-muted)] mb-4">
+          Le prospect entre 3 donnees. Le simulateur calcule tout. Le lead est capture avant meme qu&apos;il ait parle a un commercial.
+        </p>
+        <div className="grid grid-cols-3 gap-3 mb-4">
+          {[
+            { input: "Surface toiture", example: "80 m2", desc: "Estimation via adresse ou saisie manuelle" },
+            { input: "Orientation", example: "Sud / Sud-Ouest", desc: "Optimal Martinique : exposition face mer" },
+            { input: "Consommation", example: "350 EUR/mois", desc: "Facture EDF moyenne menage martiniquais" },
+          ].map((f) => (
+            <div key={f.input} className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border-subtle)] p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-400">{f.input}</p>
+              <p className="mt-1 font-mono text-sm font-bold text-[var(--color-text)]">{f.example}</p>
+              <p className="mt-0.5 text-[9px] text-[var(--color-text-muted)]">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-lg bg-[var(--color-surface)] border border-emerald-500/20 p-4">
+          <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-text-muted)] mb-2">Resultats generes automatiquement</p>
+          <div className="grid grid-cols-4 gap-3 text-center">
+            {[
+              { label: "Economies an 1", value: "2 800 EUR" },
+              { label: "ROI", value: "4.2 ans" },
+              { label: "Production kWh", value: "12 400 kWh" },
+              { label: "CO2 evite", value: "3.2 tonnes" },
+            ].map((r) => (
+              <div key={r.label}>
+                <p className="font-mono text-lg font-bold text-emerald-400">{r.value}</p>
+                <p className="text-[9px] text-[var(--color-text-muted)]">{r.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* WhatsApp Funnel Conversion */}
+      <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <MessageCircle className="h-5 w-5 text-emerald-400" />
+          <h2 className="text-sm font-bold text-[var(--color-text)]">Funnel WhatsApp — Taux conversion</h2>
+        </div>
+        <div className="space-y-3">
+          {[
+            { stage: "Visite site", count: "1 000", pct: 100, color: "#3B82F6" },
+            { stage: "Simulation lancee", count: "320", pct: 32, color: "#F59E0B" },
+            { stage: "Lead capture (email)", count: "180", pct: 18, color: "#10B981" },
+            { stage: "WhatsApp engage", count: "95", pct: 9.5, color: "#00B4D8" },
+            { stage: "RDV devis pris", count: "28", pct: 2.8, color: "#8B5CF6" },
+            { stage: "Contrat signe", count: "8", pct: 0.8, color: "#10B981" },
+          ].map((s) => (
+            <div key={s.stage}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs text-[var(--color-text)]">{s.stage}</span>
+                <span className="text-xs text-[var(--color-text-muted)]">
+                  <span className="font-mono font-bold" style={{ color: s.color }}>{s.count}</span>
+                  <span className="ml-1 text-[9px]">({s.pct}%)</span>
+                </span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-surface-2)]">
+                <div className="h-full rounded-full transition-all" style={{ width: `${s.pct}%`, backgroundColor: s.color }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-[10px] text-[var(--color-text-muted)]">
+          Martinique : WhatsApp est le canal primaire. 80% des leads repondent sur WhatsApp vs 15% par email. Le simulateur alimente le funnel automatiquement.
+        </p>
+      </div>
+
       {/* Pipeline Lead Gen — toggleable */}
       <div>
         <h2 className="mb-3 text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">Pipeline — click to toggle</h2>
