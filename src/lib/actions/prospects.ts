@@ -1,14 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 
 // ═══════════════════════════════════════════════
 // BYSS GROUP — Prospect Server Actions
 // ═══════════════════════════════════════════════
 
 export async function updateProspectPhase(id: string, phase: string) {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase
     .from("prospects")
     .update({ phase, updatedAt: new Date().toISOString() })
@@ -28,7 +29,7 @@ export async function updateProspectPhase(id: string, phase: string) {
 }
 
 export async function updateProspectField(id: string, field: string, value: string | number) {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase
     .from("prospects")
     .update({ [field]: value, updatedAt: new Date().toISOString() })
@@ -40,7 +41,7 @@ export async function updateProspectField(id: string, field: string, value: stri
 }
 
 export async function addProspect(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const prospect = {
     name: formData.get("name") as string,
@@ -73,7 +74,7 @@ export async function addProspect(formData: FormData) {
 }
 
 export async function deleteProspect(id: string) {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase
     .from("prospects")
     .delete()
@@ -85,7 +86,7 @@ export async function deleteProspect(id: string) {
 }
 
 export async function addInteraction(prospectId: string, type: string, content: string) {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { error } = await supabase
     .from("interactions")
     .insert({

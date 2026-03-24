@@ -5,7 +5,8 @@
 // Bible de Vente + Intelligence Martinique + RAG
 // ═══════════════════════════════════════════════════════
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 import { buildRAGContext } from "@/lib/ai/rag";
 
 /* ── Types ─────────────────────────────────────────── */
@@ -86,7 +87,7 @@ async function fetchSireneData(
 export async function buildProspectContext(
   prospectId: string
 ): Promise<ProspectContext> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   // 1. Fetch prospect first (need name/sector for other queries)
   const { data: prospect, error: prospectErr } = await supabase

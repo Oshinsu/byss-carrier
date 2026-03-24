@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 import { createNotification } from "@/lib/notifications";
 
 // ═══════════════════════════════════════════════════════
@@ -48,7 +49,7 @@ export async function proposeAction(
   description: string,
   payload: Record<string, unknown>,
 ): Promise<PendingAction> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase
     .from("pending_actions")
@@ -84,7 +85,7 @@ export async function approveAction(
   actionId: string,
   approvedBy = "gary",
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { data, error } = await supabase
     .from("pending_actions")
@@ -120,7 +121,7 @@ export async function approveAction(
  * Reject a pending action.
  */
 export async function rejectAction(actionId: string): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const { error } = await supabase
     .from("pending_actions")
@@ -147,7 +148,7 @@ export async function rejectAction(actionId: string): Promise<void> {
  * Each action_type maps to a specific side-effect.
  */
 async function executeApprovedAction(action: PendingAction): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { action_type, payload } = action;
 
   switch (action_type) {

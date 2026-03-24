@@ -1,4 +1,5 @@
-import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createClient as _sc } from "@supabase/supabase-js";
+function createServerClient() { return _sc(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 import type { Invoice, InvoiceStatus } from "@/types";
 import { TVA_RATE } from "@/lib/constants";
 
@@ -7,7 +8,7 @@ import { TVA_RATE } from "@/lib/constants";
 // ═══════════════════════════════════════════════════════
 
 export async function getInvoices(status?: InvoiceStatus) {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   let query = supabase.from("invoices").select("*, prospect:prospects(name)").order("issue_date", { ascending: false });
   if (status) query = query.eq("status", status);
   const { data, error } = await query;
@@ -22,7 +23,7 @@ export async function createInvoice(invoice: {
   due_date?: string;
   notes?: string;
 }) {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
 
   // Generate invoice number: BG-2026-XXX
   const year = new Date().getFullYear();
@@ -46,7 +47,7 @@ export async function createInvoice(invoice: {
 }
 
 export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   const updates: Record<string, unknown> = { status };
   if (status === "paid") updates.payment_date = new Date().toISOString().split("T")[0];
   const { error } = await supabase.from("invoices").update(updates).eq("id", id);
@@ -54,14 +55,14 @@ export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
 }
 
 export async function getMonthlyRevenue() {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   const { data, error } = await supabase.from("monthly_revenue").select("*");
   if (error) throw error;
   return data;
 }
 
 export async function getFinanceSummary() {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
 
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;

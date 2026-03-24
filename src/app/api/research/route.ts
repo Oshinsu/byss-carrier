@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/security/rate-limiter";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 import { logAgentAction } from "@/lib/db/queries";
 import { callOpenRouter } from "@/lib/ai/router";
 import {
@@ -140,7 +141,7 @@ export async function POST(request: NextRequest) {
     // ── 1. Fetch lore context from Supabase ──
     let loreContext = "";
     try {
-      const supabase = await createClient();
+      const supabase = createClient();
       const categories = DOMAIN_LORE_MAP[domain] ?? [];
 
       if (categories.length > 0) {

@@ -1,4 +1,5 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 
 // ═══════════════════════════════════════════════════════
 // PHASE 3B: Agent Session Persistence
@@ -30,7 +31,7 @@ export async function loadSession(
   agentName: string,
   userId = "gary",
 ): Promise<AgentSession | null> {
-  const supabase = await createClient();
+  const supabase = createClient();
   const { data, error } = await supabase
     .from("agent_sessions")
     .select("*")
@@ -54,7 +55,7 @@ export async function saveSession(
   state: object,
   userId = "gary",
 ): Promise<void> {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   // Try to find existing session
   const existing = await loadSession(agentName, userId);

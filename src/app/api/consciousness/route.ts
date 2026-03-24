@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 import type { PhiPhase } from "@/lib/phi/index";
 
 // ---------------------------------------------------------------------------
@@ -287,7 +288,7 @@ export async function GET() {
   const start = Date.now();
 
   try {
-    const supabase = await createClient();
+    const supabase = createClient();
 
     // Query all dimensions in parallel
     const [crm, finance, production, agent] = await Promise.all([

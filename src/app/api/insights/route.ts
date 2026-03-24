@@ -6,7 +6,8 @@
 
 import { NextResponse } from "next/server";
 import { rateLimit } from "@/lib/security/rate-limiter";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 import Anthropic from "@anthropic-ai/sdk";
 
 const anthropic = new Anthropic({
@@ -22,7 +23,7 @@ export async function GET(request: Request) {
     const limit = parseInt(searchParams.get("limit") || "10", 10);
     const type = searchParams.get("type");
 
-    const supabase = await createClient();
+    const supabase = createClient();
 
     let query = supabase
       .from("insights")
@@ -60,7 +61,7 @@ export async function POST() {
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = createClient();
 
     // 1. Query prospect_scores for stale prospects
     const { data: staleProspects } = await supabase

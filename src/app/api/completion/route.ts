@@ -6,7 +6,8 @@
 // ═══════════════════════════════════════════════════════
 
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 import { callOpenRouter } from "@/lib/ai/router";
 import {
   ANALYSIS_SYSTEM_PROMPT,
@@ -137,7 +138,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get("limit") || "1", 10);
 
-    const supabase = await createClient();
+    const supabase = createClient();
     const { data, error } = await supabase
       .from("insights")
       .select("*")
@@ -193,7 +194,7 @@ export async function POST(request: Request) {
         const analysis = await analyzeSinglePage(pagePath, pageContent);
 
         // Save to insights
-        const supabase = await createClient();
+        const supabase = createClient();
         await supabase.from("insights").insert({
           type: "completion",
           title: `Scan: ${analysis.pageName}`,
@@ -254,7 +255,7 @@ export async function POST(request: Request) {
         const features = allGaps.filter((g) => g.type === "feature").length;
 
         // Save to insights
-        const supabase = await createClient();
+        const supabase = createClient();
         await supabase.from("insights").insert({
           type: "completion",
           title: `Scan complet: ${analyses.length} pages`,
@@ -335,7 +336,7 @@ export async function POST(request: Request) {
           }
         } else {
           // Create pending_action for approval
-          const supabase = await createClient();
+          const supabase = createClient();
           await supabase.from("insights").insert({
             type: "completion",
             title: `Fix pending: ${pagePathToName(pagePath)}`,

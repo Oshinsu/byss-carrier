@@ -1,14 +1,15 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 
 // ═══════════════════════════════════════════════
 // BYSS GROUP — Invoice Server Actions
 // ═══════════════════════════════════════════════
 
 export async function createInvoice(formData: FormData) {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   // Generate invoice number: BG-2026-XXX
   const { count } = await supabase
@@ -48,7 +49,7 @@ export async function createInvoice(formData: FormData) {
 }
 
 export async function updateInvoiceStatus(id: string, status: string) {
-  const supabase = await createClient();
+  const supabase = createClient();
 
   const updates: Record<string, string | null> = { status };
   if (status === "paid") {

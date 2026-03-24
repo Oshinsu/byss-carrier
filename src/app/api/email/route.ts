@@ -9,7 +9,8 @@ import {
   type EmailType,
 } from "@/lib/integrations/resend";
 import { createActivity } from "@/lib/db/queries";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 
 // ═══════════════════════════════════════════════════════
 // BYSS GROUP — Email API (Resend + Supabase logging)
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
 
         // Log interaction in Supabase
         if (prospectId) {
-          const supabase = await createClient();
+          const supabase = createClient();
 
           // Log as interaction
           await supabase.from("interactions").insert({
@@ -110,7 +111,7 @@ export async function POST(request: NextRequest) {
 
         // Log activity if prospectId provided
         if (body.prospectId) {
-          const supabase = await createClient();
+          const supabase = createClient();
 
           await supabase.from("interactions").insert({
             prospectId: body.prospectId,
@@ -174,7 +175,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (prospectId) {
-          const supabase = await createClient();
+          const supabase = createClient();
           await supabase.from("interactions").insert({
             prospectId: prospectId,
             type: "email",
@@ -226,7 +227,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (prospectId) {
-          const supabase = await createClient();
+          const supabase = createClient();
           await supabase.from("interactions").insert({
             prospectId: prospectId,
             type: "email",
@@ -280,7 +281,7 @@ export async function POST(request: NextRequest) {
         });
 
         if (prospectId) {
-          const supabase = await createClient();
+          const supabase = createClient();
           await supabase.from("interactions").insert({
             prospectId: prospectId,
             type: "email",

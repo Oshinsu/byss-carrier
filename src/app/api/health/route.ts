@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 
 // ═══════════════════════════════════════════════════════
 // BYSS EMPIRE — Unified Health Endpoint
@@ -127,7 +128,7 @@ export async function GET() {
   const tableDetails: Record<string, number> = {};
 
   try {
-    const supabase = await createClient();
+    const supabase = createClient();
 
     for (const table of KNOWN_TABLES) {
       try {

@@ -1,4 +1,5 @@
-import { createClient as createServerClient } from "@/lib/supabase/server";
+import { createClient as _sc } from "@supabase/supabase-js";
+function createServerClient() { return _sc(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 import type { Prospect, ProspectPhase, Interaction } from "@/types";
 
 // ═══════════════════════════════════════════════════════
@@ -6,7 +7,7 @@ import type { Prospect, ProspectPhase, Interaction } from "@/types";
 // ═══════════════════════════════════════════════════════
 
 export async function getProspects(phase?: ProspectPhase) {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   let query = supabase.from("prospects").select("*").order("updated_at", { ascending: false });
   if (phase) query = query.eq("phase", phase);
   const { data, error } = await query;
@@ -15,20 +16,20 @@ export async function getProspects(phase?: ProspectPhase) {
 }
 
 export async function getProspect(id: string) {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   const { data, error } = await supabase.from("prospects").select("*").eq("id", id).single();
   if (error) throw error;
   return data as Prospect;
 }
 
 export async function updateProspectPhase(id: string, phase: ProspectPhase) {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   const { error } = await supabase.from("prospects").update({ phase, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) throw error;
 }
 
 export async function getProspectInteractions(prospectId: string) {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   const { data, error } = await supabase
     .from("interactions")
     .select("*")
@@ -39,7 +40,7 @@ export async function getProspectInteractions(prospectId: string) {
 }
 
 export async function addInteraction(interaction: Omit<Interaction, "id" | "created_at">) {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   const now = new Date().toISOString();
   // Parallel: insert interaction + update prospect timestamp
   const [insertRes, _updateRes] = await Promise.all([
@@ -53,7 +54,7 @@ export async function addInteraction(interaction: Omit<Interaction, "id" | "crea
 }
 
 export async function getPipelineStats() {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   const { data, error } = await supabase.from("pipeline_stats").select("*").limit(100);
   if (error) throw error;
   return data;

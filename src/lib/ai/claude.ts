@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as _createSC } from "@supabase/supabase-js";
+function createClient() { return _createSC(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!); }
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -343,7 +344,7 @@ export async function generateBriefing(
   let researchBlock = "";
 
   try {
-    const supabase = await createClient();
+    const supabase = createClient();
 
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
