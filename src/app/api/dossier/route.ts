@@ -13,7 +13,14 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/security/rate-limiter";
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createServerClient } from "@supabase/supabase-js";
+
+function getSupabase() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
 import { callOpenRouter } from "@/lib/ai/router";
 import {
   buildProspectContext,
@@ -142,7 +149,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const supabase = await createClient();
+    const supabase = getSupabase();
 
     const { data, error } = await supabase
       .from("insights")
@@ -253,7 +260,7 @@ async function generateFullDossier(prospectId: string) {
   }
 
   // 4. Save to insights table
-  const supabase = await createClient();
+  const supabase = getSupabase();
   const { data: saved, error: saveErr } = await supabase
     .from("insights")
     .insert({
