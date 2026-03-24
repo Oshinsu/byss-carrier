@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Search, Brain, BookOpen, Target, Shield, MessageSquare,
   Users, Calendar, Swords, Leaf, LayoutGrid, ChevronDown,
-  Sparkles, Send, Hash, AlertCircle,
+  Sparkles, Send, Hash, AlertCircle, DollarSign, Eye,
+  Megaphone, Briefcase, MapPin, Car, Zap, Anchor,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -37,6 +38,22 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   "Sun Tzu": Swords,
   "Biomimetisme": Leaf,
   "Architecture": LayoutGrid,
+  /* ── V2 categories from Sorel conversations ── */
+  "sun_tzu": Swords,
+  "biomimetisme": Leaf,
+  "neuro_selling": Brain,
+  "phrase_accroche": Megaphone,
+  "prospect_intel": Eye,
+  "pricing": DollarSign,
+  "objection": Shield,
+  "pitch": Target,
+  "case_study": Briefcase,
+  "vertical": MapPin,
+  "process": LayoutGrid,
+  "competitor": Zap,
+  "stack": LayoutGrid,
+  "location_auto": Car,
+  "excursion": Anchor,
 };
 
 function getIconForCategory(category: string): React.ElementType {
