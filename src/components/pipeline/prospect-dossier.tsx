@@ -168,16 +168,9 @@ export function ProspectDossier({
 
       setDossier(json.dossier);
       setMeta(json.meta || null);
-      toast({
-        title: "Dossier genere",
-        description: `${Object.keys(json.dossier).length} sections. ${json.meta?.duration_ms || 0}ms.`,
-      });
+      toast(`Dossier genere — ${Object.keys(json.dossier).length} sections. ${json.meta?.duration_ms || 0}ms.`, "success");
     } catch (err) {
-      toast({
-        title: "Erreur generation",
-        description: err instanceof Error ? err.message : "Erreur inconnue",
-        variant: "destructive",
-      });
+      toast(err instanceof Error ? err.message : "Erreur generation", "error");
     } finally {
       setGenerating(false);
     }
@@ -205,13 +198,9 @@ export function ProspectDossier({
         return { ...prev, [section]: json.data };
       });
 
-      toast({ title: "Section regeneree", description: section });
+      toast(`Section regeneree — ${section}`, "success");
     } catch (err) {
-      toast({
-        title: "Erreur",
-        description: err instanceof Error ? err.message : "Erreur regeneration",
-        variant: "destructive",
-      });
+      toast(err instanceof Error ? err.message : "Erreur regeneration", "error");
     } finally {
       setRegeneratingSection(null);
     }
@@ -220,7 +209,7 @@ export function ProspectDossier({
   /* ── Copy section ──────────────────────────────── */
   const copySection = (key: string) => {
     if (!dossier) return;
-    const val = (dossier as Record<string, unknown>)[key];
+    const val = (dossier as unknown as Record<string, unknown>)[key];
     const text = typeof val === "string" ? val : JSON.stringify(val, null, 2);
     navigator.clipboard.writeText(text);
     setCopiedSection(key);
@@ -239,10 +228,7 @@ export function ProspectDossier({
 
   /* ── Export PDF (open in new tab) ───────────────── */
   const exportPDF = () => {
-    toast({
-      title: "Export PDF",
-      description: "Fonctionnalite en cours de deploiement.",
-    });
+    toast("Export PDF — Fonctionnalite en cours de deploiement.", "info");
   };
 
   /* ── Send email ────────────────────────────────── */
@@ -268,9 +254,9 @@ export function ProspectDossier({
       });
       const json = await res.json();
       if (json.error) throw new Error(json.error);
-      toast({ title: "Dossier sauvegarde" });
+      toast("Dossier sauvegarde", "success");
     } catch {
-      toast({ title: "Erreur sauvegarde", variant: "destructive" });
+      toast("Erreur sauvegarde", "error");
     } finally {
       setSaving(false);
     }
