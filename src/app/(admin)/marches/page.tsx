@@ -223,7 +223,7 @@ export default function MarchesPublicsPage() {
     try {
       const m = marches.find((x) => x.id === id);
       if (m) {
-        await onMarcheStatusChanged(id, m.title, m.acheteur, status, m.budget_proposed);
+        await onMarcheStatusChanged(id, m.title, m.acheteur || "Inconnu", status, m.budget_proposed ?? 0);
       }
     } catch { /* synergy fire-and-forget */ }
     setMarches((prev) => prev.map((m) => m.id === id ? { ...m, status, updated_at: new Date().toISOString() } : m));
