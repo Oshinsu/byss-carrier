@@ -318,6 +318,47 @@ export default function MoostikPage() {
         </div>
       </div>
 
+      {/* Production Pipeline Status */}
+      <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Film className="h-5 w-5 text-[var(--color-gold)]" />
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Production Pipeline</h2>
+        </div>
+        <div className="grid grid-cols-5 gap-3">
+          {[
+            { stage: "Script", done: 15, total: 15, color: "#10B981" },
+            { stage: "Storyboard", done: 12, total: 15, color: "#3B82F6" },
+            { stage: "Voix (Evil P)", done: 10, total: 15, color: "#F59E0B" },
+            { stage: "Animation", done: 10, total: 15, color: "#8B5CF6" },
+            { stage: "Post-prod", done: 10, total: 15, color: "#00B4D8" },
+          ].map((s) => {
+            const stagePct = Math.round((s.done / s.total) * 100);
+            return (
+              <div key={s.stage} className="rounded-lg bg-[var(--color-surface-2)] p-3 text-center">
+                <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: s.color }}>{s.stage}</p>
+                <p className="mt-1 font-mono text-lg font-bold text-[var(--color-text)]">{s.done}/{s.total}</p>
+                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-[var(--color-surface)]">
+                  <div className="h-full rounded-full" style={{ width: `${stagePct}%`, backgroundColor: s.color }} />
+                </div>
+                <p className="mt-1 font-mono text-[9px]" style={{ color: s.color }}>{stagePct}%</p>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {[
+            { label: "Outils generation", tools: "Kling, Seedance, Suno, NBP" },
+            { label: "Equipe", tools: "Gary + SOTAI (Rony, Stephane, Thomas)" },
+            { label: "Rythme cible", tools: "1 episode / 2 semaines = 26 ep/an" },
+          ].map((t) => (
+            <div key={t.label} className="rounded-lg border border-[var(--color-border-subtle)] p-2.5">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">{t.label}</p>
+              <p className="mt-0.5 text-[10px] text-[var(--color-text)]">{t.tools}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Seasons grid with episode dropdown */}
       <div className="overflow-hidden rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
         <div className="border-b border-[var(--color-border-subtle)] px-4 py-2.5">

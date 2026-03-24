@@ -1,7 +1,21 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "motion/react";
-import { Award, Minimize2, Users, MessageSquare, Crown, Lightbulb, Laugh, Eye, Zap, BookOpen, Landmark, Sprout, Palette, UserCheck, Globe } from "lucide-react";
+import { Award, Minimize2, Users, MessageSquare, Crown, Lightbulb, Laugh, Eye, Zap, BookOpen, Landmark, Sprout, Palette, UserCheck, Globe, Ban, ChevronDown } from "lucide-react";
+
+const BANNED_WORDS = [
+  { word: "très", reason: "Adverbe faible. Si c'est très bon, dis excellent. Si c'est très grand, dis immense." },
+  { word: "vraiment", reason: "Doute deguise en insistance. La phrase forte n'a pas besoin de confirmation." },
+  { word: "assez", reason: "Ni chaud ni froid. Choisir un camp." },
+  { word: "je pense que", reason: "Tu penses ou tu sais ? La souverainete n'hesite pas." },
+  { word: "c'est-a-dire", reason: "Si tu dois reformuler, la premiere phrase etait mauvaise." },
+  { word: "en d'autres termes", reason: "Meme verdict. Une seule formulation. La bonne." },
+  { word: "n'hesitez pas", reason: "Personne n'hesitait. Maintenant ils hesitent." },
+  { word: "il faut que", reason: "Langue de bois politique. Remplacer par un sujet et un verbe." },
+  { word: "nous devons", reason: "Qui est nous ? Nommer. Assigner. Executer." },
+  { word: "comme nous l'avons vu", reason: "Le lecteur n'a pas besoin qu'on lui rappelle ce qu'il a lu." },
+];
 
 const LAWS = [
   {
@@ -9,48 +23,56 @@ const LAWS = [
     title: "Compression souveraine",
     description: "Chaque mesure doit gagner sa place. Pas de programme de 200 pages que personne ne lit. 20 mesures. Chacune tient en une phrase. Si elle a besoin d'un paragraphe pour etre comprise, elle n'est pas prete.",
     icon: Minimize2,
+    example: { bad: "Nous mettons en place un programme d'accompagnement tres complet pour les jeunes entrepreneurs martiniquais qui souhaitent se lancer dans le numerique et l'innovation.", good: "100 bourses code. 6 mois. Pas de paperasse." },
   },
   {
     number: 2,
     title: "Confiance absolue dans le peuple",
     description: "Ne jamais expliquer ce qui se voit. Ne jamais justifier ce qui se fait. Le peuple martiniquais n'est pas idiot — il est las. La difference est immense. On ne lui parle pas comme a un enfant. On lui parle comme Marjory parle a Rose : en exigeant qu'il soit a la hauteur.",
     icon: Users,
+    example: { bad: "Nous voulons vous expliquer pourquoi cette reforme est importante pour vous et vos familles, c'est-a-dire qu'elle va ameliorer votre quotidien.", good: "La reforme entre en vigueur lundi. Les chiffres parleront." },
   },
   {
     number: 3,
     title: "Stichomythie souveraine",
     description: "En communication politique : des phrases courtes. Pas de langue de bois. Pas de \"il faut que\", pas de \"nous devons\". Des actes. Des dates. Des chiffres. Le creole est naturellement stichomythique — utiliser cette force.",
     icon: MessageSquare,
+    example: { bad: "Il faut que nous travaillions ensemble pour construire un avenir meilleur et nous devons vraiment nous engager dans cette voie.", good: "12 mars : pose premiere pierre. 15 juin : livraison. Zero retard." },
   },
   {
     number: 4,
     title: "Souverainete, jamais justification",
     description: "Ne jamais se justifier. Justifier c'est reculer. Expliquer oui. Justifier non. Quand on attaque, on repond par une mesure, pas par un communique.",
     icon: Crown,
+    example: { bad: "Je tiens a preciser que cette decision a ete prise apres de longues reflexions et je pense que c'est la meilleure option.", good: "Decision prise. Publication des marches publics en open data des demain." },
   },
   {
     number: 5,
     title: "Lux comme syntaxe",
     description: "Le luxe n'est pas dans les moyens — il est dans la precision. Un budget transparent est plus luxueux qu'un discours fleuri. Un tableau de bord citoyen en temps reel est plus luxueux qu'une promesse de transparence.",
     icon: Lightbulb,
+    example: { bad: "Nous nous engageons a etre vraiment transparents dans la gestion de l'argent public.", good: "budget.martinique.fr — chaque euro, en temps reel, consultable par tous." },
   },
   {
     number: 6,
     title: "Humour comme preuve de hauteur",
     description: "Ne jamais etre solennel sans necessite. Le rire est caribeen. Le rire est martiniquais. Le rire est la preuve qu'on n'est pas consume par le pouvoir. Viki rit. Le peuple rit. Le gouvernant qui ne rit pas est un gouvernant qui a peur.",
     icon: Laugh,
+    example: { bad: "Cette situation est tres grave et nous devons prendre les mesures qui s'imposent avec le serieux qu'elle merite.", good: "On a herite d'un budget en etat d'ebriete. On va le desaouler." },
   },
   {
     number: 7,
     title: "Detail qui pense",
     description: "Chaque micro-action doit prouver la maitrise du systeme. Publier les marches publics en open data n'est pas une mesure spectaculaire — c'est un detail qui prouve qu'on a compris comment fonctionne le pouvoir reel.",
     icon: Eye,
+    example: { bad: "Nous allons ameliorer la transparence de nos processus d'appels d'offres.", good: "Les 3 derniers marches publics attribues : noms, montants, criteres. Lien en bio." },
   },
   {
     number: 8,
     title: "Phrase memorable comme unite minimale",
     description: "Chaque intervention publique doit produire au moins une phrase que les gens repeteront. Pas un slogan marketing — une verite si dense qu'elle se transmet toute seule.",
     icon: Zap,
+    example: { bad: "Ensemble, construisons un avenir meilleur pour notre belle Martinique.", good: "Le comte mineur ne demande pas la permission de devenir un Empire." },
   },
 ];
 
@@ -88,6 +110,8 @@ const PILIERS = [
 ];
 
 export default function DoctrinePage() {
+  const [expandedLaw, setExpandedLaw] = useState<number | null>(null);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -133,30 +157,56 @@ export default function DoctrinePage() {
           Les 8 Lois
         </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {LAWS.map((law, i) => (
-            <motion.div
-              key={law.number}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.07, duration: 0.4 }}
-              className="group rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5 transition-colors hover:border-[var(--color-gold)]/30"
-            >
-              <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--color-gold-glow)]">
-                  <law.icon className="h-4 w-4 text-[var(--color-gold)]" />
+          {LAWS.map((law, i) => {
+            const isExpanded = expandedLaw === law.number;
+            return (
+              <motion.div
+                key={law.number}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.07, duration: 0.4 }}
+                className="group rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5 transition-colors hover:border-[var(--color-gold)]/30"
+              >
+                <div className="mb-3 flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[var(--color-gold-glow)]">
+                    <law.icon className="h-4 w-4 text-[var(--color-gold)]" />
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-mono text-[10px] text-[var(--color-gold-muted)]">LOI {law.number}</span>
+                    <h3 className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-text)]">
+                      {law.title}
+                    </h3>
+                  </div>
+                  <button
+                    onClick={() => setExpandedLaw(isExpanded ? null : law.number)}
+                    className="shrink-0 rounded-md p-1 text-[var(--color-text-muted)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)]"
+                  >
+                    <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  </button>
                 </div>
-                <div>
-                  <span className="font-mono text-[10px] text-[var(--color-gold-muted)]">LOI {law.number}</span>
-                  <h3 className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-text)]">
-                    {law.title}
-                  </h3>
-                </div>
-              </div>
-              <p className="text-xs leading-relaxed text-[var(--color-text-secondary)]">
-                {law.description}
-              </p>
-            </motion.div>
-          ))}
+                <p className="text-xs leading-relaxed text-[var(--color-text-secondary)]">
+                  {law.description}
+                </p>
+                {isExpanded && law.example && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-3 space-y-2 border-t border-[var(--color-border-subtle)] pt-3"
+                  >
+                    <div className="rounded-md bg-red-500/5 border border-red-500/10 p-2.5">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-red-400 mb-1">Avant (interdit)</p>
+                      <p className="text-[10px] text-[var(--color-text-muted)] italic line-through">{law.example.bad}</p>
+                    </div>
+                    <div className="rounded-md bg-emerald-500/5 border border-emerald-500/10 p-2.5">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-400 mb-1">Apres (souverain)</p>
+                      <p className="text-[10px] text-[var(--color-text)] font-medium">{law.example.good}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </motion.div>
+            );
+          })}
         </div>
       </div>
 
@@ -187,6 +237,26 @@ export default function DoctrinePage() {
                 {pilier.description}
               </p>
             </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Banned Words */}
+      <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Ban className="h-5 w-5 text-red-400" />
+          <h2 className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-red-400">
+            Vocabulaire interdit — {BANNED_WORDS.length} mots bannis
+          </h2>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {BANNED_WORDS.map((bw) => (
+            <div key={bw.word} className="flex items-start gap-2 rounded-md bg-[var(--color-surface)] p-2.5">
+              <span className="mt-0.5 shrink-0 rounded bg-red-500/15 px-1.5 py-0.5 font-mono text-[10px] font-bold text-red-400 line-through">
+                {bw.word}
+              </span>
+              <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">{bw.reason}</p>
+            </div>
           ))}
         </div>
       </div>

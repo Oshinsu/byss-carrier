@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { BookOpen, Search, X, FolderOpen, Bot } from "lucide-react";
+import { BookOpen, Search, X, FolderOpen, Bot, Map, Users, MapPin, Sword, Crown } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface LoreEntry {
@@ -123,6 +123,49 @@ export default function CadiforLorePage() {
         <Bot className="h-4 w-4" />
         Demander a Nerel — Worldbuilding IA
       </Link>
+
+      {/* Lore Stats */}
+      <div className="grid grid-cols-5 gap-3">
+        {[
+          { label: "Pages totales", value: entries.length.toString(), icon: BookOpen, color: "#F59E0B" },
+          { label: "Categories", value: categories.length.toString(), icon: FolderOpen, color: "#3B82F6" },
+          { label: "Personnages", value: entries.filter((e) => e.category?.toLowerCase().includes("person") || e.category?.toLowerCase().includes("charac")).length.toString() || "—", icon: Users, color: "#8B5CF6" },
+          { label: "Lieux", value: entries.filter((e) => e.category?.toLowerCase().includes("lieu") || e.category?.toLowerCase().includes("location") || e.category?.toLowerCase().includes("geogr")).length.toString() || "—", icon: MapPin, color: "#10B981" },
+          { label: "Factions", value: entries.filter((e) => e.category?.toLowerCase().includes("faction") || e.category?.toLowerCase().includes("clan") || e.category?.toLowerCase().includes("org")).length.toString() || "—", icon: Crown, color: "#00B4D8" },
+        ].map((s) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: loading ? 0 : 1, y: loading ? 8 : 0 }}
+            className="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-3 text-center"
+          >
+            <s.icon className="mx-auto mb-1 h-4 w-4" style={{ color: s.color }} />
+            <p className="font-mono text-lg font-bold text-[var(--color-text)]">{loading ? "..." : s.value}</p>
+            <p className="text-[9px] text-[var(--color-text-muted)]">{s.label}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Universe Map — Text Description */}
+      <div className="rounded-xl border border-[var(--color-gold)]/20 bg-[var(--color-gold-glow)] p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Map className="h-5 w-5 text-[var(--color-gold)]" />
+          <h2 className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-gold)]">Structure de l&apos;univers</h2>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { zone: "Cadifor Central", desc: "Le coeur du pouvoir. Citadelle, archives, conseil des anciens. Architecture minerale. Les decisions qui font trembler le continent naissent ici.", type: "Capital" },
+            { zone: "Les Marches", desc: "Territoires frontaliers. Loi fluide, pouvoir conteste. Les comtes mineurs y forgent leur legende — ou y meurent sans bruit.", type: "Frontiere" },
+            { zone: "L'Archipel Noir", desc: "Iles volcaniques au sud. Commerce interdit, richesses innommables. Celui qui controle les routes maritimes controle l'economie de guerre.", type: "Maritime" },
+          ].map((z) => (
+            <div key={z.zone} className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border-subtle)] p-3">
+              <span className="text-[8px] font-bold uppercase tracking-wider text-[var(--color-gold)]">{z.type}</span>
+              <h3 className="mt-0.5 text-xs font-bold text-[var(--color-text)]">{z.zone}</h3>
+              <p className="mt-1 text-[10px] leading-relaxed text-[var(--color-text-muted)]">{z.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Category filters */}
       <div className="flex flex-wrap gap-2">

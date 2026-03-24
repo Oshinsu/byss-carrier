@@ -127,6 +127,58 @@ export default function Apex972Page() {
         </div>
       </div>
 
+      {/* Lead Generation Machine */}
+      <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <TrendingUp className="h-5 w-5 text-[var(--color-gold)]" />
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-[var(--color-text-muted)]">Machine a leads — Architecture</h2>
+        </div>
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          {[
+            { stage: "1. Capture", tool: "Landing pages", volume: "800/mois", desc: "Pages optimisees par secteur. CTA WhatsApp natif.", color: "#3B82F6" },
+            { stage: "2. Enrichissement", tool: "n8n workflows", volume: "650/mois", desc: "Auto-enrichissement SIRENE + LinkedIn. Score lead 0-100.", color: "#F59E0B" },
+            { stage: "3. Nurture", tool: "360dialog WhatsApp", volume: "320/mois", desc: "Sequences WhatsApp automatiques. Reponse <5min via IA.", color: "#10B981" },
+            { stage: "4. Conversion", tool: "Airtable CRM", volume: "120/mois", desc: "Pipeline qualified. RDV auto-planifies. Follow-up systematique.", color: "#8B5CF6" },
+          ].map((s) => (
+            <div key={s.stage} className="rounded-lg bg-[var(--color-surface-2)] p-3">
+              <p className="text-[9px] font-bold uppercase tracking-wider" style={{ color: s.color }}>{s.stage}</p>
+              <p className="mt-1 text-xs font-bold text-[var(--color-text)]">{s.tool}</p>
+              <p className="font-mono text-sm font-bold" style={{ color: s.color }}>{s.volume}</p>
+              <p className="mt-1 text-[9px] text-[var(--color-text-muted)]">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-lg border border-[var(--color-gold)]/20 bg-[var(--color-gold-glow)] p-3">
+          <p className="text-[10px] text-[var(--color-text-muted)]">
+            <span className="font-bold text-[var(--color-gold)]">n8n workflow :</span> Webhook capture → enrichissement SIRENE → scoring IA → dispatch WhatsApp 360dialog → creation fiche Airtable → notification Slack. Temps total : &lt;30 secondes du formulaire au premier message WhatsApp.
+          </p>
+        </div>
+      </div>
+
+      {/* WhatsApp 360dialog Integration */}
+      <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-lg">💬</span>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-emerald-400">WhatsApp 360dialog — Status</h2>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {[
+            { metric: "Taux ouverture", value: "94%", benchmark: "Email: 22%", status: "live" },
+            { metric: "Taux reponse", value: "67%", benchmark: "Email: 3%", status: "live" },
+            { metric: "Templates approuves", value: "8 / 12", benchmark: "Meta review", status: "partial" },
+          ].map((m) => (
+            <div key={m.metric} className="rounded-lg bg-[var(--color-surface)] border border-[var(--color-border-subtle)] p-3 text-center">
+              <p className="text-[9px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">{m.metric}</p>
+              <p className="mt-1 font-mono text-xl font-bold text-emerald-400">{m.value}</p>
+              <p className="text-[9px] text-[var(--color-text-muted)]">{m.benchmark}</p>
+              <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[8px] font-bold uppercase ${
+                m.status === "live" ? "bg-emerald-400/10 text-emerald-400" : "bg-amber-400/10 text-amber-400"
+              }`}>{m.status}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Startups table — toggleable phases */}
       <div className="overflow-hidden rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)]">
         <div className="flex items-center justify-between border-b border-[var(--color-border-subtle)] px-4 py-2.5">
