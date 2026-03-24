@@ -1,4 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+
+async function createClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
 import type { Prospect, Project, Invoice, Activity, Trade, EveilMesure, AgentLog } from "./schema";
 
 // ═══════════════════════════════════════════════
