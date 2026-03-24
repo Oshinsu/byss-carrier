@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Landmark, Users, Search, X, Eye, EyeOff } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -67,9 +68,7 @@ export default function CitesPage() {
           <Landmark className="h-5 w-5 text-[var(--color-gold)]" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
-            Cites
-          </h1>
+          <PageHeader title="Cites" />
           <p className="text-[10px] tracking-[0.15em] text-[var(--color-gold-muted)]">
             {CITIES.length} cites a travers les territoires — {visitedCount} explorees
           </p>

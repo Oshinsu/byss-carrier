@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { motion } from "motion/react";
 import { Music, Globe, Users, Database, Cpu, Heart, CircleOff } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -54,12 +55,7 @@ export default function ArchipelPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <h1 className="font-[family-name:var(--font-clash-display)] text-3xl font-bold text-[var(--color-text)]">
-          Archipel <span className="text-[var(--color-gold)]">&sim;</span>
-        </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-          Infrastructure pour la souverainete sonique — Pas un clone, une revolution
-        </p>
+        <PageHeader title="Archipel" titleAccent="~" subtitle="Infrastructure pour la souverainete sonique — Pas un clone, une revolution" />
         <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-[var(--color-text-muted)]/30 bg-[var(--color-text-muted)]/10 px-4 py-1.5">
           <CircleOff className="h-3.5 w-3.5 text-[var(--color-text-muted)]" />
           <span className="text-xs font-semibold text-[var(--color-text-muted)]">Site : Concept — Pas encore en ligne</span>

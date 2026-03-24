@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Video, Clock, CheckCircle2, Circle, Loader2, ChevronDown, Copy, Check, Camera, Film } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/ui/page-header";
 
 const LS_KEY = "cesaire-pixar-sequences-status";
 
@@ -556,9 +557,7 @@ export default function CesaireSequencesPage() {
           <Video className="h-5 w-5 text-[var(--color-gold)]" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
-            Sequences
-          </h1>
+          <PageHeader title="Sequences" />
           <p className="text-[10px] tracking-[0.15em] text-[var(--color-gold-muted)]">
             Cesaire Pixar — 10 sequences Pixar 3D, la vie d&apos;Aime Cesaire
           </p>

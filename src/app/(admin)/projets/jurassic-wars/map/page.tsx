@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 import { Map, Landmark, Shield, ChevronDown, Eye, EyeOff, Users, Maximize2, Bone, ExternalLink, Waves, Mountain, Wind, TreePine as TreeIcon } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 /* ═══════════════════════════════════════════════════════
    JURASSIC WARS — Carte des Territoires
@@ -161,9 +162,7 @@ export default function JWMapPage() {
                 <Map className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-white">
-                  Carte des Territoires
-                </h1>
+                <PageHeader title="Carte des" titleAccent="Territoires" />
                 <p className="text-[10px] tracking-[0.15em] text-white/70">
                   5 biomes &middot; 31 villes &middot; 73 structures &middot; Age du Bronze
                 </p>

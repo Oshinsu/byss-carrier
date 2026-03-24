@@ -4,6 +4,7 @@ import { motion } from "motion/react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 import { Music, Globe, TrendingUp, Users, Video, Mic, ExternalLink } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 /* ═══════════════════════════════════════════════════════
    SHATTA SEOUL — Marketing Musical Caribéen × K-pop
@@ -75,12 +76,7 @@ export default function ShattaSeoulPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <h1 className="font-[family-name:var(--font-clash-display)] text-3xl font-bold text-[var(--color-text)]">
-          Shatta <span className="text-[var(--color-gold)]">Seoul</span>
-        </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-          Marketing musical caribeen \u00d7 K-pop — 157K views / 200EUR = 0.0013EUR CPV (17x benchmark)
-        </p>
+        <PageHeader title="Shatta" titleAccent="Seoul" subtitle="Marketing musical caribeen × K-pop — 157K views / 200EUR = 0.0013EUR CPV (17x benchmark)" />
         <div className="mt-3 flex flex-wrap gap-2">
           <a href="https://www.youtube.com/@Byssgroup97" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 transition-all hover:bg-red-500/20">

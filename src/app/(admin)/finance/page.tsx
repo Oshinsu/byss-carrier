@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Receipt,
@@ -18,11 +19,28 @@ import InvoiceModal from "./invoice-modal";
 
 import type { TabId, Invoice } from "@/types/finance";
 import { FacturationTab } from "@/components/finance/facturation-tab";
-import { MrrTab } from "@/components/finance/mrr-tab";
-import { PricingTab } from "@/components/finance/pricing-tab";
-import { CoutsTab } from "@/components/finance/couts-tab";
-import { GulfstreamTab } from "@/components/finance/gulfstream-tab";
-import { EligibilitesTab } from "@/components/finance/eligibilites-tab";
+
+/* ─── Lazy-loaded finance tabs (only load when selected) ─── */
+const MrrTab = dynamic(
+  () => import("@/components/finance/mrr-tab").then((m) => m.MrrTab),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
+const PricingTab = dynamic(
+  () => import("@/components/finance/pricing-tab").then((m) => m.PricingTab),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
+const CoutsTab = dynamic(
+  () => import("@/components/finance/couts-tab").then((m) => m.CoutsTab),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
+const GulfstreamTab = dynamic(
+  () => import("@/components/finance/gulfstream-tab").then((m) => m.GulfstreamTab),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
+const EligibilitesTab = dynamic(
+  () => import("@/components/finance/eligibilites-tab").then((m) => m.EligibilitesTab),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
 
 /* ═══════════════════════════════════════════════════════
    FINANCE PAGE — Orchestrator

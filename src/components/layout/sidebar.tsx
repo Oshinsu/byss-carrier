@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
@@ -191,7 +191,7 @@ function saveExpanded(ids: Set<string>) {
    FRACTAL NAV ITEM -- recursive component
    ═══════════════════════════════════════════════════════ */
 
-function NavItem({
+const NavItem = memo(function NavItem({
   node,
   depth,
   collapsed,
@@ -344,10 +344,10 @@ function NavItem({
   return (
     <div>
       {wrapper}
-      {/* Children -- fractal recursion */}
-      {hydrated ? (
+      {/* Children -- fractal recursion (only rendered when expanded) */}
+      {hydrated && hasChildren && showLabel ? (
         <AnimatePresence initial={false}>
-          {hasChildren && isExpanded && showLabel && (
+          {isExpanded && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
@@ -376,7 +376,7 @@ function NavItem({
       ) : null}
     </div>
   );
-}
+});
 
 /* ═══════════════════════════════════════════════════════
    SIDEBAR -- main export
@@ -386,7 +386,7 @@ interface SidebarProps {
   onCommandBarOpen?: () => void;
 }
 
-export function Sidebar({ onCommandBarOpen }: SidebarProps) {
+export const Sidebar = memo(function Sidebar({ onCommandBarOpen }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
@@ -642,4 +642,4 @@ export function Sidebar({ onCommandBarOpen }: SidebarProps) {
       />
     </>
   );
-}
+});

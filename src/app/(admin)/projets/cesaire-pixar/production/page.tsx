@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { Clapperboard, Cpu, Image, Music, Mic, Film, CheckCircle2, Clock } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 const LS_KEY = "cesaire-pixar-production-progress";
 const PROGRESS_STEPS = [0, 25, 50, 75, 100];
@@ -73,9 +74,7 @@ export default function CesaireProductionPage() {
           <Clapperboard className="h-5 w-5 text-[var(--color-gold)]" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
-            Production
-          </h1>
+          <PageHeader title="Production" />
           <p className="text-[10px] tracking-[0.15em] text-[var(--color-gold-muted)]">
             Cesaire Pixar — Pipeline animation IA
           </p>

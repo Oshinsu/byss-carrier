@@ -3,6 +3,7 @@
 import { useCallback } from "react";
 import { motion } from "motion/react";
 import { Sun, Calculator, MessageCircle, Mail, TrendingUp, AlertTriangle, CheckCircle2, XCircle, BadgeCheck } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -75,12 +76,7 @@ export default function ZenithEcoPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <h1 className="font-[family-name:var(--font-clash-display)] text-3xl font-bold text-[var(--color-text)]">
-          Zenith <span className="text-[var(--color-gold)]">Eco</span>
-        </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-          Client ENR Free — Optimisation solaire Martinique — Simulateur economies IA
-        </p>
+        <PageHeader title="Zenith" titleAccent="Eco" subtitle="Client ENR Free — Optimisation solaire Martinique — Simulateur economies IA" />
         <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5">
           <BadgeCheck className="h-3.5 w-3.5 text-emerald-400" />
           <span className="text-xs font-semibold text-emerald-400">Client : Zenith Eco — ENR Free</span>

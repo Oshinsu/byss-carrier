@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { Briefcase, Server, AlertTriangle, Database, Zap, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -106,9 +107,7 @@ export default function ByssEmploiPage() {
         <div className="px-6 py-5">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-[family-name:var(--font-clash-display)] text-3xl font-bold text-white">
-                Byss <span style={{ color: "#4FA3E0" }}>Emploi</span>
-              </h1>
+              <PageHeader title="Byss" titleAccent="Emploi" />
               <p className="mt-1 text-sm text-blue-200/70">
                 Your job search, with a head start
               </p>

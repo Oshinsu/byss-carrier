@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Video, Calendar, CheckCircle2, Circle, Loader2, ChevronDown, Copy, Check, Camera, Film, Landmark, Search, ExternalLink, MapPin, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/client";
 
 const LS_KEY = "atl-episodes-status";
@@ -764,9 +765,7 @@ export default function ATLEpisodesPage() {
           <Video className="h-5 w-5 text-[var(--color-gold)]" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
-            Episodes
-          </h1>
+          <PageHeader title="Episodes" />
           <p className="text-[10px] tracking-[0.15em] text-[var(--color-gold-muted)]">
             An tan lontan — 10 keyframes Nano Banana Pro, 1635-2026
           </p>

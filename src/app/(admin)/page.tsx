@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "motion/react";
 import {
   Banknote,
@@ -27,20 +28,50 @@ import {
   Bot,
 } from "lucide-react";
 import { KpiWidget } from "@/components/dashboard/kpi-widget";
-import { ConstellationMap } from "@/components/dashboard/constellation-map";
-import { ActivityFeed } from "@/components/dashboard/activity-feed";
-import { SystemMap } from "@/components/dashboard/system-map";
-import { QuickActions } from "@/components/dashboard/quick-actions";
-import {
-  RevenueProjectionWidget,
-  PipelineHealthWidget,
-  MarchesWidget,
-  ProductionWidget,
-  AgentHealthWidget,
-  GulfStreamWidget,
-} from "@/components/dashboard/smart-widgets";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+
+/* ─── Lazy-loaded heavy dashboard components ─── */
+const ConstellationMap = dynamic(
+  () => import("@/components/dashboard/constellation-map").then((m) => m.ConstellationMap),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
+const ActivityFeed = dynamic(
+  () => import("@/components/dashboard/activity-feed").then((m) => m.ActivityFeed),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
+const SystemMap = dynamic(
+  () => import("@/components/dashboard/system-map").then((m) => m.SystemMap),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
+const QuickActions = dynamic(
+  () => import("@/components/dashboard/quick-actions").then((m) => m.QuickActions),
+  { ssr: false }
+);
+const RevenueProjectionWidget = dynamic(
+  () => import("@/components/dashboard/smart-widgets").then((m) => m.RevenueProjectionWidget),
+  { ssr: false, loading: () => <div className="h-[200px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
+const PipelineHealthWidget = dynamic(
+  () => import("@/components/dashboard/smart-widgets").then((m) => m.PipelineHealthWidget),
+  { ssr: false, loading: () => <div className="h-[200px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
+const MarchesWidget = dynamic(
+  () => import("@/components/dashboard/smart-widgets").then((m) => m.MarchesWidget),
+  { ssr: false, loading: () => <div className="h-[200px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
+const ProductionWidget = dynamic(
+  () => import("@/components/dashboard/smart-widgets").then((m) => m.ProductionWidget),
+  { ssr: false, loading: () => <div className="h-[200px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
+const AgentHealthWidget = dynamic(
+  () => import("@/components/dashboard/smart-widgets").then((m) => m.AgentHealthWidget),
+  { ssr: false, loading: () => <div className="h-[200px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
+const GulfStreamWidget = dynamic(
+  () => import("@/components/dashboard/smart-widgets").then((m) => m.GulfStreamWidget),
+  { ssr: false, loading: () => <div className="h-[200px] animate-pulse rounded-xl border border-[var(--color-border-subtle)] bg-[#1A1A2E]" /> }
+);
 
 /* ─── Types ────────────────────────────────────── */
 interface KpiData {
@@ -108,7 +139,8 @@ function CoucheCard({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.08 }}
       className={cn(
         "group relative overflow-hidden rounded-xl border p-4 transition-all duration-300",
@@ -187,12 +219,12 @@ export default function DashboardPage() {
   const [supabaseRows, setSupabaseRows] = useState<number>(0);
   const [supabaseTables, setSupabaseTables] = useState<number>(16);
 
-  const currentDate = new Intl.DateTimeFormat("fr-FR", {
+  const currentDate = useMemo(() => new Intl.DateTimeFormat("fr-FR", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date());
+  }).format(new Date()), []);
 
   useEffect(() => {
     async function fetchData() {

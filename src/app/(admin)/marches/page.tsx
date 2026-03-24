@@ -29,6 +29,7 @@ import {
 import MarcheDetailModal from "@/components/marches/marche-detail-modal";
 import { createClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { onMarcheStatusChanged } from "@/lib/synergies";
 
 /* ── Types ── */
 interface Tender {
@@ -152,7 +153,13 @@ export default function MarchesPublicsPage() {
     }
   }, []);
 
-  useEffect(() => { fetchTenders(); fetchMarches(); }, [fetchTenders, fetchMarches]);
+  /* Fetch BOAMP on mount (default tab), defer Supabase marches until needed */
+  useEffect(() => { fetchTenders(); }, [fetchTenders]);
+  useEffect(() => {
+    if (activeTab === "pipeline" || activeTab === "analyse" || activeTab === "memoire") {
+      if (marches.length === 0 && !marchesLoading) fetchMarches();
+    }
+  }, [activeTab, marches.length, marchesLoading, fetchMarches]);
 
   /* ── Search handler ── */
   const handleSearch = () => {
@@ -216,18 +223,7 @@ export default function MarchesPublicsPage() {
     try {
       const m = marches.find((x) => x.id === id);
       if (m) {
-        await fetch("/api/boamp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "status_changed",
-            marcheId: id,
-            title: m.title,
-            acheteur: m.acheteur,
-            newStatus: status,
-            budget: m.budget_proposed,
-          }),
-        });
+        await onMarcheStatusChanged(id, m.title, m.acheteur, status, m.budget_proposed);
       }
     } catch { /* synergy fire-and-forget */ }
     setMarches((prev) => prev.map((m) => m.id === id ? { ...m, status, updated_at: new Date().toISOString() } : m));

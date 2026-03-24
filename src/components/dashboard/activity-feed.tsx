@@ -308,7 +308,8 @@ export function ActivityFeed() {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5, delay: 0.4 }}
       className="flex h-full flex-col overflow-hidden rounded-xl border border-[var(--color-border-subtle)] transition-colors hover:border-[var(--color-gold-muted)]"
       style={{

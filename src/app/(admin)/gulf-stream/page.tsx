@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Activity,
@@ -21,12 +22,26 @@ import { TabPanel } from "@/components/ui/tab-panel";
 import { StatCard } from "@/components/ui/stat-card";
 import { useGulfStream } from "@/hooks/use-gulf-stream";
 import { CerclesPanel } from "@/components/gulf-stream/cercles-panel";
-import { MarketScanner } from "@/components/gulf-stream/market-scanner";
-import { PositionsTable } from "@/components/gulf-stream/positions-table";
-import { X402Panel } from "@/components/gulf-stream/x402-panel";
-import { KellyResearch } from "@/components/gulf-stream/kelly-research";
 import type { GulfPanel } from "@/types/gulf-stream";
 import { btnSubtle } from "@/types/gulf-stream";
+
+/* ─── Lazy-loaded tab panels (only load when tab is active) ─── */
+const MarketScanner = dynamic(
+  () => import("@/components/gulf-stream/market-scanner").then((m) => m.MarketScanner),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
+const PositionsTable = dynamic(
+  () => import("@/components/gulf-stream/positions-table").then((m) => m.PositionsTable),
+  { ssr: false, loading: () => <div className="h-[400px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
+const X402Panel = dynamic(
+  () => import("@/components/gulf-stream/x402-panel").then((m) => m.X402Panel),
+  { ssr: false, loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
+const KellyResearch = dynamic(
+  () => import("@/components/gulf-stream/kelly-research").then((m) => m.KellyResearch),
+  { ssr: false, loading: () => <div className="h-[300px] animate-pulse rounded-xl bg-[#1A1A2E]" /> }
+);
 
 /* ═══════════════════════════════════════════════════════
    GULF STREAM — Operational Trading Engine Dashboard

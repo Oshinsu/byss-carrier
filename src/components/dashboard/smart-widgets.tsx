@@ -48,7 +48,8 @@ function WidgetShell({
     <motion.a
       href={href}
       initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.4, delay }}
       className="group relative flex flex-col overflow-hidden rounded-xl border border-[var(--color-border-subtle)] p-4 transition-all duration-300 hover:border-[var(--color-gold-muted)]"
       style={{

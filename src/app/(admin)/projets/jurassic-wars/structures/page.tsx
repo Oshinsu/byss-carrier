@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Building2, Search, X, CheckCircle2, Circle } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -87,9 +88,7 @@ export default function StructuresPage() {
           <Building2 className="h-5 w-5 text-[var(--color-gold)]" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
-            Structures
-          </h1>
+          <PageHeader title="Structures" />
           <p className="text-[10px] tracking-[0.15em] text-[var(--color-gold-muted)]">
             {totalStructures} architectures tribales et imperiales — {documentedCount} documentees
           </p>

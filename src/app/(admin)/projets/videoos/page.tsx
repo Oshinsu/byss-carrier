@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { Film, Music, Brain, Layers, Zap, Timer, Code, FlaskConical } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -67,12 +68,7 @@ export default function VideoOSPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-8">
       <div>
-        <h1 className="font-[family-name:var(--font-clash-display)] text-3xl font-bold text-[var(--color-text)]">
-          Video<span className="text-[var(--color-gold)]">OS</span>
-        </h1>
-        <p className="mt-1 text-sm text-[var(--color-text-muted)]">
-          Montage video IA-native — Beat-synced + Multi-agents — Fenetre 18-36 mois avant Adobe
-        </p>
+        <PageHeader title="Video" titleAccent="OS" subtitle="Montage video IA-native — Beat-synced + Multi-agents — Fenetre 18-36 mois avant Adobe" />
         <div className="mt-3 inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-1.5">
           <FlaskConical className="h-3.5 w-3.5 text-purple-400" />
           <span className="text-xs font-semibold text-purple-400">Site : R&amp;D Phase</span>

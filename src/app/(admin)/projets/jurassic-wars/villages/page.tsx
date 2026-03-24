@@ -8,6 +8,7 @@ import {
   Shield, Zap, Heart, Crown, Mountain, Waves,
   Wind, Leaf, Eye, Music, Database, Bot
 } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 /* ═══════════════════════════════════════════════════════
    JW VILLAGES — Mobile Builder | Jurassic Wars IP
@@ -209,9 +210,7 @@ export default function JWVillagesPage() {
           <Smartphone className="h-5 w-5 text-[var(--color-gold)]" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
-            JW Villages
-          </h1>
+          <PageHeader title="JW" titleAccent="Villages" />
           <p className="text-[10px] tracking-[0.15em] text-[var(--color-gold-muted)]">
             Mobile Builder — React Native + Expo | 5 civilisations asymetriques
           </p>

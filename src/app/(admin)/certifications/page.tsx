@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import {
   Shield, ExternalLink, Clock, DollarSign, Award,
   CheckCircle2, Circle, Loader2, ChevronRight,
-  GraduationCap, Megaphone, BookOpen,
+  GraduationCap, Megaphone, BookOpen, Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -540,6 +540,12 @@ export default function CertificationsPage() {
           </div>
         </div>
       </motion.div>
+
+      {/* ── AI Hint ─────────────────────────────────────── */}
+      <div className="mb-6 flex items-center gap-2 rounded-lg border border-cyan-500/20 bg-cyan-500/5 px-4 py-2.5">
+        <Sparkles className="h-4 w-4 text-cyan-400" />
+        <span className="text-xs text-cyan-300/80">Analyser les certifications manquantes — priorisation IA bientot disponible</span>
+      </div>
 
       {/* ── Tabs ────────────────────────────────────────── */}
       <div className="mb-6 flex gap-1 rounded-lg border border-[#1A1A2E] bg-[#0A0A0F] p-1">

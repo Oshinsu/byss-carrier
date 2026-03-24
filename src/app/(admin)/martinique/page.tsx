@@ -17,12 +17,32 @@ const RealMap = dynamic(
 );
 import { TabSitrep } from "@/components/martinique/sitrep-tab";
 import type { ActivityRecord } from "@/components/martinique/sitrep-tab";
-import { TabEconomie } from "@/components/martinique/economie-tab";
-import { TabEntreprises } from "@/components/martinique/entreprises-tab";
-import { TabDemographie } from "@/components/martinique/demographie-tab";
-import { TabPolitique } from "@/components/martinique/politique-tab";
-import { TabTechnologie } from "@/components/martinique/technologie-tab";
-import { TabTransport } from "@/components/martinique/transport-tab";
+
+/* ─── Lazy-loaded tab panels (only load when selected) ─── */
+const TabEconomie = dynamic(
+  () => import("@/components/martinique/economie-tab").then((m) => m.TabEconomie),
+  { ssr: false, loading: () => <div className="h-[300px] animate-pulse rounded-lg bg-[#0A1628]" /> }
+);
+const TabEntreprises = dynamic(
+  () => import("@/components/martinique/entreprises-tab").then((m) => m.TabEntreprises),
+  { ssr: false, loading: () => <div className="h-[300px] animate-pulse rounded-lg bg-[#0A1628]" /> }
+);
+const TabDemographie = dynamic(
+  () => import("@/components/martinique/demographie-tab").then((m) => m.TabDemographie),
+  { ssr: false, loading: () => <div className="h-[300px] animate-pulse rounded-lg bg-[#0A1628]" /> }
+);
+const TabPolitique = dynamic(
+  () => import("@/components/martinique/politique-tab").then((m) => m.TabPolitique),
+  { ssr: false, loading: () => <div className="h-[300px] animate-pulse rounded-lg bg-[#0A1628]" /> }
+);
+const TabTechnologie = dynamic(
+  () => import("@/components/martinique/technologie-tab").then((m) => m.TabTechnologie),
+  { ssr: false, loading: () => <div className="h-[300px] animate-pulse rounded-lg bg-[#0A1628]" /> }
+);
+const TabTransport = dynamic(
+  () => import("@/components/martinique/transport-tab").then((m) => m.TabTransport),
+  { ssr: false, loading: () => <div className="h-[300px] animate-pulse rounded-lg bg-[#0A1628]" /> }
+);
 
 /* ── Types ── */
 type TabId = "sitrep" | "economie" | "entreprises" | "demographie" | "politique" | "technologie" | "transport";

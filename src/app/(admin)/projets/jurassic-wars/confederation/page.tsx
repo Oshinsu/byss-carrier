@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "motion/react";
 import { Sword, Shield, Swords, Crown, Flame, Anchor, TreePine, ChevronDown } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
 
@@ -166,9 +167,7 @@ export default function ConfederationPage() {
           <Sword className="h-5 w-5 text-[var(--color-gold)]" />
         </div>
         <div>
-          <h1 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
-            Confederation
-          </h1>
+          <PageHeader title="Confederation" />
           <p className="text-[10px] tracking-[0.15em] text-[var(--color-gold-muted)]">
             5 civilisations &middot; 3 grandes guerres &middot; 6 traites actifs
           </p>

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
-import { BookOpen, Search, X, FolderOpen } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, Search, X, FolderOpen, Bot } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface LoreEntry {
@@ -113,6 +114,15 @@ export default function CadiforLorePage() {
           </button>
         )}
       </div>
+
+      {/* AI hint — Nerel */}
+      <Link
+        href="/village/nerel"
+        className="flex items-center gap-2 rounded-lg border border-purple-500/30 bg-purple-500/10 px-4 py-2.5 text-xs font-medium text-purple-300 transition-all hover:bg-purple-500/20"
+      >
+        <Bot className="h-4 w-4" />
+        Demander a Nerel — Worldbuilding IA
+      </Link>
 
       {/* Category filters */}
       <div className="flex flex-wrap gap-2">

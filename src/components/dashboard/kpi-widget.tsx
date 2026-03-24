@@ -46,7 +46,8 @@ export function KpiWidget({
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
       transition={{ duration: 0.5, delay }}
       whileHover={{ scale: 1.02, y: -2 }}
       className="group relative overflow-hidden rounded-xl border border-[var(--color-border-subtle)] p-5 transition-colors hover:border-[var(--color-gold-muted)]"
