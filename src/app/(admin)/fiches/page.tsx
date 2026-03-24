@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "motion/react";
-import { Search, Phone, Mail, FileText, Star, X, AlertCircle } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import { Search, Phone, Mail, FileText, Star, X, AlertCircle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { PageHeader } from "@/components/ui/page-header";
 import { useToast } from "@/hooks/use-toast";
+import { ProspectDossier } from "@/components/pipeline/prospect-dossier";
 
 /* ═══════════════════════════════════════════════════════
    TYPES
@@ -128,6 +129,7 @@ export default function FichesPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [activeSector, setActiveSector] = useState<string | null>(null);
+  const [dossierTarget, setDossierTarget] = useState<FicheProspect | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -420,13 +422,13 @@ export default function FichesPage() {
                     Email
                   </div>
                 )}
-                <a
-                  href={`/pipeline`}
+                <button
+                  onClick={() => setDossierTarget(p)}
                   className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#1A1A2E] py-2 text-xs font-medium text-[#8A8A9A] transition-colors hover:bg-[#00B4D8]/15 hover:text-[#00B4D8]"
                 >
-                  <FileText className="h-3.5 w-3.5" />
+                  <Sparkles className="h-3.5 w-3.5" />
                   Dossier
-                </a>
+                </button>
               </div>
             </motion.div>
           ))}
@@ -442,6 +444,18 @@ export default function FichesPage() {
           </p>
         </div>
       )}
+
+      {/* Dossier Modal */}
+      <AnimatePresence>
+        {dossierTarget && (
+          <ProspectDossier
+            prospectId={dossierTarget.id}
+            prospectName={dossierTarget.company}
+            sector={dossierTarget.sector}
+            onClose={() => setDossierTarget(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
