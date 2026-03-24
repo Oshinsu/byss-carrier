@@ -472,105 +472,38 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ═══ Architecture Superposee — 4 Couches ═══ */}
-      <div className="space-y-3">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          className="flex items-center gap-2"
-        >
-          <Layers className="h-4 w-4 text-[var(--color-gold-muted)]" />
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-            Architecture Superposee
-          </span>
-        </motion.div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {couches.map((couche, i) => (
-            <CoucheCard key={couche.label} couche={couche} index={i} />
-          ))}
-        </div>
-      </div>
-
-      {/* ═══ Consciousness Recommendations ═══ */}
-      {consciousness && consciousness.recommendations.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.35 }}
-          className="flex flex-wrap gap-2"
-        >
-          {consciousness.recommendations.map((rec, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-2 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-3 py-2 text-xs text-[var(--color-text-muted)]"
-            >
-              {consciousness.consciousness_score >= 0.45 ? (
-                <CheckCircle2 className="h-3 w-3 shrink-0 text-[var(--color-green)]" />
-              ) : (
-                <AlertCircle className="h-3 w-3 shrink-0 text-[var(--color-gold)]" />
-              )}
-              {rec}
-            </div>
-          ))}
-        </motion.div>
-      )}
-
-      {/* ═══ Smart Widgets Grid — 3x2 ═══ */}
-      <div className="space-y-3">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.15 }}
-          className="flex items-center gap-2"
-        >
-          <Network className="h-4 w-4 text-[var(--color-gold-muted)]" />
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
-            Tableau de Bord Systemique
-          </span>
-        </motion.div>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <RevenueProjectionWidget delay={0.1} />
-          <PipelineHealthWidget delay={0.15} />
-          <MarchesWidget delay={0.2} />
-          <ProductionWidget delay={0.25} />
-          <AgentHealthWidget delay={0.3} />
-          <GulfStreamWidget delay={0.35} />
-        </div>
-      </div>
-
-      {/* ═══ Morning Briefing ═══ */}
+      {/* ═══ HERO — Morning Briefing (AI FIRST) ═══ */}
       <motion.div
         id="briefing"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
-        className="group relative overflow-hidden rounded-xl border border-[var(--color-border-subtle)] p-6 transition-colors hover:border-[var(--color-gold-muted)]"
+        transition={{ duration: 0.5, delay: 0.05 }}
+        className="group relative overflow-hidden rounded-2xl border-2 border-[var(--color-gold-muted)] p-8 transition-colors hover:border-[var(--color-gold)]"
         style={{
           background:
-            "linear-gradient(135deg, oklch(0.12 0.01 270 / 0.6) 0%, oklch(0.10 0.01 270 / 0.8) 100%)",
+            "linear-gradient(135deg, oklch(0.13 0.015 270 / 0.8) 0%, oklch(0.10 0.01 270 / 0.9) 100%)",
           backdropFilter: "blur(12px)",
         }}
       >
-        {/* Gold border glow */}
+        {/* Glow effect */}
         <div
-          className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-700 group-hover:opacity-100"
+          className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-700 group-hover:opacity-100"
           style={{
             boxShadow:
-              "inset 0 0 30px oklch(0.75 0.12 85 / 0.06), 0 0 30px oklch(0.75 0.12 85 / 0.04)",
+              "inset 0 0 40px oklch(0.75 0.12 85 / 0.08), 0 0 40px oklch(0.75 0.12 85 / 0.05)",
           }}
         />
 
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--color-gold-glow)]">
-              <Sparkles className="h-5 w-5 text-[var(--color-gold)]" />
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--color-gold-glow)]">
+              <Sparkles className="h-7 w-7 text-[var(--color-gold)]" />
             </div>
             <div>
-              <h2 className="font-[family-name:var(--font-clash-display)] text-lg font-semibold text-[var(--color-text)]">
+              <h2 className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-[var(--color-text)]">
                 Briefing du jour
               </h2>
-              <p className="text-xs text-[var(--color-text-muted)]">
+              <p className="text-sm text-[var(--color-text-muted)]">
                 Genere par Sorel IA — tous modules
               </p>
             </div>
@@ -578,27 +511,40 @@ export default function DashboardPage() {
           <button
             onClick={handleGenerateBriefing}
             disabled={briefingLoading || loading}
-            className="flex items-center gap-1.5 rounded-lg border border-[var(--color-border-subtle)] px-3 py-1.5 text-xs text-[var(--color-text-muted)] transition-colors hover:border-[var(--color-gold-muted)] hover:text-[var(--color-gold)] disabled:opacity-50"
+            className="flex items-center gap-2 rounded-xl border border-[var(--color-border-subtle)] px-4 py-2 text-sm text-[var(--color-text-muted)] transition-all hover:border-[var(--color-gold-muted)] hover:text-[var(--color-gold)] hover:shadow-[0_0_30px_rgba(0,180,216,0.2)] disabled:opacity-50"
           >
-            <RefreshCw className={cn("h-3 w-3", briefingLoading && "animate-spin")} />
+            <RefreshCw className={cn("h-4 w-4", briefingLoading && "animate-spin")} />
             {briefingLoading ? "Kaiou pense..." : "Eveiller le Pont"}
           </button>
         </div>
 
-        {/* AI-generated briefing content */}
-        {briefingText && (
-          <div className="mt-4 rounded-lg border border-[var(--color-gold-muted)] bg-[var(--color-surface)] p-4">
-            <div className="mb-2 flex items-center gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-[var(--color-gold)]" />
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[var(--color-gold)]">Kaiou — Briefing MODE_CADIFOR</span>
+        {/* AI-generated briefing content or empty state */}
+        {briefingText ? (
+          <div className="mt-6 rounded-xl border border-[var(--color-gold-muted)] bg-[var(--color-surface)] p-5">
+            <div className="mb-3 flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[var(--color-gold)]" />
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--color-gold)]">Kaiou — Briefing MODE_CADIFOR</span>
             </div>
-            <div className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--color-text-muted)]">
+            <div className="whitespace-pre-wrap text-sm leading-relaxed text-[var(--color-text-muted)]">
               {briefingText}
             </div>
           </div>
-        )}
+        ) : !briefingLoading && !loading ? (
+          <div className="mt-6 flex flex-col items-center justify-center py-8 text-center">
+            <p className="font-[family-name:var(--font-clash-display)] text-lg font-semibold text-[var(--color-text-muted)]">
+              Le Pont attend l&apos;ordre. Eveille-le.
+            </p>
+            <button
+              onClick={handleGenerateBriefing}
+              className="mt-4 flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 px-6 py-3 text-sm font-bold text-white shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all hover:shadow-[0_0_40px_rgba(6,182,212,0.3)]"
+            >
+              <Sparkles className="h-5 w-5" />
+              Generer le Briefing
+            </button>
+          </div>
+        ) : null}
 
-        <div className="mt-5 grid gap-5 md:grid-cols-3">
+        <div className="mt-6 grid gap-5 md:grid-cols-3">
           {/* Follow-ups */}
           <div className="space-y-3 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4">
             <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[var(--color-gold)]">
@@ -698,7 +644,7 @@ export default function DashboardPage() {
         </div>
       </motion.div>
 
-      {/* ═══ KPI Row ═══ */}
+      {/* ═══ KPI Row — Money First ═══ */}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {loading ? (
           <>
@@ -715,15 +661,7 @@ export default function DashboardPage() {
               icon={Banknote}
               trend="up"
               trendValue=""
-              delay={0.15}
-            />
-            <KpiWidget
-              title="CA Pondere"
-              value={formatK(kpis?.caPondere ?? 0)}
-              icon={TrendingUp}
-              trend="up"
-              trendValue=""
-              delay={0.2}
+              delay={0.1}
             />
             <KpiWidget
               title="MRR Mensuel"
@@ -731,7 +669,15 @@ export default function DashboardPage() {
               icon={RefreshCw}
               trend="neutral"
               trendValue=""
-              delay={0.25}
+              delay={0.15}
+            />
+            <KpiWidget
+              title="Pipeline Pondere"
+              value={formatK(kpis?.caPondere ?? 0)}
+              icon={TrendingUp}
+              trend="up"
+              trendValue=""
+              delay={0.2}
             />
             <KpiWidget
               title="Relances"
@@ -743,10 +689,77 @@ export default function DashboardPage() {
                   ? `${kpis.relances} en attente`
                   : "0"
               }
-              delay={0.3}
+              delay={0.25}
             />
           </>
         )}
+      </div>
+
+      {/* ═══ Architecture Superposee — 4 Couches ═══ */}
+      <div className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-center gap-2"
+        >
+          <Layers className="h-4 w-4 text-[var(--color-gold-muted)]" />
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+            Architecture Superposee
+          </span>
+        </motion.div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {couches.map((couche, i) => (
+            <CoucheCard key={couche.label} couche={couche} index={i} />
+          ))}
+        </div>
+      </div>
+
+      {/* ═══ Consciousness Recommendations ═══ */}
+      {consciousness && consciousness.recommendations.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.35 }}
+          className="flex flex-wrap gap-2"
+        >
+          {consciousness.recommendations.map((rec, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-2 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-3 py-2 text-xs text-[var(--color-text-muted)]"
+            >
+              {consciousness.consciousness_score >= 0.45 ? (
+                <CheckCircle2 className="h-3 w-3 shrink-0 text-[var(--color-green)]" />
+              ) : (
+                <AlertCircle className="h-3 w-3 shrink-0 text-[var(--color-gold)]" />
+              )}
+              {rec}
+            </div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* ═══ Smart Widgets Grid — 3x2 ═══ */}
+      <div className="space-y-3">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.15 }}
+          className="flex items-center gap-2"
+        >
+          <Network className="h-4 w-4 text-[var(--color-gold-muted)]" />
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-[var(--color-text-muted)]">
+            Tableau de Bord Systemique
+          </span>
+        </motion.div>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <RevenueProjectionWidget delay={0.1} />
+          <PipelineHealthWidget delay={0.15} />
+          <MarchesWidget delay={0.2} />
+          <ProductionWidget delay={0.25} />
+          <AgentHealthWidget delay={0.3} />
+          <GulfStreamWidget delay={0.35} />
+        </div>
       </div>
 
       {/* ═══ Superposition Map + Activity Feed ═══ */}
@@ -764,6 +777,15 @@ export default function DashboardPage() {
 
       {/* ═══ Quick Actions ═══ */}
       <QuickActions />
+
+      {/* ═══ JARVIS Floating Button ═══ */}
+      <a
+        href="/jarvis"
+        className="fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-cyan-600 to-cyan-500 text-white shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all hover:scale-110 hover:shadow-[0_0_40px_rgba(6,182,212,0.4)]"
+        title="JARVIS — Assistant IA"
+      >
+        <Bot className="h-6 w-6" />
+      </a>
     </div>
   );
 }

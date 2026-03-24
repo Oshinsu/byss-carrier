@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Kanban, List, BookOpen, TrendingUp, GripVertical, AlertCircle } from "lucide-react";
+import { Kanban, List, BookOpen, TrendingUp, GripVertical, AlertCircle, Sparkles, Brain, RefreshCw, FileText } from "lucide-react";
 import {
   DndContext,
   closestCenter,
@@ -218,7 +218,75 @@ export default function PipelinePage() {
     tab: "analyse" | "email" | "proposition" | "score" | "suggest";
   } | null>(null);
   const [activeProspect, setActiveProspect] = useState<Prospect | null>(null);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string | null>(null);
+  const [relancingAll, setRelancingAll] = useState(false);
   const { toast } = useToast();
+
+  // ── AI Pipeline Analysis ──
+  const handleAnalyzePipeline = async () => {
+    setAiAnalyzing(true);
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "briefing",
+          data: {
+            hotProspects: prospects.filter((p) => ["negociation", "proposition"].includes(p.stage)).length,
+            warmProspects: prospects.filter((p) => ["contacte", "rdv_planifie", "demo_faite"].includes(p.stage)).length,
+            coldProspects: prospects.filter((p) => p.stage === "prospect").length,
+            pendingEmails: 0,
+            meetingsToday: 0,
+            revenueThisMonth: mrr,
+            revenueTarget: 50000,
+            recentActivities: prospects.slice(0, 5).map((p) => ({
+              prospectName: p.company,
+              action: p.stage,
+              date: new Date().toISOString().split("T")[0],
+            })),
+          },
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAiSummary(data.result || null);
+      }
+    } catch {
+      toast("Erreur analyse IA", "error");
+    } finally {
+      setAiAnalyzing(false);
+    }
+  };
+
+  // ── Batch Relance J+7 ──
+  const handleRelanceAll = async () => {
+    const today = new Date();
+    const j7 = prospects.filter((p) => {
+      if (["perdu", "inactif", "signe"].includes(p.stage)) return false;
+      return true;
+    });
+    if (j7.length === 0) {
+      toast("Aucun prospect a relancer", "error");
+      return;
+    }
+    setRelancingAll(true);
+    try {
+      const supabase = createClient();
+      const followupDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+      for (const p of j7) {
+        await supabase
+          .from("prospects")
+          .update({ followup_date: followupDate, updated_at: new Date().toISOString() })
+          .eq("id", p.id);
+      }
+      toast(`${j7.length} relances J+7 programmees`, "success");
+    } catch {
+      toast("Erreur lors de la relance batch", "error");
+    } finally {
+      setRelancingAll(false);
+    }
+  };
 
   // ── Fetch prospects ──
   useEffect(() => {
@@ -468,6 +536,49 @@ export default function PipelinePage() {
         </div>
       )}
 
+      {/* ── AI Action Bar ── */}
+      <div className="flex items-center gap-3 border-b border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-6 py-3">
+        <button
+          onClick={handleAnalyzePipeline}
+          disabled={aiAnalyzing || loading}
+          className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all hover:shadow-[0_0_30px_rgba(0,180,216,0.2)] disabled:opacity-50"
+        >
+          <Brain className={cn("h-4 w-4", aiAnalyzing && "animate-pulse")} />
+          {aiAnalyzing ? "Analyse en cours..." : "Analyser le pipeline"}
+        </button>
+        <button
+          onClick={handleRelanceAll}
+          disabled={relancingAll || loading}
+          className="flex items-center gap-2 rounded-xl border border-[var(--color-border-subtle)] px-4 py-2.5 text-xs font-medium text-[var(--color-text-muted)] transition-all hover:border-cyan-500/30 hover:text-cyan-400 hover:shadow-[0_0_30px_rgba(0,180,216,0.2)] disabled:opacity-50"
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5", relancingAll && "animate-spin")} />
+          {relancingAll ? "Relance..." : "Relancer tous les J+7"}
+        </button>
+        {!loading && (
+          <div className="ml-auto flex items-center gap-4 text-xs text-[var(--color-text-muted)]">
+            <span>
+              <span className="font-[family-name:var(--font-clash-display)] text-base font-bold text-[var(--color-text)]">{prospects.length}</span> prospects
+            </span>
+            <span>
+              <span className="font-[family-name:var(--font-clash-display)] text-base font-bold text-[var(--color-gold)]">{Math.round(ponderedPipeline).toLocaleString("fr-FR")} EUR</span> pondere
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ── AI Summary ── */}
+      {aiSummary && (
+        <div className="mx-6 mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-4">
+          <div className="mb-2 flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Analyse IA du Pipeline</span>
+          </div>
+          <div className="whitespace-pre-wrap text-xs leading-relaxed text-[var(--color-text-muted)]">
+            {aiSummary}
+          </div>
+        </div>
+      )}
+
       {/* ── Kanban view with DnD ── */}
       {view === "kanban" && (
         <div className="flex-1 overflow-x-auto">
@@ -628,38 +739,37 @@ export default function PipelinePage() {
         </div>
       )}
 
-      {/* ── Summary bar ── */}
-      <div className="flex items-center justify-between border-t border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-6 py-3">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-[var(--color-gold)]" />
-            <span className="text-xs text-[var(--color-text-muted)]">
+      {/* ── Summary bar — Money First, Prominent ── */}
+      <div className="flex items-center justify-between border-t-2 border-[var(--color-gold-muted)] bg-[var(--color-surface)] px-6 py-4">
+        <div className="flex items-center gap-8">
+          <div className="text-center">
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
               Total Pipeline
             </span>
-            <span className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-text)]">
-              {loading ? "..." : `${totalPipeline.toLocaleString("fr-FR")} EUR`}
+            <span className="font-[family-name:var(--font-clash-display)] text-xl font-bold text-[var(--color-text)]">
+              {loading ? "..." : `${totalPipeline.toLocaleString("fr-FR")} \u20AC`}
             </span>
           </div>
-          <div className="h-4 w-px bg-[var(--color-border-subtle)]" />
-          <div>
-            <span className="text-xs text-[var(--color-text-muted)]">
-              Pond{"\u00E9"}r{"\u00E9"}{" "}
+          <div className="h-8 w-px bg-[var(--color-border-subtle)]" />
+          <div className="text-center">
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
+              Pondere
             </span>
-            <span className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-amber)]">
-              {loading
-                ? "..."
-                : `${Math.round(ponderedPipeline).toLocaleString("fr-FR")} EUR`}
+            <span className="font-[family-name:var(--font-clash-display)] text-xl font-bold text-[var(--color-amber)]">
+              {loading ? "..." : `${Math.round(ponderedPipeline).toLocaleString("fr-FR")} \u20AC`}
             </span>
           </div>
-          <div className="h-4 w-px bg-[var(--color-border-subtle)]" />
-          <div>
-            <span className="text-xs text-[var(--color-text-muted)]">MRR </span>
-            <span className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-green)]">
-              {loading ? "..." : `${mrr.toLocaleString("fr-FR")} EUR`}
+          <div className="h-8 w-px bg-[var(--color-border-subtle)]" />
+          <div className="text-center">
+            <span className="block text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
+              MRR
+            </span>
+            <span className="font-[family-name:var(--font-clash-display)] text-xl font-bold text-[var(--color-green)]">
+              {loading ? "..." : `${mrr.toLocaleString("fr-FR")} \u20AC`}
             </span>
           </div>
         </div>
-        <div className="text-[10px] text-[var(--color-text-muted)]">
+        <div className="text-xs text-[var(--color-text-muted)]">
           {loading
             ? "..."
             : `${prospects.length} prospects \u2022 ${STAGES.length} \u00E9tapes`}

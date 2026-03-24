@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Search, Phone, Mail, FileText, Star, X, AlertCircle, Sparkles } from "lucide-react";
+import { Search, Phone, Mail, FileText, Star, X, AlertCircle, Sparkles, Flame, Snowflake, TrendingUp, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { PageHeader } from "@/components/ui/page-header";
@@ -25,6 +25,7 @@ interface FicheProspect {
   estimatedBasket: number;
   memorablePhrase: string;
   score: number;
+  aiScore: "fire" | "warm" | "cold";
   phase: string;
   phaseColor: string;
 }
@@ -114,6 +115,9 @@ function mapToFiche(row: Record<string, unknown>): FicheProspect {
     estimatedBasket: Number(row.estimated_basket) || 0,
     memorablePhrase: (row.memorable_phrase as string) || "",
     score: Number(row.score) || 1,
+    aiScore: (["fire", "warm", "cold"].includes(row.ai_score as string)
+      ? row.ai_score
+      : "cold") as "fire" | "warm" | "cold",
     phase,
     phaseColor: getPhaseColor(phase),
   };
@@ -156,6 +160,15 @@ export default function FichesPage() {
     fetchProspects();
   }, []);
 
+  const summaryStats = useMemo(() => {
+    const totalPipeline = allProspects.reduce((s, p) => s + p.estimatedBasket, 0);
+    const urgentRelances = allProspects.filter(
+      (p) => !["perdu", "inactif", "signe"].includes(p.phase) && p.score >= 3
+    ).length;
+    const fireCount = allProspects.filter((p) => p.aiScore === "fire").length;
+    return { totalPipeline, urgentRelances, fireCount };
+  }, [allProspects]);
+
   const sectors = useMemo(
     () => [...new Set(allProspects.map((p) => p.sector).filter(Boolean))],
     [allProspects]
@@ -182,13 +195,54 @@ export default function FichesPage() {
 
   return (
     <div className="min-h-screen bg-[#0A0A0F] px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8">
-        <PageHeader
-          title="Fiches de"
-          titleAccent="Poche"
-          subtitle={loading ? "Chargement..." : `${allProspects.length} fiches. Tout ce qu\u2019il faut avant de decrocher.`}
-        />
+      {/* Header + AI Summary */}
+      <div className="mb-6">
+        <div className="flex items-end justify-between">
+          <PageHeader
+            title="Fiches de"
+            titleAccent="Poche"
+            subtitle={loading ? "Chargement..." : "Tout ce qu\u2019il faut avant de decrocher."}
+          />
+          {!loading && allProspects.length > 0 && (
+            <button
+              onClick={() => {
+                allProspects.forEach((p) => setDossierTarget(p));
+              }}
+              className="flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-5 py-2.5 text-sm font-bold text-cyan-400 transition-all hover:bg-cyan-500/20 hover:shadow-[0_0_30px_rgba(0,180,216,0.2)]"
+            >
+              <Zap className="h-4 w-4" />
+              Generer tous les dossiers
+            </button>
+          )}
+        </div>
+
+        {/* AI Summary Bar */}
+        {!loading && allProspects.length > 0 && (
+          <div className="mt-4 flex items-center gap-6 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4">
+            <Sparkles className="h-5 w-5 shrink-0 text-cyan-400" />
+            <div className="flex items-center gap-6 text-sm">
+              <span>
+                <span className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-[var(--color-text)]">{allProspects.length}</span>{" "}
+                <span className="text-[var(--color-text-muted)]">prospects</span>
+              </span>
+              <span>
+                <span className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-[var(--color-gold)]">{summaryStats.totalPipeline.toLocaleString("fr-FR")}&euro;</span>{" "}
+                <span className="text-[var(--color-text-muted)]">pipeline</span>
+              </span>
+              <span>
+                <span className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-red-400">{summaryStats.urgentRelances}</span>{" "}
+                <span className="text-[var(--color-text-muted)]">relances urgentes</span>
+              </span>
+              {summaryStats.fireCount > 0 && (
+                <span className="flex items-center gap-1">
+                  <Flame className="h-4 w-4 text-orange-400" />
+                  <span className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-orange-400">{summaryStats.fireCount}</span>{" "}
+                  <span className="text-[var(--color-text-muted)]">fire</span>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Error Banner */}
@@ -367,21 +421,39 @@ export default function FichesPage() {
                 </div>
               )}
 
-              {/* Score + Phase */}
+              {/* Score + AI Score Badge + Phase */}
               <div className="mb-4 flex items-center justify-between">
-                {/* Stars */}
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 5 }).map((_, si) => (
-                    <Star
-                      key={si}
-                      className={cn(
-                        "h-4 w-4",
-                        si < p.score
-                          ? "fill-[#00B4D8] text-[#00B4D8]"
-                          : "text-[#2A2A3E]"
-                      )}
-                    />
-                  ))}
+                <div className="flex items-center gap-3">
+                  {/* Stars */}
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, si) => (
+                      <Star
+                        key={si}
+                        className={cn(
+                          "h-4 w-4",
+                          si < p.score
+                            ? "fill-[#00B4D8] text-[#00B4D8]"
+                            : "text-[#2A2A3E]"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  {/* AI Score Badge */}
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                      p.aiScore === "fire"
+                        ? "bg-orange-500/20 text-orange-400"
+                        : p.aiScore === "warm"
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-blue-500/20 text-blue-400"
+                    )}
+                  >
+                    {p.aiScore === "fire" && <Flame className="h-3 w-3" />}
+                    {p.aiScore === "warm" && <TrendingUp className="h-3 w-3" />}
+                    {p.aiScore === "cold" && <Snowflake className="h-3 w-3" />}
+                    {p.aiScore}
+                  </span>
                 </div>
                 {/* Phase badge */}
                 <div className="flex items-center gap-1.5">
@@ -392,7 +464,16 @@ export default function FichesPage() {
                 </div>
               </div>
 
-              {/* Action buttons */}
+              {/* HERO — Dossier Button (BIG, CYAN, AI FIRST) */}
+              <button
+                onClick={() => setDossierTarget(p)}
+                className="mb-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 py-3 text-sm font-bold text-white shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all hover:shadow-[0_0_30px_rgba(0,180,216,0.2)]"
+              >
+                <Sparkles className="h-4 w-4" />
+                Generer Dossier
+              </button>
+
+              {/* Secondary action buttons */}
               <div className="flex gap-2">
                 {p.phone ? (
                   <a
@@ -422,13 +503,6 @@ export default function FichesPage() {
                     Email
                   </div>
                 )}
-                <button
-                  onClick={() => setDossierTarget(p)}
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[#1A1A2E] py-2 text-xs font-medium text-[#8A8A9A] transition-colors hover:bg-[#00B4D8]/15 hover:text-[#00B4D8]"
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Dossier
-                </button>
               </div>
             </motion.div>
           ))}

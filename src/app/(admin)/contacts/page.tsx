@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import {
   Search, Users, Building, Mail, Phone, MapPin,
   Filter, SortAsc, Download, Plus, Star, X, Trash2,
-  Zap, Loader2, CheckCircle2, AlertCircle,
+  Zap, Loader2, CheckCircle2, AlertCircle, Sparkles, Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -195,14 +195,39 @@ export default function ContactsPage() {
     sectors: new Set(contacts.map((c) => c.sector).filter(Boolean)).size,
   }), [contacts]);
 
+  const sectorDistribution = useMemo(() => {
+    const dist: Record<string, number> = {};
+    contacts.forEach((c) => {
+      const s = c.sector || "Non classe";
+      dist[s] = (dist[s] || 0) + 1;
+    });
+    return Object.entries(dist).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  }, [contacts]);
+
+  const maxSectorCount = sectorDistribution.length > 0 ? sectorDistribution[0][1] : 1;
+
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      {/* Header */}
-      <PageHeader
-        title="Repertoire"
-        titleAccent="Contacts"
-        subtitle={`${stats.total} contacts — ${stats.withEmail} emails — ${stats.withPhone} telephones — ${stats.sectors} secteurs`}
-        actions={
+      {/* Header with Big Count */}
+      <div className="flex items-end justify-between">
+        <div>
+          <PageHeader
+            title="Repertoire"
+            titleAccent="Contacts"
+            subtitle={`${stats.withEmail} emails — ${stats.withPhone} telephones — ${stats.sectors} secteurs`}
+          />
+          <div className="mt-2 font-[family-name:var(--font-clash-display)] text-5xl font-bold text-[var(--color-text)]">
+            {stats.total} <span className="text-xl font-medium text-[var(--color-text-muted)]">contacts</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <a
+            href="/fiches"
+            className="flex items-center gap-2 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-4 py-2 text-sm font-medium text-[var(--color-text-muted)] transition-all hover:border-cyan-500/30 hover:text-cyan-400 hover:shadow-[0_0_30px_rgba(0,180,216,0.2)]"
+          >
+            <Sparkles className="h-4 w-4" />
+            Generer Dossier
+          </a>
           <button
             onClick={() => setShowAddForm(true)}
             className="flex items-center gap-2 rounded-lg bg-gradient-to-br from-[#00B4D8] to-[#00D4FF] px-4 py-2 text-sm font-bold text-black transition-opacity hover:opacity-90"
@@ -210,8 +235,8 @@ export default function ContactsPage() {
             <Plus className="h-4 w-4" />
             Ajouter
           </button>
-        }
-      />
+        </div>
+      </div>
 
       {/* Error Banner */}
       {error && (
@@ -265,6 +290,32 @@ export default function ContactsPage() {
         })}
       </div>
 
+      {/* Sector Distribution */}
+      {!loading && sectorDistribution.length > 0 && (
+        <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4">
+          <div className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--color-text-muted)]">
+            <Building className="h-3.5 w-3.5 text-cyan-400" />
+            Distribution par secteur
+          </div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2 sm:grid-cols-4">
+            {sectorDistribution.map(([sector, count]) => (
+              <div key={sector} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="truncate text-[var(--color-text-muted)]">{sector}</span>
+                  <span className="font-bold text-[var(--color-text)]">{count}</span>
+                </div>
+                <div className="h-1.5 overflow-hidden rounded-full bg-[var(--color-surface-2)]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-600 to-cyan-400"
+                    style={{ width: `${(count / maxSectorCount) * 100}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Search + Filters */}
       <div className="flex gap-3">
         <div className="relative flex-1">
@@ -316,9 +367,18 @@ export default function ContactsPage() {
           {filtered.length === 0 && (
             <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-12 text-center">
               <Users className="mx-auto h-8 w-8 text-[var(--color-text-muted)]" />
-              <p className="mt-3 text-sm text-[var(--color-text-muted)]">
+              <p className="mt-3 font-[family-name:var(--font-clash-display)] text-base font-semibold text-[var(--color-text-muted)]">
                 {searchQuery ? `Rien pour \u201C${searchQuery}\u201D. Cherche autrement.` : "Ce territoire est vierge. Cartographie-le."}
               </p>
+              {!searchQuery && (
+                <button
+                  onClick={() => setShowAddForm(true)}
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all hover:shadow-[0_0_30px_rgba(0,180,216,0.2)]"
+                >
+                  <Plus className="h-4 w-4" />
+                  Premier contact
+                </button>
+              )}
             </div>
           )}
           {filtered.map((contact, i) => (
@@ -380,6 +440,15 @@ export default function ContactsPage() {
                   {contact.influence_score}/10
                 </span>
               </div>
+
+              {/* Dossier */}
+              <a
+                href={`/fiches?contact=${contact.id}`}
+                className="rounded-lg p-1.5 text-[var(--color-text-muted)] transition-colors hover:bg-cyan-500/10 hover:text-cyan-400"
+                title="Generer Dossier"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+              </a>
 
               {/* Delete */}
               <button
