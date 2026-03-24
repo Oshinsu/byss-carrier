@@ -16,6 +16,7 @@ import {
   type MarketAnalysis, type ProductIdea, type StoreProject, type StorePlan,
   type StoreStatusId,
 } from "@/lib/ecommerce";
+import { onStoreCreated } from "@/lib/synergies";
 
 /* ═══════════════════════════════════════════════════════
    E-COMMERCE COMMAND CENTER
@@ -551,6 +552,7 @@ function BuilderTab({
       updatedAt: new Date().toISOString(),
     };
     setStores((prev) => [newStore, ...prev]);
+    onStoreCreated(newStore.id, newStore.name, newStore.niche, newStore.country);
     setPlan(null);
     setSelectedName("");
   };
@@ -767,6 +769,7 @@ function ActiveStoresTab({
       updatedAt: new Date().toISOString(),
     };
     setStores((prev) => [store, ...prev]);
+    onStoreCreated(store.id, store.name, store.niche, store.country);
     setNewName("");
     setNewNiche("");
     setShowAdd(false);

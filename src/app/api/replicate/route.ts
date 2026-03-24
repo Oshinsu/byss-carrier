@@ -105,8 +105,11 @@ export async function POST(request: NextRequest) {
 
   if (!REPLICATE_TOKEN) {
     return NextResponse.json(
-      { error: "REPLICATE_API_TOKEN not configured" },
-      { status: 500 }
+      {
+        error: "Replicate API non configurée. Ajoutez REPLICATE_API_TOKEN dans .env.local",
+        fallback: true,
+      },
+      { status: 503 }
     );
   }
 

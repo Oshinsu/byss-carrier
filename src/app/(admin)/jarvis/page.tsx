@@ -653,7 +653,7 @@ export default function JarvisPage() {
 
         <div className="flex items-center gap-2">
           {/* Voice engine toggle */}
-          {realtime.isAvailable && (
+          {realtime.isAvailable ? (
             <button
               onClick={toggleVoiceEngine}
               className={`flex items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-mono transition-all ${
@@ -666,6 +666,14 @@ export default function JarvisPage() {
               <Sparkles className="h-3 w-3" />
               {voiceEngine === "openai-realtime" ? "RT" : "WS"}
             </button>
+          ) : (
+            <span
+              className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-mono text-[var(--color-text-muted)]/50 border border-[var(--color-border-subtle)]/30"
+              title="Mode Realtime indisponible — OPENAI_API_KEY non configurée. Web Speech API actif."
+            >
+              <AlertTriangle className="h-3 w-3" />
+              WS
+            </span>
           )}
 
           {/* TTS toggle */}

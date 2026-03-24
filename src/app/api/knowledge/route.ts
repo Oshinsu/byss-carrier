@@ -24,12 +24,21 @@ import { join } from "path";
 // GET /api/knowledge?list=true    → all files (paginated)
 // ═══════════════════════════════════════════════════════
 
-const REPO_ROOT =
-  process.env.BYSS_REPO_ROOT || "C:/Users/Gary/Desktop/BYSS GROUP";
+const REPO_ROOT = process.env.BYSS_REPO_ROOT || "";
 
 export async function GET(request: NextRequest) {
   const start = Date.now();
   const { searchParams } = new URL(request.url);
+
+  if (!REPO_ROOT) {
+    return NextResponse.json(
+      {
+        error: "BYSS_REPO_ROOT non configuré. Cette fonctionnalité nécessite un accès au système de fichiers local.",
+        hint: "Ajoutez BYSS_REPO_ROOT dans .env.local (ex: C:/Users/.../BYSS GROUP)",
+      },
+      { status: 503 }
+    );
+  }
 
   try {
     // ── Read specific file ──
