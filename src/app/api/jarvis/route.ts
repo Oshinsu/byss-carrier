@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/security/rate-limiter";
 import Anthropic from "@anthropic-ai/sdk";
-import { classifyIntent, JARVIS_SYSTEM_PROMPT } from "@/lib/jarvis";
+import {
+  classifyIntent,
+  matchAction,
+  executeAction,
+  getPageName,
+  JARVIS_SYSTEM_PROMPT,
+} from "@/lib/jarvis";
 import { buildRAGContext } from "@/lib/ai/rag";
 import { loadSession, saveSession, buildMessagesFromSession } from "@/lib/agents/sessions";
 import { logAgentAction } from "@/lib/db/queries";
 
 // ═══════════════════════════════════════════════════════
-// JARVIS — Voice AI API Route
-// Receives transcribed text, classifies intent,
-// executes action via existing routes, responds in CADIFOR.
+// JARVIS — SOTA Voice AI API Route
+// Intent classification → action execution → Claude response.
+// Full action registry with navigation + API dispatch.
 // ═══════════════════════════════════════════════════════
 
 const anthropic = new Anthropic({
@@ -38,24 +44,21 @@ async function internalFetch(
 }
 
 /**
- * Execute a classified intent and return structured data for Jarvis to narrate.
+ * Execute a classified intent via legacy action system.
+ * Falls back when no action registry match is found.
  */
-async function executeAction(
+async function executeLegacyAction(
   action: string,
   param: string | undefined,
   origin: string,
-): Promise<{ type: string; details: string; data?: unknown }> {
+): Promise<{ type: string; details: string; data?: unknown; navigate?: string }> {
   switch (action) {
     case "briefing": {
       const result = await internalFetch(origin, "/api/ai", {
         action: "briefing",
         data: { pipelineData: {} },
       });
-      return {
-        type: "briefing",
-        details: "Briefing matinal genere",
-        data: result,
-      };
+      return { type: "briefing", details: "Briefing matinal genere", data: result };
     }
 
     case "relance":
@@ -76,98 +79,52 @@ async function executeAction(
         type: action,
         details: `Email ${action === "relance" ? "de relance" : ""} prepare pour ${param}`,
         data: result,
+        navigate: "/emails",
       };
     }
 
-    case "pipeline_stats": {
-      return {
-        type: "pipeline_stats",
-        details: "Statistiques pipeline CRM demandees",
-      };
-    }
+    case "pipeline_stats":
+      return { type: "pipeline_stats", details: "Statistiques pipeline CRM", navigate: "/pipeline" };
 
-    case "finance_stats": {
-      return {
-        type: "finance_stats",
-        details: "Donnees financieres demandees",
-      };
-    }
+    case "finance_stats":
+      return { type: "finance_stats", details: "Donnees financieres", navigate: "/finance" };
 
     case "gulf_stream": {
-      const result = await internalFetch(origin, "/api/polymarket", {
-        action: "trending",
-      });
-      return {
-        type: "gulf_stream",
-        details: "Marches et positions Gulf Stream",
-        data: result,
-      };
+      const result = await internalFetch(origin, "/api/polymarket", { action: "trending" });
+      return { type: "gulf_stream", details: "Marches et positions Gulf Stream", data: result, navigate: "/gulf-stream" };
     }
 
     case "research": {
-      if (!param) {
-        return { type: "research", details: "Aucun sujet specifie. Que veux-tu analyser?" };
-      }
-      const result = await internalFetch(origin, "/api/research", {
-        query: param,
-      });
-      return {
-        type: "research",
-        details: `Recherche lancee: ${param}`,
-        data: result,
-      };
+      if (!param) return { type: "research", details: "Aucun sujet specifie. Que veux-tu analyser?" };
+      const result = await internalFetch(origin, "/api/research", { query: param });
+      return { type: "research", details: `Recherche lancee: ${param}`, data: result, navigate: "/research" };
     }
 
-    case "calendar": {
-      return {
-        type: "calendar",
-        details: "Calendrier et rendez-vous du jour",
-      };
-    }
+    case "calendar":
+      return { type: "calendar", details: "Calendrier et rendez-vous du jour", navigate: "/calendrier" };
 
-    case "production": {
-      return {
-        type: "production",
-        details: "Status production (video, images, musique)",
-      };
-    }
+    case "production":
+      return { type: "production", details: "Status production (video, images, musique)", navigate: "/production" };
 
-    case "bible": {
-      return {
-        type: "bible",
-        details: "Bible de vente — 92 articles disponibles",
-      };
-    }
+    case "bible":
+      return { type: "bible", details: "Bible de vente — 92 articles disponibles", navigate: "/bible" };
 
-    case "intelligence": {
-      return {
-        type: "intelligence",
-        details: "Hub intelligence — 5 cartographies actives",
-      };
-    }
+    case "intelligence":
+      return { type: "intelligence", details: "Hub intelligence — 5 cartographies actives", navigate: "/intelligence" };
 
-    case "village": {
-      return {
-        type: "village",
-        details: "Village IA — Kael, Nerel, Evren, Sorel disponibles",
-      };
-    }
+    case "village":
+      return { type: "village", details: "Village IA — Kael, Nerel, Evren, Sorel disponibles", navigate: "/village" };
 
-    case "help": {
-      return {
-        type: "help",
-        details: "Commandes: briefing, relancer [nom], email [nom], pipeline, facture, gulf stream, recherche [sujet], calendrier, production",
-      };
-    }
+    case "help":
+      return { type: "help", details: "Navigation, CRM, email, finance, production, trading, intelligence, systeme. Dis ce que tu veux." };
 
-    default: {
+    default:
       return { type: "chat", details: "Conversation libre" };
-    }
   }
 }
 
 export async function POST(request: NextRequest) {
-  const { allowed, remaining } = rateLimit("jarvis-route", 20, 60000);
+  const { allowed } = rateLimit("jarvis-route", 20, 60000);
   if (!allowed) {
     return NextResponse.json({ error: "Rate limit exceeded" }, {
       status: 429,
@@ -178,7 +135,7 @@ export async function POST(request: NextRequest) {
   const start = Date.now();
 
   try {
-    const { text, sessionId } = await request.json();
+    const { text, sessionId, currentPage } = await request.json();
 
     if (!text || typeof text !== "string") {
       return NextResponse.json({ error: "Texte manquant" }, { status: 400 });
@@ -186,41 +143,84 @@ export async function POST(request: NextRequest) {
 
     const origin = request.nextUrl.origin;
 
-    // 1. Classify intent
+    // 1. Try action registry first (fuzzy match)
+    const matchedAction = matchAction(text);
+
+    // 2. Fall back to intent classification
     const intent = classifyIntent(text);
 
-    // 2. Load session
+    // 3. Load session
     const session = await loadSession("jarvis", sessionId || "gary");
 
-    // 3. Build RAG context
+    // 4. Build RAG context
     const ragContext = await buildRAGContext(text, { limit: 5 });
 
-    // 4. Execute action if applicable
-    let actionResult: { type: string; details: string; data?: unknown } | null = null;
-    if (intent.action !== "chat") {
-      actionResult = await executeAction(intent.action, intent.param, origin);
+    // 5. Execute action
+    let actionData: {
+      id: string;
+      name: string;
+      type: string;
+      details: string;
+      navigate?: string;
+      data?: unknown;
+      requiresConfirmation?: boolean;
+      confirmationMessage?: string;
+    } | null = null;
+
+    if (matchedAction) {
+      // Execute via new action registry
+      const result = await executeAction(matchedAction, { text, origin, sessionId });
+      actionData = {
+        id: matchedAction.id,
+        name: matchedAction.name,
+        type: matchedAction.category,
+        details: result.response,
+        navigate: result.navigateTo,
+        data: result.data,
+        requiresConfirmation: result.requiresConfirmation,
+        confirmationMessage: result.confirmationMessage,
+      };
+    } else if (intent.action !== "chat") {
+      // Fall back to legacy action execution
+      const legacyResult = await executeLegacyAction(intent.action, intent.param, origin);
+      actionData = {
+        id: intent.action,
+        name: intent.action,
+        type: legacyResult.type,
+        details: legacyResult.details,
+        navigate: legacyResult.navigate,
+        data: legacyResult.data,
+      };
     }
 
-    // 5. Build messages with session history
+    // 6. Build messages with session history
     const messages = buildMessagesFromSession(session, text, 20);
 
-    // 6. Build enhanced system prompt with action context
+    // 7. Build enhanced system prompt
     let systemPrompt = JARVIS_SYSTEM_PROMPT;
+
+    // Add current page context
+    if (currentPage) {
+      const pageLabel = getPageName(currentPage);
+      systemPrompt += `\n\nCONTEXTE ACTUEL: L'utilisateur est sur la page "${pageLabel}" (${currentPage}).`;
+    }
 
     if (ragContext) {
       systemPrompt += "\n\n" + ragContext;
     }
 
-    if (actionResult) {
+    if (actionData) {
       systemPrompt += `\n\n--- ACTION EXECUTEE ---
-Type: ${actionResult.type}
-Details: ${actionResult.details}
-${actionResult.data ? `Donnees: ${JSON.stringify(actionResult.data).slice(0, 2000)}` : ""}
+Type: ${actionData.type}
+Action: ${actionData.name}
+Details: ${actionData.details}
+${actionData.navigate ? `Navigation: ${actionData.navigate}` : ""}
+${actionData.data ? `Donnees: ${JSON.stringify(actionData.data).slice(0, 2000)}` : ""}
 --- FIN ACTION ---
-Confirme l'action en 1-2 phrases. Si des donnees sont disponibles, resume-les.`;
+Confirme l'action en 1-2 phrases. Si navigation, mentionne la destination. Si des donnees sont disponibles, resume-les.`;
     }
 
-    // 7. Call Claude
+    // 8. Call Claude
     const model = "claude-sonnet-4-6";
     const response = await anthropic.messages.create({
       model,
@@ -236,7 +236,7 @@ Confirme l'action en 1-2 phrases. Si des donnees sont disponibles, resume-les.`;
     const responseText =
       response.content[0].type === "text" ? response.content[0].text : "";
 
-    // 8. Save session with updated messages
+    // 9. Save session
     const updatedMessages = [
       ...messages,
       { role: "assistant" as const, content: responseText },
@@ -245,16 +245,19 @@ Confirme l'action en 1-2 phrases. Si des donnees sont disponibles, resume-les.`;
       "jarvis",
       {
         messages: updatedMessages.slice(-20),
-        context: { lastAction: actionResult?.type },
+        context: {
+          lastAction: actionData?.id,
+          currentPage,
+        },
       },
       sessionId || "gary",
     ).catch(() => {});
 
-    // 9. Log
+    // 10. Log
     const durationMs = Date.now() - start;
     logAgentAction({
       agentName: "jarvis",
-      action: intent.action,
+      action: actionData?.id || intent.action,
       model,
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
@@ -264,10 +267,8 @@ Confirme l'action en 1-2 phrases. Si des donnees sont disponibles, resume-les.`;
 
     return NextResponse.json({
       response: responseText,
-      intent: intent.action,
-      action: actionResult
-        ? { type: actionResult.type, details: actionResult.details }
-        : undefined,
+      intent: actionData?.id || intent.action,
+      action: actionData || undefined,
       usage: {
         inputTokens: response.usage.input_tokens,
         outputTokens: response.usage.output_tokens,
