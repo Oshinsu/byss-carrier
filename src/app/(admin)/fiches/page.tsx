@@ -509,13 +509,22 @@ export default function FichesPage() {
         </div>
       )}
 
-      {/* Empty state */}
+      {/* Empty state — MODE_CADIFOR + AI action */}
       {!loading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] py-16 text-center">
           <Search className="mb-3 h-10 w-10 text-[var(--color-text-muted)]" />
-          <p className="text-sm text-[var(--color-text-muted)]">
+          <p className="font-[family-name:var(--font-clash-display)] text-base font-semibold text-[var(--color-text-muted)]">
             {search ? `Rien pour \u201C${search}\u201D. Cherche autrement.` : "Les fiches attendent. Les prospects existent."}
           </p>
+          {!search && (
+            <a
+              href="/pipeline"
+              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-500 px-5 py-2.5 text-sm font-bold text-white shadow-[0_0_20px_rgba(6,182,212,0.15)] transition-all hover:shadow-[0_0_30px_rgba(0,180,216,0.2)]"
+            >
+              <Sparkles className="h-4 w-4" />
+              Ouvrir le Pipeline
+            </a>
+          )}
         </div>
       )}
 

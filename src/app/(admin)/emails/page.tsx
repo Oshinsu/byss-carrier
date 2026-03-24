@@ -21,6 +21,11 @@ import {
   PenLine,
   Trash2,
   ExternalLink,
+  Flame,
+  Snowflake,
+  TrendingUp,
+  Building,
+  Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -545,20 +550,32 @@ export default function EmailComposerPage() {
               </div>
             )}
 
-            {/* Prospect Context Card */}
+            {/* Prospect Context Card — Visual Upgrade */}
             {selectedProspect && (
               <motion.div
                 initial={{ opacity: 0, y: 5 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mt-3 space-y-2 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-bg)] p-3"
+                className="mt-3 space-y-3 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg)] p-4"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-[var(--color-text)]">
-                    {selectedProspect.name}
-                  </span>
+                <div className="flex items-center gap-3">
+                  {/* Sector Icon */}
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-cyan-500/10">
+                    <Building className="h-5 w-5 text-cyan-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="truncate font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-text)]">
+                      {selectedProspect.name}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      {selectedProspect.sector && (
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{selectedProspect.sector}</span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Phase Badge */}
                   <span
                     className={cn(
-                      "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                      "shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider",
                       PHASE_COLORS[selectedProspect.phase] ?? "bg-gray-500/20 text-gray-400"
                     )}
                   >
@@ -566,26 +583,45 @@ export default function EmailComposerPage() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div>
-                    <span className="text-[var(--color-text-muted)]">Secteur:</span>{" "}
-                    <span className="text-[var(--color-text)]">{selectedProspect.sector || "—"}</span>
+                {/* AI Score Stars */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: 5 }).map((_, si) => (
+                      <Star
+                        key={si}
+                        className={cn(
+                          "h-3.5 w-3.5",
+                          si < (selectedProspect.score || 0)
+                            ? "fill-cyan-400 text-cyan-400"
+                            : "text-[var(--color-border-subtle)]"
+                        )}
+                      />
+                    ))}
                   </div>
-                  <div>
-                    <span className="text-[var(--color-text-muted)]">Score:</span>{" "}
-                    <span
-                      className={cn(
-                        "font-medium",
-                        selectedProspect.ai_score === "fire"
-                          ? "text-red-400"
-                          : selectedProspect.ai_score === "warm"
-                          ? "text-amber-400"
-                          : "text-blue-400"
-                      )}
-                    >
-                      {selectedProspect.ai_score ?? "—"}
+                  {/* AI Score Badge */}
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+                      selectedProspect.ai_score === "fire"
+                        ? "bg-orange-500/20 text-orange-400"
+                        : selectedProspect.ai_score === "warm"
+                        ? "bg-amber-500/20 text-amber-400"
+                        : "bg-blue-500/20 text-blue-400"
+                    )}
+                  >
+                    {selectedProspect.ai_score === "fire" && <Flame className="h-3 w-3" />}
+                    {selectedProspect.ai_score === "warm" && <TrendingUp className="h-3 w-3" />}
+                    {selectedProspect.ai_score === "cold" && <Snowflake className="h-3 w-3" />}
+                    {selectedProspect.ai_score ?? "cold"}
+                  </span>
+                  {pricingInfo && (
+                    <span className={cn("text-[10px] font-medium", pricingInfo.color)}>
+                      {pricingInfo.label}
                     </span>
-                  </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div>
                     <span className="text-[var(--color-text-muted)]">Email:</span>{" "}
                     <span className="text-[var(--color-text)]">
@@ -593,9 +629,9 @@ export default function EmailComposerPage() {
                     </span>
                   </div>
                   <div>
-                    <span className="text-[var(--color-text-muted)]">Tier:</span>{" "}
-                    <span className={pricingInfo?.color ?? "text-[var(--color-text)]"}>
-                      {pricingInfo?.label ?? "—"}
+                    <span className="text-[var(--color-text-muted)]">Basket:</span>{" "}
+                    <span className="font-medium text-cyan-400">
+                      {selectedProspect.estimated_basket ? `${Number(selectedProspect.estimated_basket).toLocaleString("fr-FR")} \u20AC` : "—"}
                     </span>
                   </div>
                 </div>
@@ -711,16 +747,16 @@ export default function EmailComposerPage() {
             )}
           </AnimatePresence>
 
-          {/* INVOQUER SOREL Button */}
+          {/* INVOQUER SOREL — HERO BUTTON (AI FIRST, BIGGEST ELEMENT) */}
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleGenerate}
             disabled={generating || !selectedProspect}
             className={cn(
-              "flex w-full items-center justify-center gap-2.5 rounded-xl py-3.5 text-sm font-bold transition-all",
-              "bg-gradient-to-r from-cyan-600 to-cyan-500 text-white shadow-[0_0_30px_rgba(6,182,212,0.2)]",
-              "hover:shadow-[0_0_40px_rgba(6,182,212,0.3)]",
+              "flex w-full items-center justify-center gap-3 rounded-2xl py-5 text-lg font-bold transition-all",
+              "bg-gradient-to-r from-cyan-600 to-cyan-400 text-white shadow-[0_0_40px_rgba(6,182,212,0.25)]",
+              "hover:shadow-[0_0_50px_rgba(0,180,216,0.35)]",
               (generating || !selectedProspect) && "opacity-60 cursor-not-allowed"
             )}
           >
@@ -730,17 +766,55 @@ export default function EmailComposerPage() {
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                 >
-                  <Sparkles className="h-4 w-4" />
+                  <Sparkles className="h-6 w-6" />
                 </motion.div>
                 Sorel redige...
               </>
             ) : (
               <>
-                <Sparkles className="h-4 w-4" />
-                Invoquer Sorel
+                <Sparkles className="h-6 w-6" />
+                INVOQUER SOREL
               </>
             )}
           </motion.button>
+
+          {/* Relance Automatique J+7 */}
+          <button
+            onClick={async () => {
+              const j7Prospects = prospects.filter(
+                (p) => !["perdu", "inactif", "signe"].includes(p.phase) && p.email
+              );
+              if (j7Prospects.length === 0) return;
+              for (const p of j7Prospects.slice(0, 5)) {
+                try {
+                  await fetch("/api/email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      action: "send_direct",
+                      to: p.email,
+                      subject: `Relance — ${p.name} x BYSS GROUP`,
+                      body: `Bonjour${p.key_contact ? ` ${p.key_contact.split(" ")[0]}` : ""},<br/><br/>Je reviens vers vous concernant notre echange. Avez-vous eu le temps d'y reflechir ?<br/><br/>Gary Bissol<br/>BYSS GROUP`,
+                      prospectId: p.id,
+                      prospectName: p.name,
+                    }),
+                  });
+                } catch { /* continue */ }
+              }
+            }}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] py-3 text-xs font-medium text-[var(--color-text-muted)] transition-all hover:border-cyan-500/30 hover:text-cyan-400 hover:shadow-[0_0_30px_rgba(0,180,216,0.2)]"
+          >
+            <RefreshCw className="h-3.5 w-3.5" />
+            Relance Automatique J+7
+          </button>
+
+          {/* Email History Stats */}
+          <div className="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-bg)] px-4 py-3">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-[var(--color-text-muted)]">Emails generes</span>
+              <span className="font-bold text-[var(--color-text)]">{emailHistory.length}</span>
+            </div>
+          </div>
 
           {/* AI Usage Stats */}
           {aiUsage && (
@@ -814,21 +888,29 @@ export default function EmailComposerPage() {
 
             <div className="p-5 space-y-4">
               {!hasGenerated ? (
-                /* ── Empty state ── */
+                /* ── Empty state — MODE_CADIFOR ── */
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="flex flex-col items-center justify-center py-16 text-center"
                 >
-                  <div className="mb-4 rounded-full bg-cyan-500/10 p-4">
-                    <Sparkles className="h-8 w-8 text-cyan-400" />
+                  <div className="mb-4 rounded-full bg-cyan-500/10 p-5">
+                    <Sparkles className="h-10 w-10 text-cyan-400" />
                   </div>
-                  <p className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
+                  <p className="font-[family-name:var(--font-clash-display)] text-xl font-bold text-[var(--color-text)]">
                     L&apos;email n&apos;existe pas encore.
                   </p>
-                  <p className="mt-1 max-w-xs text-sm text-[var(--color-text-muted)]">
-                    Selectionne un prospect et un type. Sorel fait le reste.
+                  <p className="mt-2 max-w-xs text-sm text-[var(--color-text-muted)]">
+                    Selectionne un prospect. Invoque Sorel. Le mot juste arrive.
                   </p>
+                  <button
+                    onClick={handleGenerate}
+                    disabled={generating || !selectedProspect}
+                    className="mt-5 flex items-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-cyan-400 px-6 py-3 text-sm font-bold text-white shadow-[0_0_30px_rgba(6,182,212,0.2)] transition-all hover:shadow-[0_0_40px_rgba(0,180,216,0.3)] disabled:opacity-50"
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    Invoquer Sorel
+                  </button>
                 </motion.div>
               ) : (
                 /* ── Generated email ── */
