@@ -269,7 +269,16 @@ async function callClaude(
     temperature = 0.7,
     taskHint,
   } = options;
-  const model = resolvedModel || "claude-sonnet-4-6";
+  // Normalize model IDs — API needs full ID with date suffix
+  // Normalize model IDs — use latest stable models
+  const MODEL_MAP: Record<string, string> = {
+    "claude-sonnet-4-6": "claude-sonnet-4-20250514",
+    "claude-opus-4-6": "claude-opus-4-20250514",
+    "claude-sonnet-4.6": "claude-sonnet-4-20250514",
+    "claude-opus-4.6": "claude-opus-4-20250514",
+  };
+  const rawModel = resolvedModel || "claude-sonnet-4-20250514";
+  const model = MODEL_MAP[rawModel] || rawModel;
 
   const response = await anthropic.messages.create({
     model,
@@ -316,8 +325,22 @@ async function callClaude(
  * Generate the morning briefing for the sales director.
  */
 export async function generateBriefing(
-  pipeline: PipelineData,
+  pipeline: Partial<PipelineData> = {},
 ): Promise<string> {
+  // Safe defaults for all pipeline fields
+  const p = {
+    totalProspects: pipeline.totalProspects ?? 0,
+    hotProspects: pipeline.hotProspects ?? 0,
+    revenueThisMonth: pipeline.revenueThisMonth ?? 0,
+    revenueTarget: pipeline.revenueTarget ?? 100000,
+    mrr: pipeline.mrr ?? 0,
+    overdueFollowups: pipeline.overdueFollowups ?? [],
+    upcomingMeetings: pipeline.upcomingMeetings ?? [],
+    recentActivities: pipeline.recentActivities ?? [],
+    pipelineByPhase: pipeline.pipelineByPhase ?? {},
+    ...pipeline,
+  };
+
   const today = new Date().toLocaleDateString("fr-FR", {
     weekday: "long",
     year: "numeric",
@@ -326,11 +349,11 @@ export async function generateBriefing(
   });
 
   const progressPercent =
-    pipeline.revenueTarget > 0
-      ? Math.round((pipeline.revenueThisMonth / pipeline.revenueTarget) * 100)
+    p.revenueTarget > 0
+      ? Math.round((p.revenueThisMonth / p.revenueTarget) * 100)
       : 0;
 
-  const recentActivitySummary = pipeline.recentActivities
+  const recentActivitySummary = (p.recentActivities || [])
     .slice(0, 10)
     .map((a) => `- ${a.prospectName}: ${a.action} (${a.date})`)
     .join("\n");
@@ -448,13 +471,13 @@ export async function generateBriefing(
   const userMessage = `Date : ${today}
 
 Donnees du pipeline :
-- Prospects chauds : ${pipeline.hotProspects}
-- Prospects tiedes : ${pipeline.warmProspects}
-- Prospects froids : ${pipeline.coldProspects}
-- Emails en attente : ${pipeline.pendingEmails}
-- Reunions aujourd'hui : ${pipeline.meetingsToday}
-- CA ce mois : ${pipeline.revenueThisMonth.toLocaleString("fr-FR")} EUR
-- Objectif mensuel : ${pipeline.revenueTarget.toLocaleString("fr-FR")} EUR
+- Prospects chauds : ${p.hotProspects || 0}
+- Prospects tiedes : ${(p as any).warmProspects || 0}
+- Prospects froids : ${(p as any).coldProspects || 0}
+- Emails en attente : ${(p as any).pendingEmails || 0}
+- Reunions aujourd'hui : ${(p as any).meetingsToday || 0}
+- CA ce mois : ${(p.revenueThisMonth || 0).toLocaleString("fr-FR")} EUR
+- Objectif mensuel : ${(p.revenueTarget || 100000).toLocaleString("fr-FR")} EUR
 - Progression : ${progressPercent}%
 
 Activites recentes :
