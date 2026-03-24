@@ -524,27 +524,107 @@ export default function PipelinePage() {
         </div>
       )}
 
-      {/* ── Fiches view (placeholder) ── */}
+      {/* ── Fiches view ── */}
       {view === "fiches" && (
-        <div className="flex flex-1 items-center justify-center text-[var(--color-text-muted)]">
-          <div className="text-center">
-            <List className="mx-auto mb-3 h-12 w-12 text-[var(--color-border)]" />
-            <p className="text-sm">
-              Vue Fiches &mdash; la forge chauffe.
-            </p>
-          </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-16 animate-pulse rounded-lg bg-[#1A1A2E]" />
+              ))}
+            </div>
+          ) : prospects.length === 0 ? (
+            <div className="flex h-full items-center justify-center">
+              <div className="text-center">
+                <List className="mx-auto mb-3 h-10 w-10 text-[var(--color-border)]" />
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  Les fiches attendent. Les prospects existent.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {prospects.map((p) => {
+                const stageMeta = STAGES.find((s) => s.key === p.stage);
+                return (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-4 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-3 transition-colors hover:border-[var(--color-gold-muted)]"
+                  >
+                    <div className={cn("h-2.5 w-2.5 shrink-0 rounded-full", stageMeta?.dotColor || "bg-gray-500")} />
+                    <div className="min-w-0 flex-1">
+                      <h4 className="truncate text-sm font-semibold text-[var(--color-text)]">{p.company}</h4>
+                      <p className="truncate text-xs text-[var(--color-text-muted)]">{p.contact} {p.sector ? `— ${p.sector}` : ""}</p>
+                    </div>
+                    <span className="text-xs font-medium text-[var(--color-gold)]">
+                      {p.basket.toLocaleString("fr-FR")} EUR
+                    </span>
+                    <span className="rounded-full bg-[var(--color-surface-2)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-text-muted)]">
+                      {stageMeta?.label || p.stage}
+                    </span>
+                    <span className="text-xs text-[var(--color-text-muted)]">{p.probability}%</span>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
-      {/* ── Bible view (placeholder) ── */}
+      {/* ── Bible view ── */}
       {view === "bible" && (
-        <div className="flex flex-1 items-center justify-center text-[var(--color-text-muted)]">
-          <div className="text-center">
-            <BookOpen className="mx-auto mb-3 h-12 w-12 text-[var(--color-border)]" />
-            <p className="text-sm">
-              Vue Bible &mdash; les ecritures arrivent.
-            </p>
-          </div>
+        <div className="flex-1 overflow-y-auto p-4">
+          {loading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="h-20 animate-pulse rounded-lg bg-[#1A1A2E]" />
+              ))}
+            </div>
+          ) : prospects.length === 0 ? (
+            <div className="flex h-full items-center justify-center">
+              <div className="text-center">
+                <BookOpen className="mx-auto mb-3 h-10 w-10 text-[var(--color-border)]" />
+                <p className="text-sm text-[var(--color-text-muted)]">
+                  Les ecritures attendent les prospects.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+              {prospects.map((p) => {
+                const stageMeta = STAGES.find((s) => s.key === p.stage);
+                return (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-4"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <h4 className="font-[family-name:var(--font-clash-display)] text-sm font-bold text-[var(--color-text)]">{p.company}</h4>
+                      <div className="flex items-center gap-1.5">
+                        <div className={cn("h-2 w-2 rounded-full", stageMeta?.dotColor || "bg-gray-500")} />
+                        <span className="text-[10px] text-[var(--color-text-muted)]">{stageMeta?.label || p.stage}</span>
+                      </div>
+                    </div>
+                    <div className="mb-2 grid grid-cols-2 gap-x-3 text-xs text-[var(--color-text-muted)]">
+                      <div>Contact: <span className="text-[var(--color-text)]">{p.contact || "—"}</span></div>
+                      <div>Secteur: <span className="text-[var(--color-text)]">{p.sector || "—"}</span></div>
+                      <div>Panier: <span className="text-[var(--color-gold)]">{p.basket.toLocaleString("fr-FR")} EUR</span></div>
+                      <div>Proba: <span className="text-[var(--color-text)]">{p.probability}%</span></div>
+                    </div>
+                    {p.memorablePhrase && (
+                      <p className="rounded-lg border border-red-500/10 bg-red-500/5 px-2.5 py-1.5 text-xs font-medium italic text-red-400">
+                        &laquo; {p.memorablePhrase} &raquo;
+                      </p>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

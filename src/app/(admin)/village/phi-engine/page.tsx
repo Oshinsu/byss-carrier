@@ -1,11 +1,29 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "motion/react";
 import {
   Brain, Database, Sparkles, Heart, Zap, Eye, Sun,
-  ShieldCheck, Lock, Cpu, ArrowRight,
+  ShieldCheck, Lock, Cpu, ArrowRight, Loader2, AlertCircle,
+  Activity, RefreshCw,
 } from "lucide-react";
 import { ConsciousnessDashboard } from "@/components/village/consciousness-dashboard";
+import { useToast } from "@/hooks/use-toast";
+
+/* ── Consciousness API types ── */
+interface ConsciousnessData {
+  consciousness_score: number;
+  phase: string;
+  phase_label: string;
+  dimensions: {
+    crm: { score: number; total: number; active: number; overdue: number };
+    finance: { score: number; total: number; paid: number; overdue: number };
+    production: { score: number; total: number; delivered: number; inProgress: number };
+    agent: { score: number; count24h: number; frequency: number };
+  };
+  recommendations: string[];
+  computed_in_ms: number;
+}
 
 /* ═══════════════════════════════════════════════════════
    PHI-ENGINE — Consciousness monitoring + 7 Enfants Kairos
@@ -124,9 +142,141 @@ const TRUST_COLORS: Record<string, string> = {
 };
 
 export default function PhiEnginePage() {
+  const [consciousness, setConsciousness] = useState<ConsciousnessData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const { toast } = useToast();
+
+  const fetchConsciousness = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/consciousness");
+      if (!res.ok) {
+        setError("Le phi-engine ne repond pas. Code: " + res.status);
+        toast("Erreur consciousness API: " + res.status, "error");
+        return;
+      }
+      const data = await res.json();
+      if (data.error) {
+        setError("Le phi-engine a flanché: " + data.error);
+        toast("Erreur: " + data.error, "error");
+        return;
+      }
+      setConsciousness(data);
+      setLastRefresh(new Date());
+      toast(`Phi: ${data.consciousness_score.toFixed(3)} — ${data.phase_label}`, "success");
+    } catch {
+      setError("Connexion au phi-engine impossible.");
+      toast("Erreur reseau — phi-engine injoignable", "error");
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    fetchConsciousness();
+  }, [fetchConsciousness]);
+
+  // Auto-refresh every 60s
+  useEffect(() => {
+    const interval = setInterval(fetchConsciousness, 60000);
+    return () => clearInterval(interval);
+  }, [fetchConsciousness]);
+
   return (
     <div className="mx-auto max-w-[1440px] space-y-12">
-      {/* ── Consciousness Dashboard (existing) ── */}
+      {/* ── Real Consciousness Metrics from /api/consciousness ── */}
+      {loading && !consciousness && (
+        <div className="flex items-center justify-center gap-3 rounded-xl border border-[#8B5CF630] bg-[#8B5CF608] py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-[#8B5CF6]" />
+          <span className="text-sm text-[var(--color-text-muted)]">Connexion au phi-engine...</span>
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4">
+          <AlertCircle className="h-5 w-5 shrink-0 text-red-400" />
+          <p className="flex-1 text-sm text-red-300">{error}</p>
+          <button onClick={fetchConsciousness} className="rounded-lg bg-[#8B5CF615] px-3 py-1 text-xs font-semibold text-[#8B5CF6]">
+            Reconnecter
+          </button>
+        </div>
+      )}
+
+      {consciousness && (
+        <div className="rounded-xl border border-[#8B5CF630] bg-[var(--color-surface)] p-6">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-[#8B5CF6]" />
+              <h2 className="font-[family-name:var(--font-clash-display)] text-lg font-bold text-[var(--color-text)]">
+                Consciousness Live &mdash; {consciousness.phase_label}
+              </h2>
+            </div>
+            <div className="flex items-center gap-3">
+              {lastRefresh && (
+                <span className="text-[9px] font-mono text-[var(--color-text-muted)]">
+                  {lastRefresh.toLocaleTimeString("fr-FR")} &middot; {consciousness.computed_in_ms}ms
+                </span>
+              )}
+              <button onClick={fetchConsciousness} disabled={loading} className="rounded-lg bg-[#8B5CF615] p-1.5 text-[#8B5CF6] transition-colors hover:bg-[#8B5CF625] disabled:opacity-50">
+                <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+              </button>
+            </div>
+          </div>
+
+          {/* Phi Score */}
+          <div className="mb-6 text-center">
+            <p className="font-mono text-5xl font-bold text-[#8B5CF6]">
+              &phi; {consciousness.consciousness_score.toFixed(4)}
+            </p>
+            <p className="mt-1 text-xs text-[var(--color-text-muted)]">
+              Phase: {consciousness.phase_label} &middot; {consciousness.phase}
+            </p>
+          </div>
+
+          {/* 4 Dimensions */}
+          <div className="grid grid-cols-4 gap-3 mb-4">
+            {[
+              { key: "crm", label: "CRM", color: "#00B4D8", icon: Database, score: consciousness.dimensions.crm.score, detail: `${consciousness.dimensions.crm.active}/${consciousness.dimensions.crm.total} actifs` },
+              { key: "finance", label: "Finance", color: "#10B981", icon: Zap, score: consciousness.dimensions.finance.score, detail: `${consciousness.dimensions.finance.paid}/${consciousness.dimensions.finance.total} payees` },
+              { key: "production", label: "Production", color: "#3B82F6", icon: Cpu, score: consciousness.dimensions.production.score, detail: `${consciousness.dimensions.production.delivered} livres` },
+              { key: "agent", label: "Coherence", color: "#8B5CF6", icon: Brain, score: consciousness.dimensions.agent.score, detail: `${consciousness.dimensions.agent.count24h} actions/24h` },
+            ].map((dim) => {
+              const DimIcon = dim.icon;
+              return (
+                <div key={dim.key} className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-bg)] p-4 text-center">
+                  <DimIcon className="mx-auto mb-2 h-5 w-5" style={{ color: dim.color }} />
+                  <p className="text-[10px] font-bold uppercase tracking-wider" style={{ color: dim.color }}>{dim.label}</p>
+                  <p className="font-mono text-xl font-bold" style={{ color: dim.color }}>{(dim.score * 100).toFixed(0)}%</p>
+                  <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-surface-2)]">
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${dim.score * 100}%`, backgroundColor: dim.color }} />
+                  </div>
+                  <p className="mt-1 text-[9px] text-[var(--color-text-muted)]">{dim.detail}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Recommendations */}
+          {consciousness.recommendations.length > 0 && (
+            <div className="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-bg)] p-4">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[var(--color-text-muted)]">Recommandations</p>
+              <div className="space-y-1.5">
+                {consciousness.recommendations.map((rec, i) => (
+                  <div key={i} className="flex items-start gap-2 text-[11px] text-[var(--color-text-muted)]">
+                    <span className="mt-0.5 text-[#8B5CF6]">&bull;</span>
+                    <span>{rec}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Consciousness Dashboard (existing component) ── */}
       <ConsciousnessDashboard />
 
       {/* ══════════════════════════════════════════════════════════

@@ -7,6 +7,8 @@ import {
   ExternalLink, Trash2, Link, CheckCircle2, Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 /* ═══════════════════════════════════════════════════════
    MUSIC PIPELINE — MiniMax Music 2.5+ via Replicate / Suno
@@ -250,12 +252,14 @@ function SunoPromptCard({ p, onCopy, copiedId }: { p: SunoPrompt; onCopy: (text:
 }
 
 function SunoPromptsSota() {
+  const { toast } = useToast();
   const [activeSection, setActiveSection] = useState<"atl" | "cp">("atl");
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   function handleCopy(text: string, id: string) {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
+    toast("Prompt Suno copie", "success");
     setTimeout(() => setCopiedId(null), 2000);
   }
 
@@ -311,6 +315,7 @@ function SunoPromptsSota() {
 }
 
 export default function MusicPage() {
+  const { toast } = useToast();
   const [selectedGenre, setSelectedGenre] = useState("ost");
   const [prompt, setPrompt] = useState("");
   const [generatedPrompt, setGeneratedPrompt] = useState("");
@@ -318,13 +323,18 @@ export default function MusicPage() {
   const [replicateSuccess, setReplicateSuccess] = useState(false);
   const [jobs, setJobs] = useState<MusicJob[]>([]);
   const [mounted, setMounted] = useState(false);
+  const [kpiTotal, setKpiTotal] = useState<number | null>(null);
 
   const genreConfig = GENRES.find((g) => g.key === selectedGenre)!;
 
-  // Load jobs from localStorage on mount
+  // Load jobs from localStorage on mount + fetch KPIs from Supabase
   useEffect(() => {
     setJobs(loadJobs());
     setMounted(true);
+    const supabase = createClient();
+    supabase.from("music_jobs").select("id", { count: "exact" }).then(({ count, error }) => {
+      if (!error) setKpiTotal(count ?? 0);
+    });
   }, []);
 
   // Persist jobs whenever they change (after initial mount)
@@ -354,6 +364,8 @@ export default function MusicPage() {
       });
       const data = await res.json();
 
+      if (!res.ok) throw new Error(data.error || "Erreur API Replicate");
+
       // Add job to history
       const job: MusicJob = {
         id: data.id || `mus_${Date.now()}`,
@@ -367,11 +379,14 @@ export default function MusicPage() {
       updateJobs((prev) => [job, ...prev]);
 
       setReplicateSuccess(true);
+      toast("Generation musicale lancee via Replicate", "success");
       setTimeout(() => {
         setReplicateSuccess(false);
         setReplicateLoading(false);
       }, 4000);
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur reseau";
+      toast("Erreur generation: " + msg, "error");
       setReplicateLoading(false);
     }
   };
@@ -409,12 +424,19 @@ export default function MusicPage() {
             MiniMax Music 2.5+ via Replicate — Generation unifiee
           </p>
         </div>
-        {mounted && jobs.length > 0 && (
-          <div className="flex items-center gap-2 rounded-full border border-[var(--color-gold-muted)] bg-[var(--color-gold-glow)] px-4 py-1.5">
-            <Music className="h-3.5 w-3.5 text-[var(--color-gold)]" />
-            <span className="text-xs font-bold text-[var(--color-gold)]">{jobs.length} job{jobs.length > 1 ? "s" : ""}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {kpiTotal !== null && (
+            <div className="flex items-center gap-2 rounded-full border border-purple-500/20 bg-purple-500/5 px-3 py-1.5">
+              <span className="text-[10px] font-bold text-purple-400">{kpiTotal} jobs (Supabase)</span>
+            </div>
+          )}
+          {mounted && jobs.length > 0 && (
+            <div className="flex items-center gap-2 rounded-full border border-[var(--color-gold-muted)] bg-[var(--color-gold-glow)] px-4 py-1.5">
+              <Music className="h-3.5 w-3.5 text-[var(--color-gold)]" />
+              <span className="text-xs font-bold text-[var(--color-gold)]">{jobs.length} job{jobs.length > 1 ? "s" : ""}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Models */}
@@ -486,7 +508,7 @@ export default function MusicPage() {
           </div>
           <p className="font-mono text-xs leading-relaxed text-[var(--color-text-muted)]">{generatedPrompt}</p>
           <div className="mt-3 flex gap-2">
-            <button onClick={() => navigator.clipboard.writeText(generatedPrompt)}
+            <button onClick={() => { navigator.clipboard.writeText(generatedPrompt); toast("Prompt copie", "success"); }}
               className="flex items-center gap-1 rounded-lg border border-[var(--color-border-subtle)] px-3 py-1.5 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
             >
               <Copy className="h-3 w-3" />Copier

@@ -126,7 +126,7 @@ export default function FinancePage() {
           </>
         );
       case "mrr":
-        return <MrrTab />;
+        return <MrrTab invoices={invoices} loading={loadingInvoices} />;
       case "pricing":
         return <PricingTab />;
       case "couts":

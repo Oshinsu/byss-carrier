@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { IMAGE_VERTICALS } from "@/lib/constants";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import type { ImageVertical, ImageShotType } from "@/types";
 
 /* ═══════════════════════════════════════════════════════
@@ -316,6 +318,7 @@ function saveJobs(jobs: PipelineJob[]) {
 }
 
 export default function ImagesPage() {
+  const { toast } = useToast();
   const [selectedVertical, setSelectedVertical] = useState<ImageVertical>("restaurant");
   const [selectedShot, setSelectedShot] = useState<ImageShotType>("hero");
   const [customSubject, setCustomSubject] = useState("");
@@ -326,11 +329,20 @@ export default function ImagesPage() {
   const [mounted, setMounted] = useState(false);
   const [jwOpen, setJwOpen] = useState(false);
   const [copiedJwIdx, setCopiedJwIdx] = useState<number | null>(null);
+  const [kpiTotal, setKpiTotal] = useState<number | null>(null);
+  const [kpiApproved, setKpiApproved] = useState<number | null>(null);
 
-  // Load jobs from localStorage on mount
+  // Load jobs from localStorage on mount + fetch KPIs from Supabase
   useEffect(() => {
     setJobs(loadJobs());
     setMounted(true);
+    // Fetch image_jobs KPIs from Supabase
+    const supabase = createClient();
+    supabase.from("image_jobs").select("id, status", { count: "exact" }).then(({ count, data, error }) => {
+      if (error) return;
+      setKpiTotal(count ?? data?.length ?? 0);
+      setKpiApproved(data?.filter((d: { status: string }) => d.status === "approved").length ?? 0);
+    });
   }, []);
 
   // Persist jobs whenever they change (after initial mount)
@@ -390,6 +402,7 @@ export default function ImagesPage() {
 
       if (prediction.error) {
         updateJobStatus(jobId, "rejected");
+        toast("Erreur generation: " + (prediction.error || "Replicate error"), "error");
         setLaunchLoading(false);
         return;
       }
@@ -413,15 +426,18 @@ export default function ImagesPage() {
                 : statusData.output;
               if (outputUrl) updateJobUrl(jobId, outputUrl);
               updateJobStatus(jobId, "generated");
+              toast("Image generee avec succes", "success");
               setLaunchLoading(false);
             } else if (statusData.status === "failed" || statusData.status === "canceled") {
               clearInterval(pollInterval);
               updateJobStatus(jobId, "rejected");
+              toast("Generation echouee", "error");
               setLaunchLoading(false);
             }
-          } catch {
+          } catch (pollErr) {
             clearInterval(pollInterval);
             updateJobStatus(jobId, "rejected");
+            toast("Erreur polling: " + (pollErr instanceof Error ? pollErr.message : "Erreur reseau"), "error");
             setLaunchLoading(false);
           }
         }, 3000);
@@ -438,9 +454,11 @@ export default function ImagesPage() {
       }
 
       setLaunchSuccess(true);
+      toast("Generation lancee via Replicate", "success");
       setTimeout(() => setLaunchSuccess(false), 2500);
-    } catch {
+    } catch (err) {
       updateJobStatus(jobId, "rejected");
+      toast("Erreur lancement: " + (err instanceof Error ? err.message : "Erreur reseau"), "error");
       setLaunchLoading(false);
     }
   };
@@ -470,12 +488,19 @@ export default function ImagesPage() {
             3 couches style — ~$0.02/image via Nano Banana Pro — Marge 99%+
           </p>
         </div>
-        {mounted && jobs.length > 0 && (
-          <div className="flex items-center gap-2 rounded-full border border-[var(--color-gold-muted)] bg-[var(--color-gold-glow)] px-4 py-1.5">
-            <ImageIcon className="h-3.5 w-3.5 text-[var(--color-gold)]" />
-            <span className="text-xs font-bold text-[var(--color-gold)]">{jobs.length} job{jobs.length > 1 ? "s" : ""}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {kpiTotal !== null && (
+            <div className="flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5">
+              <span className="text-[10px] font-bold text-emerald-400">{kpiApproved}/{kpiTotal} approuvees (Supabase)</span>
+            </div>
+          )}
+          {mounted && jobs.length > 0 && (
+            <div className="flex items-center gap-2 rounded-full border border-[var(--color-gold-muted)] bg-[var(--color-gold-glow)] px-4 py-1.5">
+              <ImageIcon className="h-3.5 w-3.5 text-[var(--color-gold)]" />
+              <span className="text-xs font-bold text-[var(--color-gold)]">{jobs.length} job{jobs.length > 1 ? "s" : ""}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Style System Explainer */}
@@ -589,7 +614,7 @@ export default function ImagesPage() {
           </p>
           <div className="mt-3 flex gap-2">
             <button
-              onClick={() => navigator.clipboard.writeText(generatedPrompt)}
+              onClick={() => { navigator.clipboard.writeText(generatedPrompt); toast("Prompt copie", "success"); }}
               className="rounded-lg border border-[var(--color-border-subtle)] px-3 py-1.5 text-[10px] font-medium text-[var(--color-text-muted)] hover:text-[var(--color-text)]"
             >
               Copier
@@ -863,6 +888,7 @@ export default function ImagesPage() {
                       onClick={async () => {
                         await navigator.clipboard.writeText(prompt.prompt);
                         setCopiedJwIdx(idx);
+                        toast("Prompt JW copie", "success");
                         setTimeout(() => setCopiedJwIdx(null), 2000);
                       }}
                       className={cn(

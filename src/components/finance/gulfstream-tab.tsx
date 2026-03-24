@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import {
   Globe,
@@ -38,11 +38,27 @@ const GULF_PLAN = [
   { phase: "Phase 5 \u2014 BYSS Finance (mois 6+)", tasks: ["Publier r\u00E9sultats (anonymis\u00E9s) sur byssgroup.fr", "Service Agent Finance pour PME martiniquaises", "CCI/MEDEF pitch: agents comptables pilot\u00E9s par IA", "x402 merchant node: micropaiements", "Les profits trading FINANCENT la croissance BYSS GROUP"] },
 ];
 
+const GULF_PLAN_STORAGE_KEY = "byss-gulfstream-plan-checked";
+
 export function GulfstreamTab() {
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
+  /* Load checked state from localStorage */
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(GULF_PLAN_STORAGE_KEY);
+      if (stored) setChecked(JSON.parse(stored));
+    } catch { /* ignore */ }
+  }, []);
+
   const toggleTask = (key: string) => {
-    setChecked((prev) => ({ ...prev, [key]: !prev[key] }));
+    setChecked((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      try {
+        localStorage.setItem(GULF_PLAN_STORAGE_KEY, JSON.stringify(next));
+      } catch { /* ignore */ }
+      return next;
+    });
   };
 
   return (

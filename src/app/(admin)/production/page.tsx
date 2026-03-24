@@ -24,6 +24,8 @@ import {
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useCopyToClipboard } from "@/hooks/use-copy-to-clipboard";
 
 /* ═══════════════════════════════════════════════════════
    TYPES
@@ -211,8 +213,9 @@ function eur(n: number) {
    PRODUCTION PAGE
    ═══════════════════════════════════════════════════════ */
 export default function ProductionPage() {
+  const { toast } = useToast();
+  const [copied, copyToClipboard] = useCopyToClipboard();
   const [activeTab, setActiveTab] = useState<TabKey>("videos");
-  const [copied, setCopied] = useState(false);
   const [videos, setVideos] = useState<VideoRecord[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
   const [kaelPrompt, setKaelPrompt] = useState("");
@@ -233,7 +236,8 @@ export default function ProductionPage() {
         if (error) throw error;
         if (data) setVideos(data as VideoRecord[]);
       } catch (err) {
-        console.error("Videos fetch error:", err);
+        const msg = err instanceof Error ? err.message : "Erreur inconnue";
+        toast("Erreur chargement videos: " + msg, "error");
       } finally {
         setLoadingVideos(false);
       }
@@ -250,9 +254,8 @@ export default function ProductionPage() {
   ];
 
   const handleCopyPrompt = () => {
-    navigator.clipboard.writeText(MASTER_PROMPT);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    copyToClipboard(MASTER_PROMPT);
+    toast("Master Prompt copie", "success");
   };
 
   const handleGenerateWithKael = async () => {
@@ -278,9 +281,12 @@ export default function ProductionPage() {
       if (!res.ok) throw new Error(json.error || "Erreur API");
       setKaelResult(json.result);
       setKaelSuccess(true);
+      toast("Prompt genere par Kael", "success");
       setTimeout(() => setKaelSuccess(false), 3000);
     } catch (err) {
-      setKaelResult(`Erreur: ${err instanceof Error ? err.message : "Erreur inconnue"}`);
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      setKaelResult(`Erreur: ${msg}`);
+      toast("Erreur generation: " + msg, "error");
     } finally {
       setKaelLoading(false);
     }
@@ -573,6 +579,7 @@ export default function ProductionPage() {
                         onClick={async () => {
                           await navigator.clipboard.writeText(tpl.workflow);
                           setCopiedTemplateId(tpl.id);
+                          toast(`Workflow "${tpl.title}" copie`, "success");
                           setTimeout(() => setCopiedTemplateId(null), 2500);
                         }}
                         className={cn(
@@ -702,9 +709,8 @@ export default function ProductionPage() {
                     </span>
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(kaelResult);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
+                        copyToClipboard(kaelResult);
+                        toast("Reponse Kael copiee", "success");
                       }}
                       className="flex items-center gap-1 rounded px-2 py-1 text-[10px] text-[var(--color-text-muted)] hover:text-[var(--color-gold)]"
                     >

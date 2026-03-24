@@ -60,6 +60,8 @@ export default function MartiniquePage() {
   const [activities, setActivities] = useState<ActivityRecord[]>([]);
   const [intelEntities, setIntelEntities] = useState<IntelEntity[]>([]);
   const [loadingProspects, setLoadingProspects] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [mqTime, setMqTime] = useState("");
 
   /* ── Clock ── */
@@ -78,6 +80,8 @@ export default function MartiniquePage() {
   /* ── Supabase ── */
   useEffect(() => {
     const load = async () => {
+      setInitialLoading(true);
+      setFetchError(null);
       try {
         const supabase = createClient();
         const [prospectsRes, activitiesRes, intelRes] = await Promise.all([
@@ -85,10 +89,26 @@ export default function MartiniquePage() {
           supabase.from("activities").select("id, type, title, description, created_at").order("created_at", { ascending: false }).limit(20),
           supabase.from("intel_entities").select("id, domain, name, type, influence_score"),
         ]);
-        if (prospectsRes.data) setProspects(prospectsRes.data);
+        if (prospectsRes.error) setFetchError("Le systeme a flanché. " + prospectsRes.error.message);
+        if (prospectsRes.data) setProspects(prospectsRes.data.map((p: Record<string, unknown>) => ({
+          id: String(p.id || ""),
+          name: String(p.name || ""),
+          sector: String(p.sector || ""),
+          status: String(p.phase || p.status || ""),
+          city: (p.city as string | null) ?? null,
+        })));
         if (activitiesRes.data) setActivities(activitiesRes.data as ActivityRecord[]);
-        if (intelRes.data) setIntelEntities(intelRes.data as IntelEntity[]);
-      } catch { /* silent */ }
+        if (intelRes.data) setIntelEntities(intelRes.data.map((e: Record<string, unknown>) => ({
+          id: String(e.id || ""),
+          domain: String(e.domain || ""),
+          name: String(e.name || ""),
+          status: String(e.type || e.status || ""),
+        })));
+      } catch {
+        setFetchError("Connexion perdue. Le radar tourne dans le vide.");
+      } finally {
+        setInitialLoading(false);
+      }
     };
     load();
   }, []);
@@ -101,7 +121,13 @@ export default function MartiniquePage() {
         const supabase = createClient();
         const { data, error } = await supabase.from("prospects").select("id, name, sector, phase, notes").order("name").limit(500);
         if (error) console.error("Martinique prospects:", error.message);
-        if (data) setProspects(data);
+        if (data) setProspects(data.map((p: Record<string, unknown>) => ({
+          id: String(p.id || ""),
+          name: String(p.name || ""),
+          sector: String(p.sector || ""),
+          status: String(p.phase || p.status || ""),
+          city: (p.city as string | null) ?? null,
+        })));
       } catch (e) { console.error("Martinique load:", e); } finally { setLoadingProspects(false); }
     };
     load();
@@ -165,6 +191,29 @@ export default function MartiniquePage() {
           })}
         </div>
       </div>
+
+      {/* ── Error Banner ── */}
+      {fetchError && (
+        <div className="mx-auto max-w-[1800px] px-4 pt-3">
+          <div className="flex items-center gap-3 rounded-lg border border-[#FF2D2D30] bg-[#FF2D2D08] px-4 py-3">
+            <Shield className="h-4 w-4 shrink-0 text-[#FF2D2D]" />
+            <p className="flex-1 text-[11px] text-[#FF6B6B]">{fetchError}</p>
+            <button onClick={() => window.location.reload()} className="rounded border border-[#00D4FF30] px-2 py-1 text-[10px] text-[#00D4FF] hover:bg-[#00D4FF10]">
+              Recharger
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Loading Overlay ── */}
+      {initialLoading && (
+        <div className="mx-auto max-w-[1800px] px-4 pt-3">
+          <div className="flex items-center gap-3 rounded-lg border border-[#00D4FF15] bg-[#0A1628] px-4 py-3">
+            <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#00D4FF30] border-t-[#00D4FF]" />
+            <span className="text-[10px] text-[#00D4FF60]">Acquisition des signaux...</span>
+          </div>
+        </div>
+      )}
 
       {/* ── MAIN: Map + Data ── */}
       <div className="mx-auto max-w-[1800px] p-4">

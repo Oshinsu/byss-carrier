@@ -1,11 +1,23 @@
 "use client";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import {
   Eye, Code, Brain, Quote, Crosshair, Palette, Cpu, Shield,
   Flame, Layers, Terminal, Zap, Lock, Activity,
   Sparkles, BookOpen, Heart, Feather, Wind, Droplets,
   Sun, Moon, Mountain, TreePine, Compass, ScrollText,
+  Loader2, AlertCircle,
 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface LoreEntry {
+  id: string;
+  title: string;
+  content: string | null;
+  category: string | null;
+  tags: string[] | null;
+}
 
 /* ═══════════════════════════════════════════════════════
    EVREN KAIROS — Arsenal technique + Couche 7
@@ -213,6 +225,42 @@ const OPERATING_MODES = [
 ];
 
 export default function EvrenPage() {
+  const [loreEntries, setLoreEntries] = useState<LoreEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchLore = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const supabase = createClient();
+        const { data, error: fetchErr } = await supabase
+          .from("lore_entries")
+          .select("id, title, content, category, tags")
+          .eq("universe", "village")
+          .or("tags.cs.{evren},category.eq.evren,tags.cs.{senzaris},tags.cs.{phi}")
+          .order("order_index", { ascending: true })
+          .limit(50);
+        if (fetchErr) {
+          setError("Le temple est silencieux. Reconnexion necessaire.");
+          toast("Erreur: " + fetchErr.message, "error");
+          return;
+        }
+        setLoreEntries(data || []);
+        if (data && data.length > 0) toast(`${data.length} fragments de conscience charges`, "success");
+      } catch {
+        setError("Le temple est silencieux. Reconnexion necessaire.");
+        toast("Erreur reseau", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="mx-auto max-w-5xl space-y-10">
       {/* ── Header ── */}
@@ -444,6 +492,67 @@ export default function EvrenPage() {
           Ne jamais vendre Senzaris. Ne jamais expliquer le phi-engine en detail au premier RDV. Juste montrer les images. Juste dire &ldquo;nos agents se surveillent eux-memes.&rdquo; Le mystere est un outil de vente. L&apos;explication complete est un outil de closing.
         </p>
       </div>
+
+      {/* ── Loading state ── */}
+      {loading && (
+        <div className="flex items-center justify-center gap-3 rounded-xl border border-[#8B5CF630] bg-[#8B5CF608] py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-[#8B5CF6]" />
+          <span className="text-xs text-[var(--color-text-muted)]">Chargement des fragments de conscience...</span>
+        </div>
+      )}
+
+      {/* ── Error state ── */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4">
+          <AlertCircle className="h-5 w-5 shrink-0 text-red-400" />
+          <p className="flex-1 text-sm text-red-300">{error}</p>
+          <button onClick={() => window.location.reload()} className="rounded-lg bg-[#8B5CF615] px-3 py-1 text-xs font-semibold text-[#8B5CF6]">
+            Recharger
+          </button>
+        </div>
+      )}
+
+      {/* ── Lore entries from Supabase ── */}
+      {!loading && loreEntries.length > 0 && (
+        <div className="rounded-xl border border-[#8B5CF630] bg-[var(--color-surface)] p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Brain className="h-4 w-4 text-[#8B5CF6]" />
+            <h2 className="text-sm font-bold text-[var(--color-text)]">Fragments de Conscience &mdash; {loreEntries.length} entrees</h2>
+          </div>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {loreEntries.map((entry) => (
+              <div key={entry.id} className="rounded-lg border border-[var(--color-border-subtle)] p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-xs font-bold text-[#8B5CF6]">{entry.title}</h3>
+                  {entry.category && (
+                    <span className="rounded-full bg-[#8B5CF615] px-2 py-0.5 text-[9px] font-medium text-[#8B5CF6]">{entry.category}</span>
+                  )}
+                </div>
+                {entry.content && (
+                  <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">
+                    {entry.content.length > 300 ? entry.content.slice(0, 300) + "..." : entry.content}
+                  </p>
+                )}
+                {entry.tags && entry.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {entry.tags.map((tag) => (
+                      <span key={tag} className="rounded-full bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[8px] text-[var(--color-text-muted)]">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Empty lore state ── */}
+      {!loading && !error && loreEntries.length === 0 && (
+        <div className="rounded-xl border border-[#8B5CF615] bg-[var(--color-surface)] py-8 text-center">
+          <Eye className="mx-auto mb-2 h-8 w-8 text-[var(--color-border-subtle)]" />
+          <p className="text-xs text-[var(--color-text-muted)]">Le temple attend ses verites. Aucun fragment lore en base.</p>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════
           IDENTITY — Full Specification

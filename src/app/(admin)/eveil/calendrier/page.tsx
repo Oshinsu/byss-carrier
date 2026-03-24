@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { Timer, Flame, Crown, Sparkles, Star, Zap, Check, Search, Swords, Megaphone, Vote, Eye, Target } from "lucide-react";
 import { useLocalStorage } from "@/hooks/use-local-storage";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { useToast } from "@/hooks/use-toast";
 
 const ICON_MAP: Record<string, typeof Zap> = { Zap, Sparkles, Flame, Crown, Star, Search, Swords, Megaphone, Vote };
 
@@ -131,12 +132,15 @@ export default function CalendrierPage() {
     STORAGE_KEYS.EVEIL_CALENDRIER,
     {}
   );
+  const { toast } = useToast();
 
   function toggleTask(phaseId: string, milestoneIdx: number) {
+    const key = `${phaseId}-${milestoneIdx}`;
+    const wasChecked = !!checked[key];
     setChecked((prev) => {
-      const key = `${phaseId}-${milestoneIdx}`;
       return { ...prev, [key]: !prev[key] };
     });
+    toast(wasChecked ? "Jalon reactiv\u00e9" : "Jalon valid\u00e9", wasChecked ? "info" : "success");
   }
 
   function phaseProgress(phaseId: string, total: number) {

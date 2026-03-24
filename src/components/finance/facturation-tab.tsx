@@ -16,6 +16,7 @@ import {
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { onInvoicePaid } from "@/lib/synergies";
+import { useToast } from "@/hooks/use-toast";
 import type { Invoice } from "@/types/finance";
 import { eur } from "@/types/finance";
 
@@ -64,6 +65,7 @@ export function FacturationTab({
   onRefresh,
 }: FacturationTabProps) {
   const [actionLoading, setActionLoading] = useState<Record<string, string>>({});
+  const { toast } = useToast();
 
   async function updateStatus(id: string, newStatus: string) {
     setActionLoading((prev) => ({ ...prev, [id]: newStatus }));
@@ -83,9 +85,11 @@ export function FacturationTab({
         }
       }
 
+      toast(`Facture → ${newStatus}`, "success");
       onRefresh();
     } catch (err) {
       console.error("Status update error:", err);
+      toast("Erreur mise a jour statut", "error");
     } finally {
       setActionLoading((prev) => {
         const copy = { ...prev };
@@ -138,8 +142,10 @@ export function FacturationTab({
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      toast(`PDF ${inv.invoice_number} telecharge`, "success");
     } catch (err) {
       console.error("PDF download error:", err);
+      toast("Erreur generation PDF", "error");
     } finally {
       setActionLoading((prev) => {
         const copy = { ...prev };

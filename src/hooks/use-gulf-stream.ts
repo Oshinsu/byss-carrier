@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { onGulfPositionOpened, onGulfPositionClosed } from "@/lib/synergies";
 import type {
   PolymarketEntry,
   GulfPosition,
@@ -28,6 +30,8 @@ const EMPTY_FORM: NewPositionForm = {
 };
 
 export function useGulfStream() {
+  const { toast } = useToast();
+
   // ── Markets ──
   const [liveMarkets, setLiveMarkets] = useState<PolymarketEntry[]>([]);
   const [marketsLoading, setMarketsLoading] = useState(false);
@@ -103,7 +107,7 @@ export function useGulfStream() {
     if (!newPosition.market_title || !newPosition.entry_price || !newPosition.size_usd) return;
     try {
       const supabase = createClient();
-      const { error } = await supabase.from("gulf_positions").insert({
+      const { data, error } = await supabase.from("gulf_positions").insert({
         market_id: newPosition.market_id || null,
         market_title: newPosition.market_title,
         side: newPosition.side,
@@ -113,14 +117,16 @@ export function useGulfStream() {
         pnl: 0,
         status: "open",
         notes: newPosition.notes || null,
-      });
-      if (!error) {
-        setNewPosition(EMPTY_FORM);
-        setShowAddPosition(false);
-        fetchPositions();
-      }
-    } catch {
-      /* noop */
+      }).select("id").single();
+      if (error) throw error;
+      toast(`Position ouverte — ${newPosition.market_title}`, "success");
+      onGulfPositionOpened(data?.id || "", newPosition.market_title, parseFloat(newPosition.size_usd));
+      setNewPosition(EMPTY_FORM);
+      setShowAddPosition(false);
+      fetchPositions();
+    } catch (err) {
+      console.error("Add position error:", err);
+      toast("Erreur ouverture position", "error");
     }
   };
 
@@ -128,13 +134,20 @@ export function useGulfStream() {
   const closePosition = async (id: string) => {
     try {
       const supabase = createClient();
-      await supabase
+      const pos = positions.find((p) => p.id === id);
+      const { error } = await supabase
         .from("gulf_positions")
         .update({ status: "closed", closed_at: new Date().toISOString() })
         .eq("id", id);
+      if (error) throw error;
+      toast(`Position cloturee${pos ? ` — ${pos.market_title}` : ""}`, "success");
+      if (pos) {
+        onGulfPositionClosed(id, pos.market_title, Number(pos.pnl || 0));
+      }
       fetchPositions();
-    } catch {
-      /* noop */
+    } catch (err) {
+      console.error("Close position error:", err);
+      toast("Erreur cloture position", "error");
     }
   };
 
@@ -269,6 +282,7 @@ export function useGulfStream() {
     localStorage.setItem("x402_wallet", address);
     setX402Wallet(address);
     setX402Configured(true);
+    toast("Wallet x402 sauvegarde", "success");
   };
 
   /* ── Init ── */

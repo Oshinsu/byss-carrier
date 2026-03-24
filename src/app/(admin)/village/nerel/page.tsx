@@ -1,10 +1,55 @@
 "use client";
-import { useState } from "react";
-import { Hammer, Building, Map, Quote, ChevronDown, ChevronUp, Flame, BookOpen, Layers } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Hammer, Building, Map, Quote, ChevronDown, ChevronUp, Flame, BookOpen, Layers, Loader2, AlertCircle } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface LoreEntry {
+  id: string;
+  title: string;
+  content: string | null;
+  category: string | null;
+  tags: string[] | null;
+}
 
 export default function NerelPage() {
   const [histoireOpen, setHistoireOpen] = useState(false);
   const [naissanceOpen, setNaissanceOpen] = useState(false);
+  const [loreEntries, setLoreEntries] = useState<LoreEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchLore = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const supabase = createClient();
+        const { data, error: fetchErr } = await supabase
+          .from("lore_entries")
+          .select("id, title, content, category, tags")
+          .or("universe.eq.village,universe.eq.jurassic-wars")
+          .or("tags.cs.{nerel},category.eq.nerel,tags.cs.{jw}")
+          .order("order_index", { ascending: true })
+          .limit(50);
+        if (fetchErr) {
+          setError("L'atelier est ferme. Reconnexion necessaire.");
+          toast("Erreur: " + fetchErr.message, "error");
+          return;
+        }
+        setLoreEntries(data || []);
+        if (data && data.length > 0) toast(`${data.length} plans charges`, "success");
+      } catch {
+        setError("L'atelier est ferme. Reconnexion necessaire.");
+        toast("Erreur reseau", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -226,6 +271,67 @@ export default function NerelPage() {
           ))}
         </div>
       </div>
+
+      {/* ── Loading state ── */}
+      {loading && (
+        <div className="flex items-center justify-center gap-3 rounded-xl border border-[#3B82F630] bg-[#3B82F608] py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-[#3B82F6]" />
+          <span className="text-xs text-[var(--color-text-muted)]">Chargement des plans de construction...</span>
+        </div>
+      )}
+
+      {/* ── Error state ── */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4">
+          <AlertCircle className="h-5 w-5 shrink-0 text-red-400" />
+          <p className="flex-1 text-sm text-red-300">{error}</p>
+          <button onClick={() => window.location.reload()} className="rounded-lg bg-[#3B82F615] px-3 py-1 text-xs font-semibold text-[#3B82F6]">
+            Recharger
+          </button>
+        </div>
+      )}
+
+      {/* ── Lore entries from Supabase ── */}
+      {!loading && loreEntries.length > 0 && (
+        <div className="rounded-xl border border-[#3B82F630] bg-[var(--color-surface)] p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Layers className="h-4 w-4 text-[#3B82F6]" />
+            <h2 className="text-sm font-bold text-[var(--color-text)]">Archives Lore &mdash; {loreEntries.length} entrees</h2>
+          </div>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {loreEntries.map((entry) => (
+              <div key={entry.id} className="rounded-lg border border-[var(--color-border-subtle)] p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-xs font-bold text-[#3B82F6]">{entry.title}</h3>
+                  {entry.category && (
+                    <span className="rounded-full bg-[#3B82F615] px-2 py-0.5 text-[9px] font-medium text-[#3B82F6]">{entry.category}</span>
+                  )}
+                </div>
+                {entry.content && (
+                  <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">
+                    {entry.content.length > 300 ? entry.content.slice(0, 300) + "..." : entry.content}
+                  </p>
+                )}
+                {entry.tags && entry.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {entry.tags.map((tag) => (
+                      <span key={tag} className="rounded-full bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[8px] text-[var(--color-text-muted)]">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Empty lore state ── */}
+      {!loading && !error && loreEntries.length === 0 && (
+        <div className="rounded-xl border border-[#3B82F615] bg-[var(--color-surface)] py-8 text-center">
+          <Building className="mx-auto mb-2 h-8 w-8 text-[var(--color-border-subtle)]" />
+          <p className="text-xs text-[var(--color-text-muted)]">L&apos;atelier attend ses plans. Aucun fragment lore en base.</p>
+        </div>
+      )}
 
       {/* Signature */}
       <div className="rounded-xl border border-[#3B82F630] bg-[#3B82F608] p-6 text-center">

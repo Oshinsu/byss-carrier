@@ -283,6 +283,32 @@ export default function ResearchPage() {
     copy(text);
   }, [result, copy]);
 
+  // ── Save result to localStorage history ──
+  const [saved, setSaved] = useState(false);
+  const handleSave = useCallback(() => {
+    if (!result) return;
+    try {
+      const existing = JSON.parse(localStorage.getItem("byss-research-saved") || "[]");
+      const entry = {
+        id: result.id,
+        question: result.question,
+        summary: result.summary,
+        findings: result.findings,
+        sources: result.sources,
+        domain: result.domain,
+        mode: result.mode,
+        savedAt: new Date().toISOString(),
+      };
+      existing.unshift(entry);
+      // Keep last 50 saved results
+      localStorage.setItem("byss-research-saved", JSON.stringify(existing.slice(0, 50)));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {
+      // Storage full or unavailable
+    }
+  }, [result]);
+
   // ── Deepen research ──
   const handleDeepen = useCallback(() => {
     if (!result) return;
@@ -581,10 +607,11 @@ export default function ResearchPage() {
                       {copied ? "Copie !" : "Copier"}
                     </button>
                     <button
+                      onClick={handleSave}
                       className="flex items-center gap-2 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface)] px-4 py-2 text-xs font-medium text-[var(--color-text)] transition-colors hover:border-cyan-500/30"
                     >
                       <Save className="h-3.5 w-3.5" />
-                      Sauvegarder
+                      {saved ? "Sauvegarde !" : "Sauvegarder"}
                     </button>
                     <button
                       onClick={handleDeepen}

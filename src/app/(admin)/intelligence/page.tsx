@@ -24,6 +24,7 @@ import {
   BarChart3,
   Banknote,
   Terminal,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -620,23 +621,36 @@ export default function IntelligencePage() {
   const [showModal, setShowModal] = useState(false);
   const [entities, setEntities] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   /* ─── Fetch entities from Supabase ─── */
-  const fetchEntities = () => {
+  const fetchEntities = async () => {
     setLoading(true);
-    const supabase = createClient();
-    supabase
-      .from("intel_entities")
-      .select("*")
-      .order("influence_score", { ascending: false })
-      .then(({ data }) => {
-        setEntities((data || []).map(mapRowToEntity));
-        setLoading(false);
-      });
+    setFetchError(null);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("intel_entities")
+        .select("*")
+        .order("influence_score", { ascending: false });
+      if (error) {
+        setFetchError("Le systeme a flanché. Pas le vaisseau.");
+        toast("Erreur chargement: " + error.message, "error");
+        return;
+      }
+      setEntities((data || []).map(mapRowToEntity));
+    } catch {
+      setFetchError("Le systeme a flanché. Pas le vaisseau.");
+      toast("Erreur réseau — reconnexion nécessaire", "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchEntities();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const activeDomainData = DOMAINS.find((d) => d.key === activeDomain)!;
@@ -688,6 +702,20 @@ export default function IntelligencePage() {
       </div>
 
       <div className="flex-1 space-y-6 p-6">
+        {/* ── Error banner ── */}
+        {fetchError && (
+          <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4">
+            <AlertCircle className="h-5 w-5 shrink-0 text-red-400" />
+            <p className="flex-1 text-sm text-red-300">{fetchError}</p>
+            <button
+              onClick={fetchEntities}
+              className="rounded-lg bg-[var(--color-gold-glow)] px-3 py-1 text-xs font-semibold text-[var(--color-gold)] transition-colors hover:bg-[var(--color-gold)]/20"
+            >
+              Réessayer
+            </button>
+          </div>
+        )}
+
         {/* ── Domain tabs ── */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           {DOMAINS.map((domain) => {

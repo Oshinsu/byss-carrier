@@ -188,7 +188,12 @@ export default function PromptFactoryPage() {
       .from("prompts")
       .select("*")
       .order("usage_count", { ascending: false })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          toast("Erreur chargement prompts: " + error.message, "error");
+          setLoading(false);
+          return;
+        }
         setPrompts((data || []).map(mapRowToPrompt));
         setLoading(false);
       });
@@ -212,7 +217,12 @@ export default function PromptFactoryPage() {
   const totalCount = prompts.length;
 
   const handleCopy = async (prompt: PromptTemplate) => {
-    navigator.clipboard.writeText(prompt.template);
+    try {
+      await navigator.clipboard.writeText(prompt.template);
+      toast("Prompt copie — " + prompt.name, "success");
+    } catch {
+      toast("Erreur copie presse-papier", "error");
+    }
 
     // Increment usage_count in Supabase
     const supabase = createClient();
@@ -221,7 +231,8 @@ export default function PromptFactoryPage() {
       .from("prompts")
       .update({ usage_count: newCount })
       .eq("id", prompt.id)
-      .then(() => {
+      .then(({ error }) => {
+        if (error) { toast("Erreur maj compteur: " + error.message, "error"); return; }
         setPrompts((prev) =>
           prev.map((p) =>
             p.id === prompt.id ? { ...p, usageCount: newCount } : p

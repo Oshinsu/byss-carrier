@@ -1,9 +1,77 @@
 "use client";
-import { useState } from "react";
-import { Map, Users, Mail, Quote, ChevronDown, ChevronUp, Zap, Server, DollarSign } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Map, Users, Mail, Quote, ChevronDown, ChevronUp, Zap, Server, DollarSign, Loader2, AlertCircle, BookOpen } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface LoreEntry {
+  id: string;
+  title: string;
+  content: string | null;
+  category: string | null;
+  tags: string[] | null;
+}
+
+interface ProspectStat {
+  total: number;
+  phases: Record<string, number>;
+}
 
 export default function SorelPage() {
   const [session5Open, setSession5Open] = useState(false);
+  const [loreEntries, setLoreEntries] = useState<LoreEntry[]>([]);
+  const [prospectStats, setProspectStats] = useState<ProspectStat | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const supabase = createClient();
+        const [loreRes, prospectsRes] = await Promise.all([
+          supabase
+            .from("lore_entries")
+            .select("id, title, content, category, tags")
+            .eq("universe", "village")
+            .or("tags.cs.{sorel},category.eq.sorel")
+            .order("order_index", { ascending: true })
+            .limit(50),
+          supabase
+            .from("prospects")
+            .select("id, phase"),
+        ]);
+
+        if (loreRes.error) {
+          setError("La table est renversee. Reconnexion necessaire.");
+          toast("Erreur lore: " + loreRes.error.message, "error");
+          return;
+        }
+        setLoreEntries(loreRes.data || []);
+
+        if (prospectsRes.data) {
+          const phases: Record<string, number> = {};
+          prospectsRes.data.forEach((p: { phase?: string }) => {
+            const ph = (p.phase as string) || "inconnu";
+            phases[ph] = (phases[ph] || 0) + 1;
+          });
+          setProspectStats({ total: prospectsRes.data.length, phases });
+        }
+
+        const count = (loreRes.data?.length || 0) + (prospectsRes.data?.length || 0);
+        if (count > 0) toast(`${count} elements charges`, "success");
+      } catch {
+        setError("La table est renversee. Reconnexion necessaire.");
+        toast("Erreur reseau", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -121,6 +189,78 @@ export default function SorelPage() {
           </div>
         )}
       </div>
+
+      {/* ── Loading state ── */}
+      {loading && (
+        <div className="flex items-center justify-center gap-3 rounded-xl border border-[#10B98130] bg-[#10B98108] py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-[#10B981]" />
+          <span className="text-xs text-[var(--color-text-muted)]">Cartographie en cours...</span>
+        </div>
+      )}
+
+      {/* ── Error state ── */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4">
+          <AlertCircle className="h-5 w-5 shrink-0 text-red-400" />
+          <p className="flex-1 text-sm text-red-300">{error}</p>
+          <button onClick={() => window.location.reload()} className="rounded-lg bg-[#10B98115] px-3 py-1 text-xs font-semibold text-[#10B981]">
+            Recharger
+          </button>
+        </div>
+      )}
+
+      {/* ── Live Pipeline Stats from Supabase ── */}
+      {!loading && prospectStats && (
+        <div className="rounded-xl border border-[#10B98130] bg-[var(--color-surface)] p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <Zap className="h-4 w-4 text-[#10B981]" />
+            <h2 className="text-sm font-bold text-[var(--color-text)]">Pipeline Live &mdash; {prospectStats.total} prospects</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {Object.entries(prospectStats.phases).sort((a, b) => b[1] - a[1]).map(([phase, count]) => (
+              <div key={phase} className="flex items-center justify-between rounded-lg border border-[var(--color-border-subtle)] px-3 py-2">
+                <span className="text-[10px] text-[var(--color-text-muted)]">{phase}</span>
+                <span className="font-mono text-xs font-bold text-[#10B981]">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Lore entries from Supabase ── */}
+      {!loading && loreEntries.length > 0 && (
+        <div className="rounded-xl border border-[#10B98130] bg-[var(--color-surface)] p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-[#10B981]" />
+            <h2 className="text-sm font-bold text-[var(--color-text)]">Archives Sorel &mdash; {loreEntries.length} entrees</h2>
+          </div>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {loreEntries.map((entry) => (
+              <div key={entry.id} className="rounded-lg border border-[var(--color-border-subtle)] p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-xs font-bold text-[#10B981]">{entry.title}</h3>
+                  {entry.category && (
+                    <span className="rounded-full bg-[#10B98115] px-2 py-0.5 text-[9px] font-medium text-[#10B981]">{entry.category}</span>
+                  )}
+                </div>
+                {entry.content && (
+                  <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">
+                    {entry.content.length > 300 ? entry.content.slice(0, 300) + "..." : entry.content}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Empty lore state ── */}
+      {!loading && !error && loreEntries.length === 0 && (
+        <div className="rounded-xl border border-[#10B98115] bg-[var(--color-surface)] py-8 text-center">
+          <Map className="mx-auto mb-2 h-8 w-8 text-[var(--color-border-subtle)]" />
+          <p className="text-xs text-[var(--color-text-muted)]">Ce territoire est vierge. Cartographie-le.</p>
+        </div>
+      )}
 
       {/* La Table de Sorel */}
       <div className="rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-6">

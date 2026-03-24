@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
-import { Search, Phone, Mail, FileText, Star, X } from "lucide-react";
+import { Search, Phone, Mail, FileText, Star, X, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { PageHeader } from "@/components/ui/page-header";
+import { useToast } from "@/hooks/use-toast";
 
 /* ═══════════════════════════════════════════════════════
    TYPES
@@ -123,24 +125,27 @@ function mapToFiche(row: Record<string, unknown>): FicheProspect {
 export default function FichesPage() {
   const [allProspects, setAllProspects] = useState<FicheProspect[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [activeSector, setActiveSector] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function fetchProspects() {
       const supabase = createClient();
       try {
-        const { data, error } = await supabase
+        const { data, error: fetchErr } = await supabase
           .from("prospects")
           .select("*")
           .order("score", { ascending: false });
 
-        if (error) throw error;
+        if (fetchErr) throw fetchErr;
         if (data) {
           setAllProspects(data.map(mapToFiche));
         }
       } catch (err) {
         console.error("Fiches fetch error:", err);
+        setError(err instanceof Error ? err.message : "Erreur de chargement des fiches.");
       } finally {
         setLoading(false);
       }
@@ -177,15 +182,39 @@ export default function FichesPage() {
     <div className="min-h-screen bg-[#0A0A0F] px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="font-[family-name:var(--font-clash-display)] text-3xl font-bold text-[#E0E0E8]">
-          Fiches de Poche
-        </h1>
-        <p className="mt-1 text-sm text-[#8A8A9A]">
-          {loading
-            ? "Chargement..."
-            : `${allProspects.length} fiches. Tout ce qu\u2019il faut avant de decrocher.`}
-        </p>
+        <PageHeader
+          title="Fiches de"
+          titleAccent="Poche"
+          subtitle={loading ? "Chargement..." : `${allProspects.length} fiches. Tout ce qu\u2019il faut avant de decrocher.`}
+        />
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div
+          className="mb-6 flex items-center gap-3 rounded-xl border px-5 py-4"
+          style={{
+            borderColor: "rgba(255,45,45,0.2)",
+            background: "rgba(255,45,45,0.05)",
+          }}
+        >
+          <AlertCircle className="h-5 w-5 shrink-0" style={{ color: "#FF2D2D" }} />
+          <p className="flex-1 text-sm" style={{ color: "#FF6B6B" }}>
+            {error}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-lg px-3 py-1 text-xs font-semibold"
+            style={{
+              background: "rgba(0,212,255,0.1)",
+              color: "#00D4FF",
+              border: "1px solid rgba(0,212,255,0.2)",
+            }}
+          >
+            Recharger
+          </button>
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative mb-4">
@@ -406,10 +435,10 @@ export default function FichesPage() {
 
       {/* Empty state */}
       {!loading && filtered.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <Search className="mb-3 h-10 w-10 text-[#2A2A3E]" />
-          <p className="text-sm text-[#6A6A7A]">
-            Les fiches attendent. Les prospects existent.
+        <div className="flex flex-col items-center justify-center rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface)] py-16 text-center">
+          <Search className="mb-3 h-10 w-10 text-[var(--color-text-muted)]" />
+          <p className="text-sm text-[var(--color-text-muted)]">
+            {search ? `Rien pour \u201C${search}\u201D. Cherche autrement.` : "Les fiches attendent. Les prospects existent."}
           </p>
         </div>
       )}

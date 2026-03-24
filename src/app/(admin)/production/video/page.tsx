@@ -186,12 +186,19 @@ export default function VideoPage() {
 
   const fetchVideos = async () => {
     const supabase = createClient();
-    const { data } = await supabase
-      .from("videos")
-      .select("*, prospect:prospects(name)")
-      .order("created_at", { ascending: false });
-    if (data) setVideos(data as VideoItem[]);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from("videos")
+        .select("*, prospect:prospects(name)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      if (data) setVideos(data as VideoItem[]);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      toast("Erreur chargement videos: " + msg, "error");
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -202,7 +209,8 @@ export default function VideoPage() {
       .from("prospects")
       .select("id, name")
       .order("name")
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) { toast("Erreur chargement prospects: " + error.message, "error"); return; }
         if (data) setProspects(data as ProspectOption[]);
       });
   }, []);

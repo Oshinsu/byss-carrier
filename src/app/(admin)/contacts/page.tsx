@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import {
   Search, Users, Building, Mail, Phone, MapPin,
   Filter, SortAsc, Download, Plus, Star, X, Trash2,
-  Zap, Loader2, CheckCircle2,
+  Zap, Loader2, CheckCircle2, AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
@@ -63,15 +63,22 @@ export default function ContactsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [enriching, setEnriching] = useState(false);
   const [enriched, setEnriched] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchContacts = async () => {
     const supabase = createClient();
-    const { data } = await supabase
-      .from("contacts_directory")
-      .select("*")
-      .order("influence_score", { ascending: false });
-    if (data) setContacts(data as Contact[]);
+    try {
+      const { data, error: fetchErr } = await supabase
+        .from("contacts_directory")
+        .select("*")
+        .order("influence_score", { ascending: false });
+      if (fetchErr) throw fetchErr;
+      if (data) setContacts(data as Contact[]);
+    } catch (err) {
+      console.error("Contacts fetch error:", err);
+      setError(err instanceof Error ? err.message : "Erreur de chargement des contacts.");
+    }
     setLoading(false);
   };
 
@@ -205,6 +212,33 @@ export default function ContactsPage() {
           </button>
         }
       />
+
+      {/* Error Banner */}
+      {error && (
+        <div
+          className="flex items-center gap-3 rounded-xl border px-5 py-4"
+          style={{
+            borderColor: "rgba(255,45,45,0.2)",
+            background: "rgba(255,45,45,0.05)",
+          }}
+        >
+          <AlertCircle className="h-5 w-5 shrink-0" style={{ color: "#FF2D2D" }} />
+          <p className="flex-1 text-sm" style={{ color: "#FF6B6B" }}>
+            {error}
+          </p>
+          <button
+            onClick={() => { setError(null); setLoading(true); fetchContacts(); }}
+            className="rounded-lg px-3 py-1 text-xs font-semibold"
+            style={{
+              background: "rgba(0,212,255,0.1)",
+              color: "#00D4FF",
+              border: "1px solid rgba(0,212,255,0.2)",
+            }}
+          >
+            Recharger
+          </button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-3">

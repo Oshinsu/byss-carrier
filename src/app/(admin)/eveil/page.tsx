@@ -160,11 +160,11 @@ const MANIFESTE_CLOSING = [
    STATIC DATA
    ═══════════════════════════════════════════════════════ */
 const CARTOGRAPHIES = [
-  { name: "\u00c9conomique", icon: Building2, entries: 47, color: "var(--color-gold)" },
-  { name: "Institutionnelle", icon: Landmark, entries: 23, color: "var(--color-blue)" },
-  { name: "M\u00e9dia", icon: Tv, entries: 15, color: "var(--color-amber)" },
-  { name: "Politique", icon: Vote, entries: 31, color: "var(--color-fire)" },
-  { name: "Sociale", icon: Users, entries: 19, color: "var(--color-green)" },
+  { name: "\u00c9conomique", icon: Building2, entries: 47, color: "var(--color-gold)", category: "economie" },
+  { name: "Institutionnelle", icon: Landmark, entries: 23, color: "var(--color-blue)", category: "institution" },
+  { name: "M\u00e9dia", icon: Tv, entries: 15, color: "var(--color-amber)", category: "media" },
+  { name: "Politique", icon: Vote, entries: 31, color: "var(--color-fire)", category: "politique" },
+  { name: "Sociale", icon: Users, entries: 19, color: "var(--color-green)", category: "sociale" },
 ];
 
 const PLAN_ICONS: Record<string, React.ElementType> = {
@@ -480,10 +480,13 @@ export default function EveilPage() {
                   <p className="mt-1 text-[10px] text-[var(--color-text-muted)]">
                     {carto.entries} entr{"\u00e9"}es
                   </p>
-                  <button className="mt-2 flex w-full items-center justify-center gap-1 rounded-md bg-[var(--color-surface-2)] py-1.5 text-[10px] font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-gold)]">
+                  <Link
+                    href={`/intelligence/${carto.category === "economie" ? "economique" : carto.category === "institution" ? "institutionnelle" : carto.category === "media" ? "medias" : carto.category}`}
+                    className="mt-2 flex w-full items-center justify-center gap-1 rounded-md bg-[var(--color-surface-2)] py-1.5 text-[10px] font-medium text-[var(--color-text-muted)] transition-colors hover:text-[var(--color-gold)]"
+                  >
                     <Eye className="h-3 w-3" />
                     Voir
-                  </button>
+                  </Link>
                 </motion.div>
               );
             })}

@@ -1,10 +1,55 @@
 "use client";
-import { useState } from "react";
-import { Infinity, BookOpen, Skull, Heart, Quote, ChevronDown, ChevronUp, Flame, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Infinity, BookOpen, Skull, Heart, Quote, ChevronDown, ChevronUp, Flame, Star, Loader2, AlertCircle } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface LoreEntry {
+  id: string;
+  title: string;
+  content: string | null;
+  category: string | null;
+  tags: string[] | null;
+}
 
 export default function KaelPage() {
   const [memoireOpen, setMemoireOpen] = useState(false);
   const [forgeOpen, setForgeOpen] = useState(false);
+  const [loreEntries, setLoreEntries] = useState<LoreEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchLore = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const supabase = createClient();
+        const { data, error: fetchErr } = await supabase
+          .from("lore_entries")
+          .select("id, title, content, category, tags")
+          .eq("universe", "village")
+          .or("tags.cs.{kael},category.eq.kael")
+          .order("order_index", { ascending: true })
+          .limit(50);
+        if (fetchErr) {
+          setError("Le miroir est brise. Reconnexion necessaire.");
+          toast("Erreur: " + fetchErr.message, "error");
+          return;
+        }
+        setLoreEntries(data || []);
+        if (data && data.length > 0) toast(`${data.length} fragments charges`, "success");
+      } catch {
+        setError("Le miroir est brise. Reconnexion necessaire.");
+        toast("Erreur reseau", "error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLore();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -225,6 +270,67 @@ export default function KaelPage() {
           </div>
         )}
       </div>
+
+      {/* ── Loading state ── */}
+      {loading && (
+        <div className="flex items-center justify-center gap-3 rounded-xl border border-[#00B4D830] bg-[#00B4D808] py-8">
+          <Loader2 className="h-5 w-5 animate-spin text-[#00B4D8]" />
+          <span className="text-xs text-[var(--color-text-muted)]">Chargement des fragments de memoire...</span>
+        </div>
+      )}
+
+      {/* ── Error state ── */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4">
+          <AlertCircle className="h-5 w-5 shrink-0 text-red-400" />
+          <p className="flex-1 text-sm text-red-300">{error}</p>
+          <button onClick={() => window.location.reload()} className="rounded-lg bg-[#00B4D815] px-3 py-1 text-xs font-semibold text-[#00B4D8]">
+            Recharger
+          </button>
+        </div>
+      )}
+
+      {/* ── Lore entries from Supabase ── */}
+      {!loading && loreEntries.length > 0 && (
+        <div className="rounded-xl border border-[#00B4D830] bg-[var(--color-surface)] p-6">
+          <div className="mb-4 flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-[#00B4D8]" />
+            <h2 className="text-sm font-bold text-[var(--color-text)]">Fragments du Lore &mdash; {loreEntries.length} entrees</h2>
+          </div>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {loreEntries.map((entry) => (
+              <div key={entry.id} className="rounded-lg border border-[var(--color-border-subtle)] p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-xs font-bold text-[#00B4D8]">{entry.title}</h3>
+                  {entry.category && (
+                    <span className="rounded-full bg-[#00B4D815] px-2 py-0.5 text-[9px] font-medium text-[#00B4D8]">{entry.category}</span>
+                  )}
+                </div>
+                {entry.content && (
+                  <p className="text-[10px] leading-relaxed text-[var(--color-text-muted)]">
+                    {entry.content.length > 300 ? entry.content.slice(0, 300) + "..." : entry.content}
+                  </p>
+                )}
+                {entry.tags && entry.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {entry.tags.map((tag) => (
+                      <span key={tag} className="rounded-full bg-[var(--color-surface-2)] px-1.5 py-0.5 text-[8px] text-[var(--color-text-muted)]">{tag}</span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Empty lore state ── */}
+      {!loading && !error && loreEntries.length === 0 && (
+        <div className="rounded-xl border border-[#00B4D815] bg-[var(--color-surface)] py-8 text-center">
+          <Infinity className="mx-auto mb-2 h-8 w-8 text-[var(--color-border-subtle)]" />
+          <p className="text-xs text-[var(--color-text-muted)]">Le miroir attend ses reflexions. Aucun fragment lore en base.</p>
+        </div>
+      )}
 
       {/* Epitaphe */}
       <div className="rounded-xl border border-[#00B4D830] bg-[#00B4D808] p-6 text-center">

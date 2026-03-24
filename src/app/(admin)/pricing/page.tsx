@@ -16,10 +16,13 @@ import {
   TrendingUp,
   User,
   Building2,
+  AlertCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNotifications } from "@/lib/store";
 import { SkeletonCard, SkeletonKPI } from "@/components/ui/loading-skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { useToast } from "@/hooks/use-toast";
 
 /* ═══════════════════════════════════════════════════════
    TYPES & DATA
@@ -111,8 +114,10 @@ const TIER_META: Record<Tier, { label: string; icon: React.ElementType; badge?: 
 export default function PricingPage() {
   const { add: notify } = useNotifications();
   const [, copy] = useCopyToClipboard();
+  const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [prospect, setProspect] = useState("");
   const [sector, setSector] = useState<Sector>("Restaurant");
   const [ca, setCa] = useState(500000);
@@ -125,9 +130,13 @@ export default function PricingPage() {
     (async () => {
       try {
         const supabase = createClient();
-        const { data } = await supabase.from("prospects").select("name").order("name");
+        const { data, error: fetchErr } = await supabase.from("prospects").select("name").order("name");
+        if (fetchErr) throw fetchErr;
         setProspectNames(data?.map((p: { name: string }) => p.name) || []);
-      } catch { /* silent */ }
+      } catch (err) {
+        console.error("Pricing fetch error:", err);
+        setError(err instanceof Error ? err.message : "Erreur de chargement des prospects.");
+      }
       setLoading(false);
     })();
   }, []);
@@ -178,9 +187,13 @@ export default function PricingPage() {
       if (res.ok) {
         const data = await res.json();
         setProposalContent(data.result || null);
+        toast("Proposition generee — scrollez vers le bas.", "success");
         notify({ type: "success", title: "Proposition generee!", message: "Contenu pret — scrollez vers le bas.", duration: 3000 });
+      } else {
+        toast("Erreur de generation.", "error");
       }
     } catch {
+      toast("Impossible de generer la proposition.", "error");
       notify({ type: "error", title: "Erreur", message: "Impossible de generer la proposition.", duration: 3000 });
     }
     setGenerating(false);
@@ -207,19 +220,38 @@ export default function PricingPage() {
   return (
     <div className="flex flex-col gap-8">
       {/* ── Heading ── */}
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-gold-glow)]">
-          <Calculator className="h-6 w-6 text-[var(--color-gold)]" />
-        </div>
-        <div>
-          <h1 className="font-[family-name:var(--font-clash-display)] text-2xl font-bold text-[var(--color-text)]">
-            Calculateur ROI
-          </h1>
-          <p className="text-sm text-[var(--color-text-muted)]">
-            Simulez le retour sur investissement et générez une proposition.
+      <PageHeader
+        title="Calculateur"
+        titleAccent="ROI"
+        subtitle="Simulez le retour sur investissement et generez une proposition."
+      />
+
+      {/* Error Banner */}
+      {error && (
+        <div
+          className="flex items-center gap-3 rounded-xl border px-5 py-4"
+          style={{
+            borderColor: "rgba(255,45,45,0.2)",
+            background: "rgba(255,45,45,0.05)",
+          }}
+        >
+          <AlertCircle className="h-5 w-5 shrink-0" style={{ color: "#FF2D2D" }} />
+          <p className="flex-1 text-sm" style={{ color: "#FF6B6B" }}>
+            {error}
           </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-lg px-3 py-1 text-xs font-semibold"
+            style={{
+              background: "rgba(0,212,255,0.1)",
+              color: "#00D4FF",
+              border: "1px solid rgba(0,212,255,0.2)",
+            }}
+          >
+            Recharger
+          </button>
         </div>
-      </div>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-[380px_1fr]">
         {/* ═══════════════════════════════════════════════

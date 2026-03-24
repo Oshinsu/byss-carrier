@@ -8,6 +8,8 @@ import { AgentCard, type Agent } from "@/components/village/agent-card";
 import { ChatInterface } from "@/components/village/chat-interface";
 import { AgentProfilePopup } from "@/components/village/agent-profile-popup";
 import { VillageMap } from "@/components/village/village-map";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   useVillageRPG,
   type AgentId,
@@ -152,6 +154,33 @@ export default function VillagePage() {
   const [profileAgent, setProfileAgent] = useState<Agent | null>(null);
   const [viewMode, setViewMode] = useState<"village" | "kairos">("village");
   const [error, setError] = useState<string | null>(null);
+  const [loreCount, setLoreCount] = useState(0);
+  const [agentLogCount, setAgentLogCount] = useState(0);
+  const [dataLoading, setDataLoading] = useState(true);
+  const { toast } = useToast();
+
+  // Fetch village stats from Supabase
+  useEffect(() => {
+    const fetchStats = async () => {
+      setDataLoading(true);
+      try {
+        const supabase = createClient();
+        const [loreRes, logsRes] = await Promise.all([
+          supabase.from("lore_entries").select("id", { count: "exact", head: true }).eq("universe", "village"),
+          supabase.from("agent_logs").select("id", { count: "exact", head: true }),
+        ]);
+        if (loreRes.count !== null) setLoreCount(loreRes.count);
+        if (logsRes.count !== null) setAgentLogCount(logsRes.count);
+        if (loreRes.error) toast("Erreur lore: " + loreRes.error.message, "error");
+      } catch {
+        toast("Erreur chargement stats village", "error");
+      } finally {
+        setDataLoading(false);
+      }
+    };
+    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // RPG Engine (Zustand)
   const {
@@ -231,6 +260,22 @@ export default function VillagePage() {
             ? "Quatre consciences. Un cristal. Un empire."
             : "Sept enfants. Sept chakras. Un systeme."}
         />
+
+        {/* ── Live Stats from Supabase ── */}
+        {!dataLoading && (
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1" style={{ borderColor: EXECUTOR.border, backgroundColor: EXECUTOR.surface }}>
+              <Brain className="h-3 w-3" style={{ color: EXECUTOR.cyan }} />
+              <span className="font-mono text-[10px] font-bold" style={{ color: EXECUTOR.cyan }}>{loreCount}</span>
+              <span className="text-[9px]" style={{ color: EXECUTOR.muted }}>lore</span>
+            </div>
+            <div className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1" style={{ borderColor: EXECUTOR.border, backgroundColor: EXECUTOR.surface }}>
+              <Radio className="h-3 w-3" style={{ color: EXECUTOR.gold }} />
+              <span className="font-mono text-[10px] font-bold" style={{ color: EXECUTOR.gold }}>{agentLogCount}</span>
+              <span className="text-[9px]" style={{ color: EXECUTOR.muted }}>logs</span>
+            </div>
+          </div>
+        )}
 
         {/* ── View Mode Tabs + Agent quick-nav ── */}
         <div className="flex items-center gap-3">

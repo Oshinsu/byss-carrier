@@ -28,6 +28,7 @@ import {
 } from "@/lib/marches";
 import MarcheDetailModal from "@/components/marches/marche-detail-modal";
 import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 /* ── Types ── */
 interface Tender {
@@ -111,6 +112,7 @@ export default function MarchesPublicsPage() {
   const [platformsOpen, setPlatformsOpen] = useState(false);
 
   const supabase = createClient();
+  const { toast } = useToast();
 
   /* ── Fetch BOAMP tenders ── */
   const fetchTenders = useCallback(async (query?: string) => {
@@ -173,8 +175,17 @@ export default function MarchesPublicsPage() {
         body: JSON.stringify({ action: "import", tender, relevanceScore: score }),
       });
       if (!res.ok) throw new Error("Erreur import");
+      const data = await res.json();
+      if (data.duplicate) {
+        toast("Marche deja importe", "info");
+      } else {
+        toast("Marche importe dans le pipeline", "success");
+      }
       await fetchMarches();
-    } catch { /* silent */ } finally {
+    } catch (err) {
+      console.error("Import error:", err);
+      toast("Erreur import marche", "error");
+    } finally {
       setImporting(null);
     }
   };
@@ -186,15 +197,21 @@ export default function MarchesPublicsPage() {
     for (const t of top10) {
       await importTender(t, t.relevance);
     }
+    toast(`${top10.length} marches importes`, "success");
     setBatchImporting(false);
   };
 
   /* ── Update marché status ── */
   const updateMarcheStatus = async (id: string, status: MarcheStatus) => {
-    await supabase
+    const { error: updateErr } = await supabase
       .from("marches_publics")
       .update({ status, updated_at: new Date().toISOString() })
       .eq("id", id);
+    if (updateErr) {
+      toast("Erreur mise a jour statut", "error");
+      return;
+    }
+    toast(`Statut → ${status.toUpperCase()}`, "success");
     // Trigger synergy
     try {
       const m = marches.find((x) => x.id === id);
@@ -219,16 +236,26 @@ export default function MarchesPublicsPage() {
 
   /* ── Save marché partial data ── */
   const saveMarche = async (id: string, data: Partial<MarcheRow>) => {
-    await supabase
+    const { error: saveErr } = await supabase
       .from("marches_publics")
       .update({ ...data, updated_at: new Date().toISOString() })
       .eq("id", id);
+    if (saveErr) {
+      toast("Erreur sauvegarde", "error");
+      return;
+    }
+    toast("Marche sauvegarde", "success");
     setMarches((prev) => prev.map((m) => m.id === id ? { ...m, ...data } : m));
   };
 
   /* ── Delete marché ── */
   const deleteMarche = async (id: string) => {
-    await supabase.from("marches_publics").delete().eq("id", id);
+    const { error: delErr } = await supabase.from("marches_publics").delete().eq("id", id);
+    if (delErr) {
+      toast("Erreur suppression", "error");
+      return;
+    }
+    toast("Marche supprime", "success");
     setMarches((prev) => prev.filter((m) => m.id !== id));
     setDetailOpen(false);
   };
@@ -236,7 +263,7 @@ export default function MarchesPublicsPage() {
   /* ── Link to CRM ── */
   const linkToCRM = async (m: MarcheRow) => {
     // Create prospect from acheteur
-    const { data } = await supabase
+    const { data, error: crmErr } = await supabase
       .from("prospects")
       .insert({
         name: m.acheteur || "Prospect marché public",
@@ -248,9 +275,14 @@ export default function MarchesPublicsPage() {
       })
       .select("id")
       .single();
+    if (crmErr) {
+      toast("Erreur liaison CRM", "error");
+      return;
+    }
     if (data) {
       await supabase.from("marches_publics").update({ prospect_id: data.id }).eq("id", m.id);
       setMarches((prev) => prev.map((x) => x.id === m.id ? { ...x, prospect_id: data.id } : x));
+      toast("Prospect cree et lie au marche", "success");
     }
   };
 
@@ -276,9 +308,11 @@ export default function MarchesPublicsPage() {
       if (!res.ok) throw new Error("Erreur analyse");
       const data = await res.json();
       setAnalysisResult(data.analysis || "Analyse indisponible");
+      toast(`Analyse terminee — ${data.goNoGo || ""}`, "success");
       await fetchMarches(); // Refresh to get saved analysis
     } catch {
       setAnalysisResult("Erreur lors de l'analyse IA.");
+      toast("Erreur analyse IA", "error");
     } finally {
       setAnalyzing(false);
     }
@@ -299,8 +333,10 @@ export default function MarchesPublicsPage() {
       if (!res.ok) throw new Error("Erreur génération");
       const data = await res.json();
       setMemoireSections(data.sections || {});
+      toast("Memoire technique genere", "success");
     } catch {
       setMemoireSections({});
+      toast("Erreur generation memoire", "error");
     } finally {
       setGeneratingMemoire(false);
     }
@@ -316,10 +352,15 @@ export default function MarchesPublicsPage() {
         return `## ${section?.label || key}\n\n${val}`;
       })
       .join("\n\n---\n\n");
-    await supabase
+    const { error: memErr } = await supabase
       .from("marches_publics")
       .update({ memoire_technique: content, updated_at: new Date().toISOString() })
       .eq("id", memoireTarget);
+    if (memErr) {
+      toast("Erreur sauvegarde memoire", "error");
+    } else {
+      toast("Memoire technique sauvegarde", "success");
+    }
     await fetchMarches();
     setSavingMemoire(false);
   };
