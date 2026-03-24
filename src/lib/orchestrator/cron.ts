@@ -266,6 +266,29 @@ export const CRON_TASKS: CronTask[] = [
       };
     },
   },
+  {
+    id: "auto_completion",
+    name: "Auto-Completion Scan",
+    schedule: "Lundi 7h00",
+    description: "Analyse chaque page, score la completion, applique les quick-fixes automatiquement",
+    enabled: false,
+    handler: async () => {
+      const res = await fetch("/api/completion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "analyze_all" }),
+      });
+      if (!res.ok) {
+        return { success: false, message: `Erreur completion: ${res.status}` };
+      }
+      const data = await res.json();
+      return {
+        success: true,
+        message: `${data.pagesScanned} pages — score ${data.globalScore}/100 — ${data.totalGaps} gaps`,
+        data,
+      };
+    },
+  },
 ];
 
 /* ─── Cron Manager ─────────────────────────────────────── */

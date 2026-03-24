@@ -160,6 +160,7 @@ const navTree: NavNode[] = [
       { id: "api-keys", label: "Cles API & Health", icon: Key, href: "/api-keys" },
       { id: "carrier", label: "Carrier", icon: Anchor, href: "/carrier" },
       { id: "certifications", label: "Certifications", icon: Award, href: "/certifications" },
+      { id: "completion", label: "Auto-Completion", icon: Sparkles, href: "/admin/completion", badge: "AI", badgeColor: "cyan" },
       { id: "parametres", label: "Parametres", icon: Settings, href: "/parametres" },
     ],
   },
