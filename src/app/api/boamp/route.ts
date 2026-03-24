@@ -22,17 +22,19 @@ const BASE_URL =
 
 const FIELDS = [
   "id",
-  "intitule",
+  "idweb",
+  "objet",
   "nomacheteur",
   "nature",
-  "datepublicationdonnees",
+  "nature_libelle",
+  "famille_libelle",
+  "dateparution",
   "datelimitereponse",
-  "descripteur",
-  "familleactivite",
-  "departement",
-  "typeavis",
-  "codecpv",
-  "procedure",
+  "descripteur_libelle",
+  "descripteur_code",
+  "code_departement",
+  "type_marche",
+  "procedure_libelle",
   "url_avis",
 ].join(",");
 
@@ -73,8 +75,8 @@ export async function GET(request: NextRequest) {
         const hit = cached(cacheKey);
         if (hit) return NextResponse.json(hit);
 
-        const where = `departement='972' AND (intitule LIKE '%${q}%' OR descripteur LIKE '%${q}%' OR nomacheteur LIKE '%${q}%')`;
-        const url = `${BASE_URL}?select=${FIELDS}&where=${encodeURIComponent(where)}&order_by=datepublicationdonnees DESC&limit=${limit}`;
+        const where = `code_departement='972' AND (objet LIKE '%${q}%' OR nomacheteur LIKE '%${q}%')`;
+        const url = `${BASE_URL}?select=${FIELDS}&where=${encodeURIComponent(where)}&order_by=dateparution DESC&limit=${limit}`;
 
         const res = await fetch(url, { next: { revalidate: 3600 } });
         if (!res.ok) throw new Error(`BOAMP responded ${res.status}`);
@@ -98,8 +100,8 @@ export async function GET(request: NextRequest) {
         const hit = cached(cacheKey);
         if (hit) return NextResponse.json(hit);
 
-        const where = "departement='972'";
-        const url = `${BASE_URL}?select=${FIELDS}&where=${encodeURIComponent(where)}&order_by=datepublicationdonnees DESC&limit=${limit}`;
+        const where = "code_departement='972'";
+        const url = `${BASE_URL}?select=${FIELDS}&where=${encodeURIComponent(where)}&order_by=dateparution DESC&limit=${limit}`;
 
         const res = await fetch(url, { next: { revalidate: 3600 } });
         if (!res.ok) throw new Error(`BOAMP responded ${res.status}`);
@@ -191,17 +193,17 @@ export async function POST(request: NextRequest) {
           .from("marches_publics")
           .insert({
             boamp_id: tender.id || null,
-            title: tender.intitule,
+            title: tender.objet,
             acheteur: tender.acheteur || null,
             nature: tender.nature || null,
             date_publication: tender.datePublication || null,
             date_limite: tender.dateLimite || null,
             cpv_codes: cpvCodes.length > 0 ? cpvCodes : null,
-            description: tender.descripteur || null,
+            description: tender.descripteur_libelle || null,
             url_source: tender.urlAvis || null,
             platform: "boamp",
             status: "detected",
-            relevance_score: relevanceScore || scoreTenderRelevance(tender.intitule, tender.descripteur || ""),
+            relevance_score: relevanceScore || scoreTenderRelevance(tender.objet, tender.descripteur_libelle || ""),
           })
           .select("id")
           .single();
@@ -394,18 +396,24 @@ Réponds en JSON strict avec cette structure:
 /* ── Simplify a BOAMP record ── */
 function simplify(record: Record<string, unknown>) {
   return {
-    id: record.id,
-    intitule: record.intitule || "Sans titre",
-    acheteur: record.nomacheteur || "Non précisé",
-    nature: record.nature || "",
-    datePublication: record.datepublicationdonnees || "",
-    dateLimite: record.datelimitereponse || "",
-    descripteur: record.descripteur || "",
-    familleActivite: record.familleactivite || "",
-    departement: record.departement || "972",
-    typeAvis: record.typeavis || "",
-    codeCPV: record.codecpv || "",
-    procedure: record.procedure || "",
-    urlAvis: record.url_avis || "",
+    id: record.id || record.idweb,
+    intitule: (record.objet as string) || "Sans titre",
+    acheteur: (record.nomacheteur as string) || "Non précisé",
+    nature: (record.nature_libelle as string) || (record.nature as string) || "",
+    datePublication: (record.dateparution as string) || "",
+    dateLimite: (record.datelimitereponse as string) || "",
+    descripteur: Array.isArray(record.descripteur_libelle)
+      ? (record.descripteur_libelle as string[]).join(", ")
+      : (record.descripteur_libelle as string) || "",
+    familleActivite: (record.famille_libelle as string) || "",
+    departement: "972",
+    typeAvis: Array.isArray(record.type_marche)
+      ? (record.type_marche as string[]).join(", ")
+      : (record.type_marche as string) || "",
+    codeCPV: Array.isArray(record.descripteur_code)
+      ? (record.descripteur_code as string[]).join(", ")
+      : (record.descripteur_code as string) || "",
+    procedure: (record.procedure_libelle as string) || "",
+    urlAvis: (record.url_avis as string) || `https://www.boamp.fr/pages/avis/?q=idweb:${record.idweb}`,
   };
 }

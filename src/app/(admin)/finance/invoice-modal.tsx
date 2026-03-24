@@ -91,7 +91,7 @@ export default function InvoiceModal({
       const supabase = createClient();
       const { data } = await supabase
         .from("prospects")
-        .select("id, name, email, company")
+        .select("id, name, email, sector")
         .order("name");
       if (data) setProspects(data as Prospect[]);
     }
