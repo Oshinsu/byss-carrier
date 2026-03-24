@@ -178,12 +178,12 @@ export const PROJECTS: Record<string, ProjectData> = {
     type: "internal",
   },
   ecommerce: {
-    name: "E-COMMERCE",
+    name: "E-COMMERCE EMPIRE",
     slug: "ecommerce",
-    description: "50+ stores autonomes. Philippines, Vietnam, Maroc, Colombie. Claude Code orchestrateur + CJDropshipping.",
-    status: "Concept",
+    description: "50 stores autonomes. 6 marches (Philippines, Vietnam, Maroc, Colombie, France, Martinique). Analyse marche IA, product finder, store builder, budget allocator. Claude Code orchestrateur + CJDropshipping + TikTok Ads + Kling visuals. Pipeline: analyse → produits → plan → lancement → scaling.",
+    status: "En dev",
     color: "#10B981",
-    techStack: ["Claude Code", "MCP", "CJDropshipping", "TikTok Ads", "Higgsfield"],
+    techStack: ["Claude Code", "CJDropshipping", "TikTok Ads", "Kling", "Shopify", "Next.js"],
     type: "external",
   },
   archipel: {

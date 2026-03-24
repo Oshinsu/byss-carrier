@@ -65,6 +65,9 @@ export const JARVIS_ACTIONS: JarvisAction[] = [
   { id: "nav_lore", name: "Lore", description: "Ouvrir le lore JW", keywords: ["lore", "jurassic", "worldbuilding", "univers"], handler: "navigate", navigate: "/lore", category: "navigation" },
   { id: "nav_prompts", name: "Prompts", description: "Ouvrir les prompts", keywords: ["prompts", "prompt", "generation prompts"], handler: "navigate", navigate: "/production/prompts", category: "navigation" },
 
+  // ═══ E-COMMERCE ═══
+  { id: "ecom_analyze", name: "Analyser marche", description: "Analyser un marche e-commerce", keywords: ["e-commerce", "dropshipping", "store", "boutique", "marche", "niche", "ecommerce", "analyser marche"], handler: "navigate", navigate: "/projets/ecommerce", category: "navigation" },
+
   // ═══ CRM ACTIONS ═══
   { id: "crm_stats", name: "Stats Pipeline", description: "Résumé du pipeline CRM", keywords: ["combien", "prospects", "stats", "pipeline", "chiffres", "combien de prospects"], handler: "api", params: { route: "/api/ai", action: "pipeline_stats" }, category: "crm" },
   { id: "crm_relance", name: "Relancer prospect", description: "Envoyer une relance", keywords: ["relancer", "relance", "followup", "follow up"], handler: "api", params: { route: "/api/ai", action: "relance" }, requiresConfirmation: true, category: "crm" },

@@ -521,6 +521,44 @@ export const SYNERGY_RULES: SynergyRule[] = [
     },
   },
 
+  // ── E-Commerce → Store created → Notification + Calendar ──
+  {
+    id: "ecom-store-created",
+    source: "ecommerce",
+    trigger: "store_created",
+    description: "Store cree → Notification + evenement calendrier lancement",
+    execute: async (data) => {
+      const storeName = (data.storeName as string) || "Store";
+      const niche = (data.niche as string) || "";
+      const country = (data.country as string) || "";
+
+      await createNotification(
+        "system",
+        `Store cree — ${storeName}`,
+        `Niche: ${niche} | Marche: ${country}. Lancer le sprint 7 jours.`,
+        "/projets/ecommerce",
+        { storeId: data.storeId, niche, country, trigger: "ecom-store-created" },
+      );
+
+      // Calendar event for launch date (J+7)
+      const launchDate = new Date();
+      launchDate.setDate(launchDate.getDate() + 7);
+      const dateStr = launchDate.toLocaleDateString("fr-FR", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+
+      await createNotification(
+        "reminder",
+        `Lancement store — ${storeName}`,
+        `Date cible: ${dateStr}. Verifier ads, produits, storefront.`,
+        "/calendrier",
+        { storeId: data.storeId, launchDate: launchDate.toISOString(), trigger: "ecom-store-launch" },
+      );
+    },
+  },
+
   // ── Production → Image completed → Notification ──
   {
     id: "image-completed-notify",
@@ -819,5 +857,23 @@ export function onMarcheStatusChanged(
     newStatus,
     budget,
     dateLimite,
+  });
+}
+
+/**
+ * Convenience: trigger the e-commerce store-created synergy.
+ * Fires: notification + calendar launch event.
+ */
+export function onStoreCreated(
+  storeId: string,
+  storeName: string,
+  niche: string,
+  country: string,
+) {
+  return triggerSynergy("ecommerce", "store_created", {
+    storeId,
+    storeName,
+    niche,
+    country,
   });
 }
