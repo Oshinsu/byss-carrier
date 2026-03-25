@@ -289,6 +289,42 @@ export const CRON_TASKS: CronTask[] = [
       };
     },
   },
+  {
+    id: "harness_eval",
+    name: "Harness Evaluation (GAN)",
+    schedule: "Mercredi 6h00",
+    description: "Évalue 5 pages aléatoires avec le harness GAN. Évaluateur sceptique.",
+    enabled: false,
+    handler: async () => {
+      try {
+        const res = await fetch("/api/harness", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "evaluate_random_pages",
+            count: 5,
+          }),
+        });
+        if (!res.ok) {
+          return { success: false, message: `Erreur harness: ${res.status}` };
+        }
+        const data = await res.json();
+        const failedPages = data.results
+          ?.filter((r: { evaluation: { passed: boolean } }) => !r.evaluation.passed)
+          ?.length ?? 0;
+        return {
+          success: true,
+          message: `${data.pages_evaluated} pages — score moyen ${data.avg_score}/100 — ${failedPages} échecs`,
+          data,
+        };
+      } catch (err) {
+        return {
+          success: false,
+          message: err instanceof Error ? err.message : "Erreur harness GAN",
+        };
+      }
+    },
+  },
 ];
 
 /* ─── Cron Manager ─────────────────────────────────────── */
