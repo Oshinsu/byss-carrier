@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 
@@ -17,7 +18,7 @@ interface PageHeaderProps {
   className?: string;
 }
 
-export function PageHeader({
+export const PageHeader = React.memo(function PageHeader({
   title,
   titleAccent,
   subtitle,
@@ -56,4 +57,4 @@ export function PageHeader({
       )}
     </motion.div>
   );
-}
+});

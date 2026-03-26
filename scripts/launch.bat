@@ -23,6 +23,9 @@ echo.
 
 cd /d "%~dp0.."
 
+:: Add npm/pnpm to PATH
+set PATH=%USERPROFILE%\AppData\Roaming\npm;%USERPROFILE%\.local\share\pnpm;%PATH%
+
 echo    [*] Demarrage du vaisseau...
 echo.
 

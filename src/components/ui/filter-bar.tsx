@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { motion } from "motion/react";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,7 @@ interface FilterBarProps {
   className?: string;
 }
 
-export function FilterBar({
+export const FilterBar = React.memo(function FilterBar({
   searchValue,
   onSearchChange,
   searchPlaceholder = "Rechercher...",
@@ -87,4 +88,4 @@ export function FilterBar({
       )}
     </motion.div>
   );
-}
+});

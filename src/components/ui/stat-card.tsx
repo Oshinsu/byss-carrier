@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { motion } from "motion/react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,7 @@ const trendConfig = {
   },
 };
 
-export function StatCard({
+export const StatCard = React.memo(function StatCard({
   title,
   value,
   icon: Icon,
@@ -138,4 +139,4 @@ export function StatCard({
       <div className="absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-r from-transparent via-[var(--color-gold)] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-40" />
     </motion.div>
   );
-}
+});

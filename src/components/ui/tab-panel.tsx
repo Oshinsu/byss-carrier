@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
@@ -26,7 +26,7 @@ interface TabPanelProps {
   className?: string;
 }
 
-export function TabPanel({
+export const TabPanel = React.memo(function TabPanel({
   tabs,
   activeTab,
   onTabChange,
@@ -125,4 +125,4 @@ export function TabPanel({
       </motion.div>
     </div>
   );
-}
+});

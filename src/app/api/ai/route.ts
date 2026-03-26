@@ -11,6 +11,8 @@ import {
 } from "@/lib/ai/claude";
 import { logAgentAction } from "@/lib/db/queries";
 import { buildRAGContext } from "@/lib/ai/rag";
+import { getFewShotExamples } from "@/lib/ai/few-shot";
+import { reflect } from "@/lib/ai/reflection";
 
 // ═══════════════════════════════════════════════════════
 // BYSS GROUP — AI API Route
@@ -134,9 +136,13 @@ Redige l'email en MODE_CADIFOR. Voix de Sorel : directe, strategique, Martinique
           (prospect?.sector || "") + " " + (prospect?.pain_points || ""),
           { sourceTable: "lore_entries", limit: 5 }
         );
-        const emailSystemWithRAG = ragContext
-          ? sorelEmailSystem + "\n\n" + ragContext
-          : sorelEmailSystem;
+
+        // Few-shot bootstrapping (Stanford): inject best previous email examples
+        const fewShotBlock = await getFewShotExamples("draft_email", 2);
+
+        const emailSystemWithRAG = sorelEmailSystem
+          + (ragContext ? "\n\n" + ragContext : "")
+          + (fewShotBlock || "");
 
         const response = await anthropic.messages.create({
           model,
@@ -171,6 +177,9 @@ Redige l'email en MODE_CADIFOR. Voix de Sorel : directe, strategique, Martinique
         } catch {
           result = JSON.stringify({ subject: `${prospect?.name || "BYSS GROUP"} — Sorel`, body: emailText });
         }
+
+        // Reflection loop (MIT) — async, non-blocking
+        reflect("draft_email", userMessage, emailText).catch(() => {});
 
         return NextResponse.json({
           result,

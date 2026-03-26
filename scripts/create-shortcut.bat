@@ -14,6 +14,7 @@ echo oLink.TargetPath = "%TARGET%" >> "%TEMP%\CreateShortcut.vbs"
 echo oLink.WorkingDirectory = "%SCRIPT_DIR%.." >> "%TEMP%\CreateShortcut.vbs"
 echo oLink.Description = "BYSS CARRIER - The Executor" >> "%TEMP%\CreateShortcut.vbs"
 echo oLink.WindowStyle = 7 >> "%TEMP%\CreateShortcut.vbs"
+echo oLink.IconLocation = "%SCRIPT_DIR%..\public\app-icon.ico, 0" >> "%TEMP%\CreateShortcut.vbs"
 echo oLink.Save >> "%TEMP%\CreateShortcut.vbs"
 
 cscript //nologo "%TEMP%\CreateShortcut.vbs"

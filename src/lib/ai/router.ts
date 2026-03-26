@@ -15,6 +15,25 @@ import { routeTask, type TaskType, type ModelConfig } from "./models";
 
 export type CostTier = "brain" | "support" | "utility" | "orchestration";
 
+// ── Confidence-Based Routing (Harvard) ──────────────
+// Detect low-confidence responses from cheap models
+// and auto-escalate to Sonnet for important tasks.
+
+const LOW_CONFIDENCE_SIGNALS = [
+  /je ne suis pas (s[uû]r|certain)/i,
+  /il est possible que/i,
+  /je n'ai pas (assez|suffisamment) d'information/i,
+  /cette question est (complexe|difficile)/i,
+  /je ne peux pas (confirmer|garantir)/i,
+  /approximately|environ|[àa] peu pr[eè]s/i,
+];
+
+const ESCALATABLE_TASKS: TaskType[] = ["analysis", "commercial", "copywriting"];
+
+export function detectLowConfidence(response: string): boolean {
+  return LOW_CONFIDENCE_SIGNALS.some((p) => p.test(response));
+}
+
 // ── OpenRouter env-based model overrides ──
 // Maps task categories to env vars for cheap OpenRouter routing
 const OPENROUTER_TASK_MAP: Record<string, string> = {
@@ -111,6 +130,54 @@ export async function callOpenRouter(params: {
           metadata: { task, provider: "openrouter" },
         } as any);
       } catch {} // Fire and forget
+
+      // ── Confidence-Based Escalation (Harvard) ──
+      // If cheap model produced low-confidence output on an important task,
+      // auto-escalate to Claude Sonnet for a better answer.
+      if (
+        detectLowConfidence(result.content) &&
+        ESCALATABLE_TASKS.includes(task) &&
+        !openRouterModel.includes("claude")
+      ) {
+        const escalationModel = process.env.OPENROUTER_DEFAULT_MODEL || "anthropic/claude-sonnet-4-6";
+        try {
+          const escRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${openRouterKey}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "https://byss-group.com",
+              "X-Title": "BYSS Carrier",
+            },
+            body: JSON.stringify({ model: escalationModel, messages, temperature, max_tokens: maxTokens }),
+          });
+          if (escRes.ok) {
+            const escData = await escRes.json();
+            const escalated = {
+              content: escData.choices?.[0]?.message?.content || "",
+              model: escalationModel,
+              usage: escData.usage,
+            };
+            try {
+              const { logAgentAction } = await import("@/lib/db/queries");
+              await logAgentAction({
+                agent_name: task || "openrouter",
+                action: "confidence_escalation",
+                model: escalationModel,
+                input_tokens: escData.usage?.prompt_tokens || 0,
+                output_tokens: escData.usage?.completion_tokens || 0,
+                cost_usd: 0,
+                duration_ms: Date.now() - startTime,
+                success: true,
+                metadata: { task, provider: "openrouter", escalated_from: openRouterModel, reason: "low_confidence" },
+              } as any);
+            } catch {}
+            return escalated;
+          }
+        } catch {
+          // Escalation failed — return original result
+        }
+      }
 
       return result;
     }

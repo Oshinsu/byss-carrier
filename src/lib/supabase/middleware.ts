@@ -48,13 +48,20 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If on public route, allow access (but if logged in on /login, redirect to home)
+  // If on public route, allow access
+  // On localhost: NEVER redirect /login → / (let the hyperspace animation play)
   if (isPublicRoute) {
-    if (user && request.nextUrl.pathname === "/login") {
+    if (user && request.nextUrl.pathname === "/login" && !isLocalDev) {
       const url = request.nextUrl.clone();
       url.pathname = "/";
       return NextResponse.redirect(url);
     }
+    return supabaseResponse;
+  }
+
+  // LOCAL DEV: skip auth for admin pages (Gary's personal machine)
+  const isLocalDev = request.headers.get("host")?.includes("localhost");
+  if (isLocalDev && !request.nextUrl.pathname.startsWith("/login")) {
     return supabaseResponse;
   }
 

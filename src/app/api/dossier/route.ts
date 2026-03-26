@@ -26,6 +26,8 @@ import {
   buildProspectContext,
   compressContext,
 } from "@/lib/dossier/context-builder";
+import { getFewShotExamples } from "@/lib/ai/few-shot";
+import { reflect } from "@/lib/ai/reflection";
 
 /* ── Dossier JSON Structure ────────────────────────── */
 
@@ -226,15 +228,19 @@ async function generateFullDossier(prospectId: string) {
   const ctx = await buildProspectContext(prospectId);
   const compressed = compressContext(ctx);
 
-  // 2. Call Claude via OpenRouter (analysis task = heavy model)
+  // 2a. Fetch few-shot examples (Stanford bootstrapping)
+  const fewShotBlock = await getFewShotExamples("generate_dossier", 2);
+  const enhancedSystemPrompt = fewShotBlock
+    ? DOSSIER_SYSTEM_PROMPT + fewShotBlock
+    : DOSSIER_SYSTEM_PROMPT;
+
+  // 2b. Call Claude via OpenRouter (analysis task = heavy model)
+  const userPrompt = `Genere le dossier commercial complet pour ce prospect.\n\n${compressed}`;
   const response = await callOpenRouter({
     task: "analysis",
     messages: [
-      { role: "system" as const, content: DOSSIER_SYSTEM_PROMPT },
-      {
-        role: "user",
-        content: `Genere le dossier commercial complet pour ce prospect.\n\n${compressed}`,
-      },
+      { role: "system" as const, content: enhancedSystemPrompt },
+      { role: "user", content: userPrompt },
     ],
     temperature: 0.5,
     maxTokens: 6000,
@@ -307,6 +313,9 @@ async function generateFullDossier(prospectId: string) {
       },
     } as any);
   } catch {} // fire and forget
+
+  // 6. Reflection loop (MIT) — async, non-blocking
+  reflect("generate_dossier", userPrompt, response.content).catch(() => {});
 
   return NextResponse.json({
     dossier,

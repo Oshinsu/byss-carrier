@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { ChevronUp, ChevronDown, Search, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,7 @@ function getNestedValue(obj: unknown, path: string): unknown {
   }, obj);
 }
 
-export function DataTable<T extends Record<string, unknown>>({
+function DataTableInner<T extends Record<string, unknown>>({
   columns,
   data,
   emptyMessage = "Aucune donnee detectee dans ce secteur.",
@@ -211,3 +211,5 @@ export function DataTable<T extends Record<string, unknown>>({
     </div>
   );
 }
+
+export const DataTable = React.memo(DataTableInner) as typeof DataTableInner;

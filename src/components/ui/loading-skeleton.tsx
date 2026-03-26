@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { cn } from "@/lib/utils";
 
 /* ═══════════════════════════════════════════════════════
@@ -18,7 +19,7 @@ interface SkeletonTextProps {
   className?: string;
 }
 
-export function SkeletonText({
+export const SkeletonText = React.memo(function SkeletonText({
   width = "100%",
   lines = 1,
   className,
@@ -39,7 +40,7 @@ export function SkeletonText({
       ))}
     </div>
   );
-}
+});
 
 /* ── SkeletonAvatar ── */
 interface SkeletonAvatarProps {
@@ -47,14 +48,14 @@ interface SkeletonAvatarProps {
   className?: string;
 }
 
-export function SkeletonAvatar({ size = 40, className }: SkeletonAvatarProps) {
+export const SkeletonAvatar = React.memo(function SkeletonAvatar({ size = 40, className }: SkeletonAvatarProps) {
   return (
     <div
       className={cn(shimmerBase, "shrink-0 rounded-full", className)}
       style={{ width: size, height: size }}
     />
   );
-}
+});
 
 /* ── SkeletonCard ── */
 interface SkeletonCardProps {
@@ -62,7 +63,7 @@ interface SkeletonCardProps {
   children?: React.ReactNode;
 }
 
-export function SkeletonCard({ className, children }: SkeletonCardProps) {
+export const SkeletonCard = React.memo(function SkeletonCard({ className, children }: SkeletonCardProps) {
   return (
     <div
       className={cn(
@@ -91,7 +92,7 @@ export function SkeletonCard({ className, children }: SkeletonCardProps) {
       )}
     </div>
   );
-}
+});
 
 /* ── SkeletonTable ── */
 interface SkeletonTableProps {
@@ -100,7 +101,7 @@ interface SkeletonTableProps {
   className?: string;
 }
 
-export function SkeletonTable({
+export const SkeletonTable = React.memo(function SkeletonTable({
   rows = 5,
   cols = 4,
   className,
@@ -146,14 +147,14 @@ export function SkeletonTable({
       ))}
     </div>
   );
-}
+});
 
 /* ── SkeletonKPI ── */
 interface SkeletonKPIProps {
   className?: string;
 }
 
-export function SkeletonKPI({ className }: SkeletonKPIProps) {
+export const SkeletonKPI = React.memo(function SkeletonKPI({ className }: SkeletonKPIProps) {
   return (
     <div
       className={cn(
@@ -191,4 +192,4 @@ export function SkeletonKPI({ className }: SkeletonKPIProps) {
       <div className="absolute bottom-0 left-0 h-[2px] w-full animate-shimmer-gold" />
     </div>
   );
-}
+});
